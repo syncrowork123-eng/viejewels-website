@@ -733,6 +733,15 @@
       <div class="toolbar"><div class="toolbar-left"></div><button class="btn btn-primary" onclick="openMasterModal('tag')">+ Add Tag</button></div>
       <div class="table-wrap"><table><thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead><tbody id="tags-tbody"><tr><td colspan="3" class="state-msg">Loading...</td></tr></tbody></table></div>
     </div>
+    <div class="sub-panel" id="sub-sitesettings">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span style="font-size:12px;color:var(--text-muted)">Generic key/value store used across the live site (e.g. checkout's WhatsApp number). Editing a value here takes effect immediately on the front end.</span>
+        </div>
+        <button class="btn btn-primary" onclick="openSiteSettingModal()">+ Add Setting</button>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Key</th><th>Value</th><th>Actions</th></tr></thead><tbody id="sitesettings-tbody"><tr><td colspan="3" class="state-msg">Loading...</td></tr></tbody></table></div>
+    </div>
     <div class="sub-panel active" id="sub-currencies">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);">
@@ -1836,6 +1845,21 @@ document.getElementById('pe-iframe').addEventListener('load', () => {
   </div>
 </div>
 
+<!-- SITE SETTING MODAL -->
+<div class="modal-overlay" id="sitesetting-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h2 id="sitesetting-modal-title">Add Setting</h2><button class="modal-close" onclick="closeSiteSettingModal()">x</button></div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:16px"><label>Key *</label><input type="text" id="ss-key" /><span class="form-hint">e.g. whatsapp_number. Cannot be changed once created.</span></div>
+      <div class="form-group"><label>Value *</label><input type="text" id="ss-value" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeSiteSettingModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSiteSetting()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- SIZE VARIANTS MODAL — per-product list of sizes, each with its own
      metal net weights + stone details, so the frontend can show a price
      specific to whichever size the shopper picks. -->
@@ -2567,6 +2591,63 @@ async function saveCategory(){
 function confirmDeleteCategory(id,name){
   openConfirm('Delete category "'+name+'"?',async()=>{
     try{ await sb("categories?id=eq."+id,"DELETE"); toast("Deleted."); await loadCategories(); }
+    catch(e){ toast("Error: "+e.message,"error"); }
+  });
+}
+
+let editingSiteSettingKey=null;
+async function loadSiteSettings(){
+  try {
+    allSiteSettings=await sb("site_settings?select=key,value&order=key.asc");
+    renderSiteSettingsTable();
+  } catch(e){
+    document.getElementById("sitesettings-tbody").innerHTML="<tr><td colspan='3' class='state-msg'>Failed to load site settings.</td></tr>";
+    console.error("loadSiteSettings:",e.message);
+  }
+}
+function renderSiteSettingsTable(){
+  document.getElementById("sitesettings-tbody").innerHTML=allSiteSettings.length
+    ?allSiteSettings.map(r=>`<tr>
+        <td><strong>${esc(r.key)}</strong></td>
+        <td>${esc(r.value??"")}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="openSiteSettingModal('${esc(r.key)}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteSiteSetting('${esc(r.key)}')">Delete</button>
+        </td>
+      </tr>`).join("")
+    :"<tr><td colspan='3' class='state-msg'>No settings yet.</td></tr>";
+}
+function openSiteSettingModal(key=null){
+  editingSiteSettingKey=key;
+  document.getElementById("sitesetting-modal-title").textContent=key?"Edit Setting":"Add Setting";
+  const keyInput=document.getElementById("ss-key");
+  if(key){
+    const rec=allSiteSettings.find(r=>r.key===key);
+    keyInput.value=key; keyInput.disabled=true;
+    document.getElementById("ss-value").value=rec?rec.value:"";
+  } else {
+    keyInput.value=""; keyInput.disabled=false;
+    document.getElementById("ss-value").value="";
+  }
+  document.getElementById("sitesetting-modal").classList.add("open");
+}
+function closeSiteSettingModal(){ document.getElementById("sitesetting-modal").classList.remove("open"); editingSiteSettingKey=null; document.getElementById("ss-key").disabled=false; }
+async function saveSiteSetting(){
+  const key=gv("ss-key").trim(), value=gv("ss-value").trim();
+  if(!key||!value){ toast("Key and value required.","error"); return; }
+  try {
+    if(editingSiteSettingKey){
+      await sb("site_settings?key=eq."+encodeURIComponent(editingSiteSettingKey),"PATCH",{value});
+    } else {
+      if(allSiteSettings.some(r=>r.key===key)){ toast("A setting with this key already exists.","error"); return; }
+      await sb("site_settings","POST",{key,value});
+    }
+    toast("Setting "+(editingSiteSettingKey?"updated.":"added.")); closeSiteSettingModal(); await loadSiteSettings();
+  } catch(e){ toast("Error: "+e.message,"error"); }
+}
+function confirmDeleteSiteSetting(key){
+  openConfirm('Delete setting "'+key+'"? Any front-end code depending on it will fall back to its hardcoded default.',async()=>{
+    try{ await sb("site_settings?key=eq."+encodeURIComponent(key),"DELETE"); toast("Deleted."); await loadSiteSettings(); }
     catch(e){ toast("Error: "+e.message,"error"); }
   });
 }
