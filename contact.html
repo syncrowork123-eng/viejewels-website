@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us | Vie Jewels</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">Contact Us</p>
+      <h1>Begin a conversation with Vie Jewels.</h1>
+      <p>
+        Ask about a collection piece, a bespoke design, or a jewelry consultation.
+      </p>
+    </section>
+    <section class="section">
+      <form class="form-wrap" id="contact-form">
+        <input type="text" name="from_name" id="from_name" placeholder="Your name" required />
+        <input type="email" name="from_email" id="from_email" placeholder="Email address" required />
+        <input type="tel" name="from_phone" id="from_phone" placeholder="Phone / WhatsApp" />
+        <textarea name="message" id="message" data-contact-message placeholder="Tell us what you are looking for" required></textarea>
+        <button class="primary-btn" type="submit" id="submit-btn">Send Inquiry</button>
+        <p id="form-status" style="margin-top:1rem;font-size:0.95rem;"></p>
+      </form>
+    </section>
+  </main>
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: www.viejewels.com</p>
+    </div>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

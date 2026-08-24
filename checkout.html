@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout | Vie Jewels</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── CHECKOUT PAGE ──────────────────────────────────────────────── */
+    .co-page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 24px 100px;
+    }
+
+    .co-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: flex-start;
+    }
+
+    /* ── ORDER SUMMARY ── */
+    .co-summary-heading {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 16px;
+      letter-spacing: 0.01em;
+    }
+
+    .co-summary-list {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--border-light);
+      margin-bottom: 20px;
+    }
+
+    .co-row {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 4px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .co-row-media {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface2);
+      flex-shrink: 0;
+    }
+    .co-row-media img { width: 100%; height: 100%; object-fit: cover; }
+    .co-row-info { min-width: 0; }
+    .co-row-name {
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .co-row-meta {
+      font-size: 11px;
+      color: var(--text-light);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .co-row-options {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+    .co-row-qty {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .co-row-price {
+      text-align: right;
+      font-size: 13.5px;
+      color: var(--text);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .co-summary-totals {
+      max-width: 320px;
+      margin: 0 0 8px auto;
+    }
+    .co-summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .co-summary-row.co-summary-grand {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 500;
+      color: var(--text);
+      border-bottom: none;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 2px;
+    }
+    .co-summary-note {
+      font-size: 11px;
+      color: var(--text-light);
+      text-align: right;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .co-edit-link {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: underline;
+    }
+    .co-edit-link:hover { color: var(--text); }
+
+    /* ── FORM CARD ── */
+    .co-form-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 26px;
+      background: var(--surface);
+    }
+    .co-form-heading {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 400;
+      margin-bottom: 6px;
+    }
+    .co-form-sub {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .co-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+    .co-field label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    .co-field input,
+    .co-field textarea {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .co-field input::placeholder,
+    .co-field textarea::placeholder { color: var(--text-light); }
+    .co-field input:focus,
+    .co-field textarea:focus { border-color: var(--text); }
+    .co-field input:disabled {
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+    .co-field textarea { resize: vertical; min-height: 90px; }
+    .co-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .co-error {
+      display: none;
+      font-size: 12.5px;
+      color: #b3261e;
+      background: rgba(179, 38, 30, 0.06);
+      border: 1px solid rgba(179, 38, 30, 0.18);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .co-error.show { display: block; }
+
+    .co-submit {
+      width: 100%;
+      padding: 15px;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .co-post-submit-note {
+      font-size: 11.5px;
+      color: var(--text-light);
+      line-height: 1.6;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .co-empty {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--text-muted);
+    }
+    .co-empty a { text-decoration: underline; color: var(--text); }
+
+    @media (max-width: 860px) {
+      .co-layout { grid-template-columns: 1fr; gap: 36px; }
+      .co-field-row { grid-template-columns: 1fr; }
+      .co-summary-totals { max-width: none; }
+      .co-row { grid-template-columns: 56px 1fr; grid-template-areas: "media info" "price price"; row-gap: 8px; }
+      .co-row-media { grid-area: media; width: 56px; height: 56px; }
+      .co-row-info { grid-area: info; }
+      .co-row-price { grid-area: price; text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+
+      <div class="nav-icons">
+
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">Checkout</p>
+      <h1>Complete Your Enquiry</h1>
+      <p>Review your selections and confirm your details. Our specialists will follow up personally.</p>
+    </section>
+
+    <div class="co-page">
+
+      <!-- EMPTY STATE -->
+      <div class="co-empty" id="co-empty" style="display:none">
+        <p>Your enquiry list is empty.</p>
+        <p style="margin-top:10px"><a href="collections.html">Browse Collections</a></p>
+      </div>
+
+      <div class="co-layout" id="co-layout">
+
+        <!-- LEFT: ORDER SUMMARY -->
+        <div>
+          <p class="co-summary-heading">Your Enquiry List</p>
+          <div class="co-summary-list" id="co-summary-list"></div>
+          <div class="co-summary-totals" id="co-summary-totals"></div>
+          <a class="co-edit-link" href="cart.html">Edit enquiry list</a>
+        </div>
+
+        <!-- RIGHT: CLIENT DETAILS FORM -->
+        <div class="co-form-card">
+          <p class="co-form-heading">Your Details</p>
+          <p class="co-form-sub">Confirm your contact and delivery details below. A member of our team will reach out via WhatsApp and email shortly.</p>
+
+          <div class="co-error" id="co-error"></div>
+
+          <form id="co-form" onsubmit="return coHandleSubmit(event)">
+            <div class="co-field">
+              <label for="co-email">Email Address</label>
+              <input type="email" id="co-email" disabled />
+            </div>
+
+            <div class="co-field">
+              <label for="co-name">Full Name</label>
+              <input type="text" id="co-name" placeholder="Your full name" required />
+            </div>
+
+            <div class="co-field">
+              <label for="co-phone">WhatsApp / Phone Number</label>
+              <input type="tel" id="co-phone" placeholder="e.g. +91 98765 43210" required />
+            </div>
+
+            <div class="co-field">
+              <label for="co-address">Delivery Address</label>
+              <textarea id="co-address" placeholder="House / street / area / city / state / country" required></textarea>
+            </div>
+
+            <div class="co-field">
+              <label for="co-notes">Notes for our team <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-light)">(optional)</span></label>
+              <textarea id="co-notes" placeholder="Any special requests, timelines, or questions..."></textarea>
+            </div>
+
+            <button type="submit" class="primary-btn co-submit" id="co-submit-btn">Submit Enquiry</button>
+            <p class="co-post-submit-note">On submit, we'll save your enquiry, email you a confirmation, and open WhatsApp so you can continue the conversation with us directly.</p>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: www.viejewels.com</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="script.js"></script>
+  <script>
+    /* ── CHECKOUT LOGIC ───────────────────────────────────────────────────
+       Reuses SUPABASE_URL / SUPABASE_KEY / getStored / setStored / esc /
+       updateNavBadges from script.js (loaded above). Session handling
+       mirrors crGetSession() in register.html — same "vj_auth" key.
+    ──────────────────────────────────────────────────────────────────── */
+
+    const CO_EMAILJS_SERVICE_ID  = "service_ht8azjl";
+    const CO_EMAILJS_TEMPLATE_ID = "template_tnlzzgy";
+    const CO_EMAILJS_PUBLIC_KEY  = "1OPjVCSh3Z-UuW3aG";
+    const CO_WHATSAPP_FALLBACK   = "919619616412"; // used only if site_settings lookup fails
+
+    emailjs.init(CO_EMAILJS_PUBLIC_KEY);
+
+    function coGetSession() {
+      try { return JSON.parse(localStorage.getItem("vj_auth") || "null"); }
+      catch { return null; }
+    }
+
+    // Redirects to sign-in if there's no session, or if the stored session
+    // has expired. Returns the session object if valid, otherwise null
+    // (caller should stop and not proceed further).
+    function coRequireLogin() {
+      const session = coGetSession();
+      if (!session || !session.access_token || !session.user) {
+        location.href = "register.html?redirect=checkout.html";
+        return null;
+      }
+      if (session.expires_at && Math.floor(Date.now() / 1000) > session.expires_at) {
+        localStorage.removeItem("vj_auth");
+        location.href = "register.html?redirect=checkout.html";
+        return null;
+      }
+      return session;
+    }
+
+    function coShowError(msg) {
+      const el = document.getElementById("co-error");
+      el.textContent = msg;
+      el.classList.add("show");
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    function coClearError() {
+      const el = document.getElementById("co-error");
+      el.classList.remove("show");
+      el.textContent = "";
+    }
+
+    // ── ORDER SUMMARY RENDER ──────────────────────────────────────────────
+    function coRowHtml(item) {
+      const qty = Math.max(1, parseInt(item.qty, 10) || 1);
+      const hasRate = item.priceValue != null;
+      const lineTotal = hasRate ? item.priceValue * qty : null;
+      const sym = item.priceSymbol || "";
+      const fmtAmt = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const opts = item.options || {};
+      const summaryParts = [
+        opts.metalQuality,
+        opts.metalColor,
+        opts.stoneType,
+        opts.diamond,
+        (opts.size || item.size) ? "Size: " + (opts.size || item.size) : null,
+      ].filter(Boolean);
+      const summaryLine = summaryParts.length
+        ? `<p class="co-row-options">${summaryParts.map(esc).join(" &middot; ")}</p>`
+        : "";
+
+      return `<div class="co-row">
+        <div class="co-row-media"><img src="${esc(item.image || "")}" alt="${esc(item.name || "")}" loading="lazy" /></div>
+        <div class="co-row-info">
+          <p class="co-row-name">${esc(item.name || "Untitled")}</p>
+          <p class="co-row-meta">${esc(item.sku || "")}</p>
+          ${summaryLine}
+          <p class="co-row-qty">Qty: ${qty}</p>
+        </div>
+        <div class="co-row-price">${hasRate ? esc(sym + " " + fmtAmt(lineTotal)) : "Price on request"}</div>
+      </div>`;
+    }
+
+    function coRenderSummary() {
+      const items = getStored("vj_cart").map((i) => ({ ...i, qty: Math.max(1, parseInt(i.qty, 10) || 1) }));
+
+      if (!items.length) {
+        document.getElementById("co-empty").style.display = "";
+        document.getElementById("co-layout").style.display = "none";
+        return items;
+      }
+
+      document.getElementById("co-summary-list").innerHTML = items.map(coRowHtml).join("");
+
+      const itemCount = items.reduce((sum, i) => sum + i.qty, 0);
+      const fmtAmt = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const totalsBySymbol = {};
+      let unpricedCount = 0;
+      items.forEach((i) => {
+        if (i.priceValue == null) { unpricedCount++; return; }
+        const sym = i.priceSymbol || "";
+        totalsBySymbol[sym] = (totalsBySymbol[sym] || 0) + i.priceValue * i.qty;
+      });
+      const symbols = Object.keys(totalsBySymbol);
+
+      const totalLines = symbols.length
+        ? symbols.map((sym) => `
+            <div class="co-summary-row co-summary-grand">
+              <span>Total${symbols.length > 1 ? " (" + esc(sym) + ")" : ""}</span>
+              <span>${esc(sym)} ${fmtAmt(totalsBySymbol[sym])}</span>
+            </div>`).join("")
+        : `<div class="co-summary-row co-summary-grand"><span>Total</span><span>Price on request</span></div>`;
+
+      document.getElementById("co-summary-totals").innerHTML = `
+        <div class="co-summary-row"><span>Items (${itemCount})</span><span></span></div>
+        ${totalLines}
+        ${unpricedCount ? `<p class="co-summary-note">${unpricedCount} item${unpricedCount > 1 ? "s" : ""} priced on request &mdash; final total confirmed by our team.</p>` : ""}
+      `;
+
+      return items;
+    }
+
+    // ── PREFILL CLIENT DETAILS FROM SESSION ───────────────────────────────
+    function coPrefillDetails(session) {
+      const meta = session.user?.user_metadata || {};
+      document.getElementById("co-email").value = session.user?.email || "";
+      document.getElementById("co-name").value = meta.full_name || "";
+      document.getElementById("co-phone").value = meta.phone || "";
+      const addressParts = [meta.address, meta.city, meta.state, meta.country].filter(Boolean);
+      document.getElementById("co-address").value = addressParts.join(", ");
+    }
+
+    // ── WHATSAPP NUMBER (from site_settings, editable in admin) ──────────
+    async function coFetchWhatsappNumber() {
+      try {
+        const res = await fetch(SUPABASE_URL + "/rest/v1/site_settings?key=eq.whatsapp_number&select=value", {
+          headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY },
+        });
+        if (!res.ok) throw new Error("lookup failed");
+        const rows = await res.json();
+        return (rows?.[0]?.value || CO_WHATSAPP_FALLBACK).replace(/\D/g, "");
+      } catch (e) {
+        return CO_WHATSAPP_FALLBACK;
+      }
+    }
+
+    // ── SUBMIT ─────────────────────────────────────────────────────────────
+    async function coHandleSubmit(e) {
+      e.preventDefault();
+      coClearError();
+
+      const session = coRequireLogin();
+      if (!session) return false;
+
+      const items = getStored("vj_cart");
+      if (!items.length) { coShowError("Your enquiry list is empty."); return false; }
+
+      const full_name = document.getElementById("co-name").value.trim();
+      const phone = document.getElementById("co-phone").value.trim();
+      const address = document.getElementById("co-address").value.trim();
+      const notes = document.getElementById("co-notes").value.trim();
+      const email = session.user?.email || "";
+
+      if (!full_name) { coShowError("Please enter your full name."); return false; }
+      if (!phone) { coShowError("Please enter your WhatsApp / phone number."); return false; }
+      if (!address) { coShowError("Please enter your delivery address."); return false; }
+
+      const btn = document.getElementById("co-submit-btn");
+      btn.disabled = true;
+      btn.textContent = "Submitting\u2026";
+
+      // Totals — represented in the currency of the first priced item.
+      // (Full per-item breakdown always lives in the items jsonb column.)
+      let totalAmount = 0;
+      let currencySymbol = "";
+      items.forEach((i) => {
+        const qty = parseInt(i.qty, 10) || 1;
+        if (i.priceValue != null) {
+          totalAmount += i.priceValue * qty;
+          if (!currencySymbol) currencySymbol = i.priceSymbol || "";
+        }
+      });
+
+      const payload = {
+        user_id: session.user.id,
+        items,
+        total_amount: totalAmount || null,
+        currency: currencySymbol || null,
+        full_name,
+        email,
+        phone,
+        address,
+        notes: notes || null,
+        status: "new",
+      };
+
+      let saved;
+      try {
+        const res = await fetch(SUPABASE_URL + "/rest/v1/enquiries", {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem("vj_auth");
+            location.href = "register.html?redirect=checkout.html";
+            return false;
+          }
+          throw new Error(errData.message || errData.hint || "Could not submit your enquiry.");
+        }
+        const rows = await res.json();
+        saved = rows?.[0];
+      } catch (err) {
+        coShowError(err.message || "Something went wrong submitting your enquiry. Please try again.");
+        btn.disabled = false;
+        btn.textContent = "Submit Enquiry";
+        return false;
+      }
+
+      // Build a plain-text order summary for the confirmation email + WhatsApp message
+      const fmtAmt = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const summaryLines = items.map((i, idx) => {
+        const qty = parseInt(i.qty, 10) || 1;
+        const rate = i.priceValue != null ? (i.priceSymbol + " " + fmtAmt(i.priceValue)) : "Price on request";
+        return (idx + 1) + ". " + (i.name || "Item") + (i.sku ? " (SKU: " + i.sku + ")" : "") + " \u2014 Qty: " + qty + " \u2014 " + rate + " each";
+      }).join("\n");
+      const totalText = totalAmount ? (currencySymbol + " " + fmtAmt(totalAmount)) : "Price on request";
+
+      // Email confirmation — best-effort; a failed email should not block checkout
+      try {
+        await emailjs.send(CO_EMAILJS_SERVICE_ID, CO_EMAILJS_TEMPLATE_ID, {
+          to_email: email,
+          customer_name: full_name,
+          customer_phone: phone,
+          customer_address: address,
+          order_summary: summaryLines,
+          order_total: totalText,
+          customer_notes: notes || "\u2014",
+          enquiry_id: saved?.id || "",
+        });
+      } catch (emailErr) {
+        console.error("EmailJS send failed:", emailErr);
+      }
+
+      // Clear the enquiry list now that it's been submitted
+      setStored("vj_cart", []);
+      updateNavBadges();
+
+      // Redirect to WhatsApp with a prefilled message
+      const waNumber = await coFetchWhatsappNumber();
+      const waText = encodeURIComponent(
+        "Hi Vie Jewels, I've just submitted an enquiry" + (saved?.id ? " (Ref #" + saved.id + ")" : "") + ".\n\n" +
+        summaryLines + "\n\nTotal: " + totalText
+      );
+      location.href = "https://wa.me/" + waNumber + "?text=" + waText;
+      return false;
+    }
+
+    // ── INIT ───────────────────────────────────────────────────────────────
+    document.addEventListener("DOMContentLoaded", () => {
+      const session = coRequireLogin();
+      if (!session) return; // already redirecting
+
+      const items = coRenderSummary();
+      if (!items.length) return; // empty-state already shown
+
+      coPrefillDetails(session);
+    });
+  </script>
+</body>
+</html>

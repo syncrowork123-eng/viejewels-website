@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collections | Vie Jewels</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry &bull; Diamonds &bull; Bespoke Designs</span>
+    </div>
+
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">&#128722; <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">&#9711;</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">Collections</p>
+      <h1>Explore Vie Jewels</h1>
+      <p data-collection-intro>Fine jewelry by category, theme, and occasion.</p>
+    </section>
+
+    <section class="section catalog-layout">
+      <aside class="catalog-sidebar">
+        <h3>Refine</h3>
+
+        <div class="filter-group">
+          <h4>Jewelry Categories</h4>
+          <div class="filter-tree" data-jewelcat-filters></div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Price Range (USD)</h4>
+          <div class="filter-range">
+            <input type="number" inputmode="decimal" placeholder="Min" data-price-min />
+            <span>&ndash;</span>
+            <input type="number" inputmode="decimal" placeholder="Max" data-price-max />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Metal Weight (g)</h4>
+          <div class="filter-range">
+            <input type="number" inputmode="decimal" placeholder="Min" data-weight-min />
+            <span>&ndash;</span>
+            <input type="number" inputmode="decimal" placeholder="Max" data-weight-max />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Diamond Weight (ct)</h4>
+          <div class="filter-range">
+            <input type="number" inputmode="decimal" step="0.01" placeholder="Min" data-diamond-min />
+            <span>&ndash;</span>
+            <input type="number" inputmode="decimal" step="0.01" placeholder="Max" data-diamond-max />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Tags &amp; Themes</h4>
+          <div class="filter-tags" data-tag-filters></div>
+        </div>
+
+        <button class="filter-clear-btn" type="button" data-clear-filters>Clear All Filters</button>
+      </aside>
+
+      <div class="catalog-main">
+        <div class="top-filter-bar">
+          <div class="top-filter-group">
+            <span class="top-filter-label">Metal Options</span>
+            <div class="top-filter-row">
+              <select data-filter-metal-type><option value="">Metal Type</option></select>
+              <select data-filter-metal-quality><option value="">Metal Quality</option></select>
+              <select data-filter-metal-color><option value="">Metal Color</option></select>
+            </div>
+          </div>
+          <div class="top-filter-group">
+            <span class="top-filter-label">Diamond Options</span>
+            <div class="top-filter-row">
+              <select data-filter-stone-type><option value="">Stone Type</option></select>
+              <select data-filter-diamond-color><option value="">Diamond Color</option></select>
+              <select data-filter-diamond-quality><option value="">Diamond Quality</option></select>
+            </div>
+          </div>
+          <div class="top-filter-group" style="flex:0;min-width:130px;">
+            <span class="top-filter-label">Currency</span>
+            <div class="top-filter-row">
+              <select data-filter-currency><option value="">$ USD</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="catalog-toolbar">
+          <input
+            type="search"
+            data-product-search
+            placeholder="Search by name, SKU, metal, stone&hellip;"
+            aria-label="Search products"
+          />
+          <div class="catalog-toolbar-right">
+            <span class="catalog-count" data-product-count></span>
+            <div class="sort-group">
+              <span class="sort-label">Sort</span>
+              <button class="sort-btn active" data-sort="newest" type="button">Newest</button>
+              <button class="sort-btn" data-sort="sku" type="button">SKU</button>
+              <button class="sort-btn" data-sort="price-asc" type="button">Price &uarr;</button>
+              <button class="sort-btn" data-sort="price-desc" type="button">Price &darr;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-heading" style="text-align:left; margin-bottom:0; padding-bottom:20px; border-bottom:1px solid var(--border-light);">
+          <p class="eyebrow" style="text-align:left">Online Catalog</p>
+          <h2 data-products-heading style="font-size:19px">All Products</h2>
+        </div>
+
+        <div class="product-grid" data-product-grid style="margin-top:1px">
+          <p style="padding:48px;color:var(--text-light);font-size:13px">Loading products...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: www.viejewels.com</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

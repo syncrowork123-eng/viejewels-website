@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Registration | Vie Jewels</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── CLIENT REGISTRATION PAGE ──────────────────────────────────────── */
+    .cr-page {
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 56px 24px 100px;
+    }
+
+    .cr-intro {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .cr-intro h1 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      margin-bottom: 12px;
+    }
+    .cr-intro p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.75;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    /* Tab toggle */
+    .cr-tabs {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+    .cr-tab {
+      flex: 1;
+      padding: 14px 12px;
+      background: var(--surface);
+      border: none;
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .cr-tab + .cr-tab { border-left: 1px solid var(--border); }
+    .cr-tab.active { background: var(--text); color: var(--surface); }
+    .cr-tab:not(.active):hover { background: var(--surface2); color: var(--text); }
+
+    /* Forms */
+    .cr-form { display: none; flex-direction: column; gap: 16px; }
+    .cr-form.active { display: flex; }
+
+    .cr-field { display: flex; flex-direction: column; gap: 7px; }
+    .cr-field label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    .cr-field input {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .cr-field input::placeholder,
+    .cr-field textarea::placeholder { color: var(--text-light); }
+    .cr-field input:focus,
+    .cr-field textarea:focus,
+    .cr-field select:focus { border-color: var(--text); }
+    .cr-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .cr-field textarea {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--text);
+      outline: none;
+      resize: vertical;
+      min-height: 64px;
+      transition: border-color var(--transition);
+    }
+
+    .cr-field select {
+      padding: 12px 34px 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--transition);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' viewBox='0 0 10 6'%3E%3Cpath stroke='%238a8176' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.2' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    .cr-field select:invalid { color: var(--text-light); }
+
+    .cr-field-state { display: none; }
+    .cr-field-state.show { display: flex; }
+
+    .cr-submit {
+      margin-top: 6px;
+      padding: 14px;
+      font-size: 11px;
+    }
+
+    .cr-error {
+      display: none;
+      font-size: 12.5px;
+      color: #b3261e;
+      background: rgba(179, 38, 30, 0.06);
+      border: 1px solid rgba(179, 38, 30, 0.18);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      line-height: 1.55;
+    }
+    .cr-error.show { display: block; }
+
+    .cr-success {
+      display: none;
+      text-align: center;
+      padding: 32px 8px 8px;
+    }
+    .cr-success.show { display: block; }
+    .cr-success p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+    .cr-success .eyebrow { margin-bottom: 14px; }
+
+    .cr-forgot {
+      text-align: right;
+      margin-top: -6px;
+    }
+    .cr-forgot button {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      text-decoration: underline;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .cr-forgot button:hover { color: var(--text); }
+
+    .cr-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 20px;
+      color: var(--text-light);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .cr-divider::before,
+    .cr-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-light);
+    }
+
+    .cr-guest {
+      text-align: center;
+    }
+    .cr-guest a {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      text-decoration: underline;
+      transition: color var(--transition);
+    }
+    .cr-guest a:hover { color: var(--text); }
+
+    .cr-terms {
+      font-size: 11px;
+      color: var(--text-light);
+      line-height: 1.6;
+      margin-top: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+
+      <div class="nav-icons">
+
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">Checkout</p>
+      <h1>Client Registration</h1>
+    </section>
+
+    <div class="cr-page">
+
+      <div id="cr-forms-wrap">
+        <div class="cr-intro">
+          <p>Sign in to an existing account, or register as a new client to continue with your enquiry.</p>
+        </div>
+
+        <div class="cr-tabs">
+          <button class="cr-tab active" id="cr-tab-login" onclick="crSwitchTab('login')">Sign In</button>
+          <button class="cr-tab" id="cr-tab-register" onclick="crSwitchTab('register')">Create Account</button>
+        </div>
+
+        <div class="cr-error" id="cr-error"></div>
+
+        <!-- LOGIN -->
+        <form class="cr-form active" id="cr-form-login" onsubmit="return crHandleLogin(event)">
+          <div class="cr-field">
+            <label for="cr-login-email">Email Address</label>
+            <input type="email" id="cr-login-email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+          <div class="cr-field">
+            <label for="cr-login-password">Password</label>
+            <input type="password" id="cr-login-password" placeholder="Enter your password" autocomplete="current-password" required />
+          </div>
+          <div class="cr-forgot">
+            <button type="button" onclick="crForgotPassword()">Forgot password?</button>
+          </div>
+          <button type="submit" class="primary-btn cr-submit" id="cr-login-btn">Sign In</button>
+        </form>
+
+        <!-- REGISTER -->
+        <form class="cr-form" id="cr-form-register" onsubmit="return crHandleRegister(event)">
+          <div class="cr-field">
+            <label for="cr-reg-name">Full Name</label>
+            <input type="text" id="cr-reg-name" placeholder="Your full name" autocomplete="name" required />
+          </div>
+          <div class="cr-field-row">
+            <div class="cr-field">
+              <label for="cr-reg-email">Email Address</label>
+              <input type="email" id="cr-reg-email" placeholder="you@example.com" autocomplete="email" required />
+            </div>
+            <div class="cr-field">
+              <label for="cr-reg-phone">WhatsApp / Phone Number</label>
+              <input type="tel" id="cr-reg-phone" placeholder="e.g. +91 98765 43210" autocomplete="tel" required />
+            </div>
+          </div>
+
+          <div class="cr-field">
+            <label for="cr-reg-address">Address</label>
+            <textarea id="cr-reg-address" placeholder="House / street / area" autocomplete="street-address" required></textarea>
+          </div>
+
+          <div class="cr-field-row">
+            <div class="cr-field">
+              <label for="cr-reg-country">Country</label>
+              <select id="cr-reg-country" autocomplete="country-name" required onchange="crUpdateLocationFields()">
+                <option value="" disabled selected>Select country&hellip;</option>
+              </select>
+            </div>
+            <div class="cr-field">
+              <label for="cr-reg-city">City</label>
+              <select id="cr-reg-city" autocomplete="address-level2" required disabled>
+                <option value="" disabled selected>Select country first&hellip;</option>
+              </select>
+              <input type="text" id="cr-reg-city-other" placeholder="Enter your city" autocomplete="address-level2" style="display:none" />
+            </div>
+          </div>
+
+          <div class="cr-field cr-field-state" id="cr-reg-state-wrap">
+            <label for="cr-reg-state">State</label>
+            <select id="cr-reg-state" autocomplete="address-level1">
+              <option value="" disabled selected>Select state&hellip;</option>
+            </select>
+          </div>
+
+          <div class="cr-field-row">
+            <div class="cr-field">
+              <label for="cr-reg-password">Password</label>
+              <input type="password" id="cr-reg-password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required />
+            </div>
+            <div class="cr-field">
+              <label for="cr-reg-password2">Confirm Password</label>
+              <input type="password" id="cr-reg-password2" placeholder="Re-enter password" autocomplete="new-password" minlength="8" required />
+            </div>
+          </div>
+          <button type="submit" class="primary-btn cr-submit" id="cr-register-btn">Create Account</button>
+          <p class="cr-terms">By creating an account you agree to be contacted by Vie Jewels regarding your enquiries.</p>
+        </form>
+      </div>
+
+      <!-- SUCCESS STATE -->
+      <div class="cr-success" id="cr-success">
+        <p class="eyebrow" style="text-align:center">Welcome</p>
+        <p id="cr-success-message">You're signed in. Taking you back to complete your enquiry&hellip;</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: www.viejewels.com</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    /* ── CLIENT REGISTRATION / LOGIN ─────────────────────────────────────
+       Uses Supabase's built-in Auth REST endpoints directly (same raw-fetch
+       pattern script.js already uses for the products API), so no extra
+       supabase-js dependency is introduced. Session is kept in localStorage
+       under "vj_auth" — mirrors the vj_cart / vj_wishlist storage pattern.
+
+       Requires Email/Password sign-in to be enabled in the Supabase project
+       (Authentication → Providers → Email). If "Confirm email" is turned on,
+       new accounts will need to click the verification link before signing in.
+    ──────────────────────────────────────────────────────────────────── */
+
+    const CR_AUTH_URL = SUPABASE_URL + "/auth/v1";
+
+    // Where to send the client after a successful sign-in / registration.
+    // cart.html's checkout button links here as: register.html?redirect=contact.html
+    const crRedirectTarget = new URLSearchParams(location.search).get("redirect") || "contact.html";
+
+    // ── COUNTRY / STATE / CITY DATA ──────────────────────────────────────
+    const CR_COUNTRIES = [
+      "India","United States","United Arab Emirates","United Kingdom","Canada","Australia",
+      "Singapore","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Germany","France","Italy",
+      "Spain","Netherlands","Switzerland","Ireland","Sweden","Norway","Denmark","Belgium",
+      "Austria","Portugal","Japan","China","Hong Kong","South Korea","Malaysia","Indonesia",
+      "Thailand","Philippines","Vietnam","Pakistan","Bangladesh","Sri Lanka","Nepal",
+      "New Zealand","South Africa","Nigeria","Kenya","Egypt","Turkey","Israel","Brazil",
+      "Mexico","Argentina","Russia","Other"
+    ];
+
+    // Curated major cities for countries where we offer a ready-made list.
+    // Countries not listed here fall back to a free-text city field.
+    const CR_CITIES = {
+      "India": ["Mumbai","Delhi","Bengaluru","Hyderabad","Ahmedabad","Chennai","Kolkata","Pune","Jaipur","Surat","Lucknow","Chandigarh","Kochi","Other"],
+      "United States": ["New York","Los Angeles","Chicago","Houston","San Francisco","Miami","Dallas","Seattle","Boston","Atlanta","San Jose","Washington DC","Other"],
+      "United Arab Emirates": ["Dubai","Abu Dhabi","Sharjah","Ajman","Ras Al Khaimah","Fujairah","Other"],
+      "United Kingdom": ["London","Manchester","Birmingham","Leeds","Glasgow","Edinburgh","Liverpool","Bristol","Other"],
+      "Canada": ["Toronto","Vancouver","Montreal","Calgary","Ottawa","Edmonton","Other"],
+      "Australia": ["Sydney","Melbourne","Brisbane","Perth","Adelaide","Canberra","Other"],
+      "Singapore": ["Singapore","Other"],
+      "Saudi Arabia": ["Riyadh","Jeddah","Dammam","Mecca","Medina","Other"],
+      "Qatar": ["Doha","Al Rayyan","Other"],
+      "Kuwait": ["Kuwait City","Hawalli","Other"],
+      "Bahrain": ["Manama","Riffa","Other"],
+      "Oman": ["Muscat","Salalah","Other"],
+      "Germany": ["Berlin","Munich","Frankfurt","Hamburg","Cologne","Stuttgart","Other"],
+      "France": ["Paris","Marseille","Lyon","Nice","Toulouse","Other"],
+      "Italy": ["Rome","Milan","Naples","Turin","Florence","Other"],
+      "Spain": ["Madrid","Barcelona","Valencia","Seville","Other"],
+      "Netherlands": ["Amsterdam","Rotterdam","The Hague","Utrecht","Other"],
+      "Switzerland": ["Zurich","Geneva","Basel","Bern","Other"],
+      "Ireland": ["Dublin","Cork","Galway","Other"],
+      "Sweden": ["Stockholm","Gothenburg","Malmo","Other"],
+      "Norway": ["Oslo","Bergen","Other"],
+      "Denmark": ["Copenhagen","Aarhus","Other"],
+      "Belgium": ["Brussels","Antwerp","Other"],
+      "Austria": ["Vienna","Salzburg","Other"],
+      "Portugal": ["Lisbon","Porto","Other"],
+      "Japan": ["Tokyo","Osaka","Yokohama","Nagoya","Other"],
+      "China": ["Shanghai","Beijing","Shenzhen","Guangzhou","Other"],
+      "Hong Kong": ["Hong Kong","Kowloon","Other"],
+      "South Korea": ["Seoul","Busan","Incheon","Other"],
+      "Malaysia": ["Kuala Lumpur","Penang","Johor Bahru","Other"],
+      "Indonesia": ["Jakarta","Surabaya","Bali (Denpasar)","Other"],
+      "Thailand": ["Bangkok","Phuket","Chiang Mai","Other"],
+      "Philippines": ["Manila","Cebu City","Davao City","Other"],
+      "Vietnam": ["Ho Chi Minh City","Hanoi","Da Nang","Other"],
+      "Pakistan": ["Karachi","Lahore","Islamabad","Other"],
+      "Bangladesh": ["Dhaka","Chittagong","Other"],
+      "Sri Lanka": ["Colombo","Kandy","Other"],
+      "Nepal": ["Kathmandu","Pokhara","Other"],
+      "New Zealand": ["Auckland","Wellington","Christchurch","Other"],
+      "South Africa": ["Johannesburg","Cape Town","Durban","Pretoria","Other"],
+      "Nigeria": ["Lagos","Abuja","Other"],
+      "Kenya": ["Nairobi","Mombasa","Other"],
+      "Egypt": ["Cairo","Alexandria","Other"],
+      "Turkey": ["Istanbul","Ankara","Izmir","Other"],
+      "Israel": ["Tel Aviv","Jerusalem","Haifa","Other"],
+      "Brazil": ["Sao Paulo","Rio de Janeiro","Brasilia","Other"],
+      "Mexico": ["Mexico City","Guadalajara","Monterrey","Other"],
+      "Argentina": ["Buenos Aires","Cordoba","Other"],
+      "Russia": ["Moscow","Saint Petersburg","Other"],
+    };
+
+    const CR_STATES_INDIA = [
+      "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar",
+      "Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and Daman and Diu","Delhi","Goa",
+      "Gujarat","Haryana","Himachal Pradesh","Jammu and Kashmir","Jharkhand","Karnataka",
+      "Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya",
+      "Mizoram","Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu",
+      "Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"
+    ];
+
+    const CR_STATES_US = [
+      "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware",
+      "District of Columbia","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
+      "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota",
+      "Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey",
+      "New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon",
+      "Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah",
+      "Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"
+    ];
+
+    function crPopulateCountries() {
+      const sel = document.getElementById("cr-reg-country");
+      sel.innerHTML = '<option value="" disabled selected>Select country&hellip;</option>' +
+        CR_COUNTRIES.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    }
+
+    function crUpdateLocationFields() {
+      const country = document.getElementById("cr-reg-country").value;
+      const citySelect = document.getElementById("cr-reg-city");
+      const cityOther = document.getElementById("cr-reg-city-other");
+      const stateWrap = document.getElementById("cr-reg-state-wrap");
+      const stateSelect = document.getElementById("cr-reg-state");
+
+      // ── City ──
+      const cities = CR_CITIES[country];
+      if (cities) {
+        citySelect.innerHTML = '<option value="" disabled selected>Select city&hellip;</option>' +
+          cities.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+        citySelect.disabled = false;
+        citySelect.required = true;
+        citySelect.style.display = "";
+        cityOther.style.display = "none";
+        cityOther.required = false;
+        cityOther.value = "";
+      } else if (country) {
+        // No curated list for this country — collect the city as free text instead.
+        citySelect.style.display = "none";
+        citySelect.required = false;
+        citySelect.disabled = true;
+        cityOther.style.display = "";
+        cityOther.required = true;
+      } else {
+        citySelect.innerHTML = '<option value="" disabled selected>Select country first&hellip;</option>';
+        citySelect.disabled = true;
+        citySelect.style.display = "";
+        cityOther.style.display = "none";
+        cityOther.required = false;
+      }
+
+      // ── State — only for India / United States ──
+      if (country === "India" || country === "United States") {
+        const list = country === "India" ? CR_STATES_INDIA : CR_STATES_US;
+        stateSelect.innerHTML = '<option value="" disabled selected>Select state&hellip;</option>' +
+          list.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+        stateWrap.classList.add("show");
+        stateSelect.required = true;
+      } else {
+        stateWrap.classList.remove("show");
+        stateSelect.required = false;
+        stateSelect.value = "";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", crPopulateCountries);
+
+    function crSwitchTab(which) {
+      document.getElementById("cr-tab-login").classList.toggle("active", which === "login");
+      document.getElementById("cr-tab-register").classList.toggle("active", which === "register");
+      document.getElementById("cr-form-login").classList.toggle("active", which === "login");
+      document.getElementById("cr-form-register").classList.toggle("active", which === "register");
+      crClearError();
+    }
+
+    function crClearError() {
+      const el = document.getElementById("cr-error");
+      el.classList.remove("show");
+      el.textContent = "";
+    }
+
+    function crShowError(msg) {
+      const el = document.getElementById("cr-error");
+      el.textContent = msg;
+      el.classList.add("show");
+    }
+
+    function crFriendlyAuthError(raw) {
+      const s = String(raw || "").toLowerCase();
+      if (s.includes("invalid login credentials")) return "That email and password don't match our records. Please try again, or use \u201cForgot password?\u201d below.";
+      if (s.includes("user already registered") || s.includes("already been registered")) return "An account with this email already exists. Try signing in instead.";
+      if (s.includes("password") && s.includes("least")) return "Password must be at least 8 characters.";
+      if (s.includes("email") && s.includes("invalid")) return "Please enter a valid email address.";
+      if (s.includes("email not confirmed")) return "Please confirm your email — we've sent you a verification link.";
+      return raw || "Something went wrong. Please try again.";
+    }
+
+    function crStoreSession(authResponse) {
+      const session = {
+        access_token: authResponse.access_token,
+        refresh_token: authResponse.refresh_token,
+        expires_at: authResponse.expires_at,
+        user: authResponse.user,
+      };
+      localStorage.setItem("vj_auth", JSON.stringify(session));
+      return session;
+    }
+
+    function crGetSession() {
+      try { return JSON.parse(localStorage.getItem("vj_auth") || "null"); }
+      catch { return null; }
+    }
+
+    function crShowSuccess(message) {
+      document.getElementById("cr-forms-wrap").style.display = "none";
+      const successEl = document.getElementById("cr-success");
+      successEl.classList.add("show");
+      if (message) document.getElementById("cr-success-message").textContent = message;
+      setTimeout(() => { location.href = crRedirectTarget; }, 1400);
+    }
+
+    async function crHandleLogin(e) {
+      e.preventDefault();
+      crClearError();
+      const email = document.getElementById("cr-login-email").value.trim();
+      const password = document.getElementById("cr-login-password").value;
+      const btn = document.getElementById("cr-login-btn");
+      btn.disabled = true;
+      btn.textContent = "Signing In\u2026";
+
+      try {
+        const res = await fetch(CR_AUTH_URL + "/token?grant_type=password", {
+          method: "POST",
+          headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error_description || data.msg || data.error || "Sign in failed");
+
+        crStoreSession(data);
+        crShowSuccess("Welcome back \u2014 taking you to complete your enquiry\u2026");
+      } catch (err) {
+        crShowError(crFriendlyAuthError(err.message));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Sign In";
+      }
+      return false;
+    }
+
+    async function crHandleRegister(e) {
+      e.preventDefault();
+      crClearError();
+
+      const name = document.getElementById("cr-reg-name").value.trim();
+      const email = document.getElementById("cr-reg-email").value.trim();
+      const phone = document.getElementById("cr-reg-phone").value.trim();
+      const address = document.getElementById("cr-reg-address").value.trim();
+      const country = document.getElementById("cr-reg-country").value;
+      const citySelect = document.getElementById("cr-reg-city");
+      const cityOther = document.getElementById("cr-reg-city-other");
+      const city = (cityOther.style.display !== "none" ? cityOther.value : citySelect.value).trim();
+      const stateWrap = document.getElementById("cr-reg-state-wrap");
+      const state = stateWrap.classList.contains("show") ? document.getElementById("cr-reg-state").value : "";
+      const password = document.getElementById("cr-reg-password").value;
+      const password2 = document.getElementById("cr-reg-password2").value;
+
+      if (!phone) { crShowError("WhatsApp / phone number is required."); return false; }
+      if (!address) { crShowError("Address is required."); return false; }
+      if (!country) { crShowError("Please select your country."); return false; }
+      if (!city) { crShowError("Please select or enter your city."); return false; }
+      if (stateWrap.classList.contains("show") && !state) { crShowError("Please select your state."); return false; }
+      if (password.length < 8) { crShowError("Password must be at least 8 characters."); return false; }
+      if (password !== password2) { crShowError("Passwords do not match."); return false; }
+
+      const btn = document.getElementById("cr-register-btn");
+      btn.disabled = true;
+      btn.textContent = "Creating Account\u2026";
+
+      try {
+        const res = await fetch(CR_AUTH_URL + "/signup", {
+          method: "POST",
+          headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            data: {
+              full_name: name,
+              phone,
+              address,
+              country,
+              city,
+              state: state || null,
+            },
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error_description || data.msg || data.error || "Registration failed");
+
+        if (data.access_token) {
+          // Email confirmation is off — signup returns a session directly.
+          crStoreSession(data);
+          crShowSuccess("Account created \u2014 taking you to complete your enquiry\u2026");
+        } else {
+          // Email confirmation is required before a session can be issued.
+          document.getElementById("cr-forms-wrap").style.display = "none";
+          const successEl = document.getElementById("cr-success");
+          successEl.classList.add("show");
+          document.getElementById("cr-success-message").innerHTML =
+            "Almost there \u2014 we've sent a verification link to <strong>" + esc(email) + "</strong>. " +
+            "Please confirm your email, then return here to sign in.";
+        }
+      } catch (err) {
+        crShowError(crFriendlyAuthError(err.message));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Create Account";
+      }
+      return false;
+    }
+
+    async function crForgotPassword() {
+      crClearError();
+      const email = (document.getElementById("cr-login-email").value || "").trim();
+      if (!email) { crShowError("Enter your email above first, then click \u201cForgot password?\u201d again."); return; }
+      try {
+        const res = await fetch(CR_AUTH_URL + "/recover", {
+          method: "POST",
+          headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error_description || data.msg || "Could not send reset email.");
+        }
+        crShowError("If an account exists for " + email + ", a password reset link is on its way.");
+      } catch (err) {
+        crShowError(crFriendlyAuthError(err.message));
+      }
+    }
+
+    // ── EMAIL CONFIRMATION LANDING ──────────────────────────────────────
+    // After a client clicks the "confirm your email" link, Supabase redirects
+    // back here with the session attached as a URL fragment, e.g.:
+    //   #access_token=...&refresh_token=...&expires_in=3600&token_type=bearer&type=signup
+    // (Site URL / Redirect URLs must be configured in the Supabase dashboard
+    // under Authentication → URL Configuration to allow this redirect.)
+    // The fragment carries the tokens but not the user object, so we fetch
+    // /auth/v1/user with the access token, then store the session exactly
+    // like a normal sign-in.
+    async function crHandleEmailConfirmation() {
+      const hash = location.hash && location.hash.length > 1 ? location.hash.slice(1) : "";
+      if (!hash) return false;
+
+      const params = new URLSearchParams(hash);
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+      const expires_in = params.get("expires_in");
+      const type = params.get("type"); // "signup", "recovery", "magiclink", etc.
+      const errorDescription = params.get("error_description");
+
+      if (errorDescription) {
+        crShowError(crFriendlyAuthError(decodeURIComponent(errorDescription)));
+        history.replaceState(null, "", location.pathname + location.search);
+        return true;
+      }
+
+      if (!access_token) return false;
+
+      try {
+        const res = await fetch(CR_AUTH_URL + "/user", {
+          headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + access_token },
+        });
+        const user = await res.json();
+        if (!res.ok) throw new Error(user.error_description || user.msg || user.error || "Could not verify your account.");
+
+        const expires_at = expires_in ? Math.floor(Date.now() / 1000) + parseInt(expires_in, 10) : undefined;
+        crStoreSession({ access_token, refresh_token, expires_at, user });
+
+        // Strip the token fragment from the URL so it isn't left visible,
+        // bookmarked, or re-processed on refresh.
+        history.replaceState(null, "", location.pathname + location.search);
+
+        const message = type === "recovery"
+          ? "Your email is confirmed \u2014 taking you to complete your enquiry\u2026"
+          : "Email confirmed \u2014 you're signed in. Taking you to complete your enquiry\u2026";
+        crShowSuccess(message);
+      } catch (err) {
+        history.replaceState(null, "", location.pathname + location.search);
+        crShowError(crFriendlyAuthError(err.message));
+      }
+      return true;
+    }
+
+    // If the client already has a live session, skip straight through.
+    document.addEventListener("DOMContentLoaded", async () => {
+      const handledConfirmation = await crHandleEmailConfirmation();
+      if (handledConfirmation) return;
+
+      const existing = crGetSession();
+      if (existing && existing.access_token) {
+        crShowSuccess("You're already signed in \u2014 taking you to complete your enquiry\u2026");
+      }
+    });
+  </script>
+</body>
+</html>
