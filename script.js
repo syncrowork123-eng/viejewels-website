@@ -316,6 +316,7 @@ let _currentCategorySlug = null;
 let _currentJewelCat = null;
 let _checkedJewelCats = new Set();
 let _checkedJewelSubCats = new Set(); // "jewel_type||sub_type1" keys
+let _checkedJewelSubCats2 = new Set(); // "jewel_type||sub_type1||sub_type2" keys
 let _allProductsCache = null;
 let _currentSort = "newest";
 let _selectedTags = new Set();
@@ -394,8 +395,8 @@ async function renderProductGrid() {
   // Build jewel category sidebar tree (only on pages that have the sidebar)
   const sidebarEl = document.querySelector("[data-jewelcat-filters]");
   if (sidebarEl) {
-    // Build a hierarchy: jewel_type → { count, subs: Map<sub_type1, count> }
-    const typeTree = new Map(); // type → { count, subs: Map<sub_type1, count> }
+    // Build a hierarchy: jewel_type → { count, subs: Map<sub_type1, { pids, subs2: Map<sub_type2, pids> }> }
+    const typeTree = new Map(); // type → { count, subs: Map<sub_type1, {...}> }
     products.forEach((p) => {
       (p.product_jewel_cats || []).forEach((jc) => {
         const t = jc.jewel_type;
@@ -407,8 +408,14 @@ async function renderProductGrid() {
         if (!entry._seen.has(p.id)) { entry._seen.add(p.id); entry.count++; }
         const sub = jc.sub_type1;
         if (sub) {
-          if (!entry.subs.has(sub)) entry.subs.set(sub, new Set());
-          entry.subs.get(sub).add(p.id);
+          if (!entry.subs.has(sub)) entry.subs.set(sub, { pids: new Set(), subs2: new Map() });
+          const subEntry = entry.subs.get(sub);
+          subEntry.pids.add(p.id);
+          const sub2 = jc.sub_type2;
+          if (sub2) {
+            if (!subEntry.subs2.has(sub2)) subEntry.subs2.set(sub2, new Set());
+            subEntry.subs2.get(sub2).add(p.id);
+          }
         }
       });
     });
@@ -420,18 +427,42 @@ async function renderProductGrid() {
           const isTypeChecked = _checkedJewelCats.has(type);
           const hasSubs = entry.subs.size > 0;
           const anySubChecked = hasSubs && [...entry.subs.keys()].some(s => _checkedJewelSubCats.has(type + "||" + s));
-          const isOpen = isTypeChecked || anySubChecked || _currentJewelCat === type;
+          const anySub2Checked = hasSubs && [...entry.subs.entries()].some(([s, subEntry]) =>
+            [...subEntry.subs2.keys()].some(s2 => _checkedJewelSubCats2.has(type + "||" + s + "||" + s2))
+          );
+          const isOpen = isTypeChecked || anySubChecked || anySub2Checked || _currentJewelCat === type;
 
           const subHtml = hasSubs ? [...entry.subs.entries()]
             .sort((a, b) => a[0].localeCompare(b[0]))
-            .map(([sub, pids]) => {
+            .map(([sub, subEntry]) => {
               const key = type + "||" + sub;
               const isSubChecked = _checkedJewelSubCats.has(key);
-              return `<label class="filter-tree-sub-label">
-                <input type="checkbox" data-jewelcat-sub-cb data-type="${esc(type)}" data-sub="${esc(sub)}" ${isSubChecked ? "checked" : ""} />
-                <span>${esc(sub)}</span>
-                <span class="filter-count">${pids.size}</span>
-              </label>`;
+              const hasSubs2 = subEntry.subs2.size > 0;
+              const anySub2Checked = hasSubs2 && [...subEntry.subs2.keys()].some(s2 => _checkedJewelSubCats2.has(key + "||" + s2));
+              const isSub2Open = isSubChecked || anySub2Checked;
+
+              const sub2Html = hasSubs2 ? [...subEntry.subs2.entries()]
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([sub2, pids2]) => {
+                  const key2 = key + "||" + sub2;
+                  const isSub2Checked = _checkedJewelSubCats2.has(key2);
+                  return `<label class="filter-tree-sub-label filter-tree-sub2-label">
+                    <input type="checkbox" data-jewelcat-sub2-cb data-type="${esc(type)}" data-sub1="${esc(sub)}" data-sub2="${esc(sub2)}" ${isSub2Checked ? "checked" : ""} />
+                    <span>${esc(sub2)}</span>
+                    <span class="filter-count">${pids2.size}</span>
+                  </label>`;
+                }).join("") : "";
+
+              return `<div class="filter-tree-node">
+                <div class="filter-tree-row">
+                  <label class="filter-tree-sub-label">
+                    <input type="checkbox" data-jewelcat-sub-cb data-type="${esc(type)}" data-sub="${esc(sub)}" ${isSubChecked ? "checked" : ""} />
+                    <span>${esc(sub)}</span>
+                    <span class="filter-count">${subEntry.pids.size}</span>
+                  </label>
+                </div>
+                ${hasSubs2 ? `<div class="filter-tree-children" data-tree-children2="${esc(key)}" style="${isSub2Open ? "" : "display:none"}">${sub2Html}</div>` : ""}
+              </div>`;
             }).join("") : "";
 
           return `<div class="filter-tree-node">
@@ -453,10 +484,12 @@ async function renderProductGrid() {
           const type = cb.value;
           if (cb.checked) {
             _checkedJewelCats.add(type);
-            // Clear any sub-selections for this type
+            // Clear any sub-selections for this type (both levels)
             [..._checkedJewelSubCats].forEach(k => { if (k.startsWith(type + "||")) _checkedJewelSubCats.delete(k); });
+            [..._checkedJewelSubCats2].forEach(k => { if (k.startsWith(type + "||")) _checkedJewelSubCats2.delete(k); });
             // Uncheck all sub-checkboxes visually
             sidebarEl.querySelectorAll(`[data-jewelcat-sub-cb][data-type="${CSS.escape(type)}"]`).forEach(s => s.checked = false);
+            sidebarEl.querySelectorAll(`[data-jewelcat-sub2-cb][data-type="${CSS.escape(type)}"]`).forEach(s => s.checked = false);
           } else {
             _checkedJewelCats.delete(type);
           }
@@ -464,7 +497,7 @@ async function renderProductGrid() {
         });
       });
 
-      // Wire sub-type checkboxes
+      // Wire sub-type-1 checkboxes
       sidebarEl.querySelectorAll("[data-jewelcat-sub-cb]").forEach((cb) => {
         cb.addEventListener("change", () => {
           const key = cb.dataset.type + "||" + cb.dataset.sub;
@@ -473,8 +506,30 @@ async function renderProductGrid() {
             // Uncheck parent type if a sub is selected
             const parentCb = sidebarEl.querySelector(`[data-jewelcat-cb][value="${CSS.escape(cb.dataset.type)}"]`);
             if (parentCb && parentCb.checked) { parentCb.checked = false; _checkedJewelCats.delete(cb.dataset.type); }
+            // Clear any sub-type-2 selections nested under this sub-type-1
+            [..._checkedJewelSubCats2].forEach(k => { if (k.startsWith(key + "||")) _checkedJewelSubCats2.delete(k); });
+            sidebarEl.querySelectorAll(`[data-jewelcat-sub2-cb][data-type="${CSS.escape(cb.dataset.type)}"][data-sub1="${CSS.escape(cb.dataset.sub)}"]`).forEach(s => s.checked = false);
           } else {
             _checkedJewelSubCats.delete(key);
+          }
+          applyFilters();
+        });
+      });
+
+      // Wire sub-type-2 checkboxes
+      sidebarEl.querySelectorAll("[data-jewelcat-sub2-cb]").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const key1 = cb.dataset.type + "||" + cb.dataset.sub1;
+          const key2 = key1 + "||" + cb.dataset.sub2;
+          if (cb.checked) {
+            _checkedJewelSubCats2.add(key2);
+            // Uncheck parent type and parent sub-type-1 if this sub-type-2 is selected
+            const parentCb = sidebarEl.querySelector(`[data-jewelcat-cb][value="${CSS.escape(cb.dataset.type)}"]`);
+            if (parentCb && parentCb.checked) { parentCb.checked = false; _checkedJewelCats.delete(cb.dataset.type); }
+            const parentSubCb = sidebarEl.querySelector(`[data-jewelcat-sub-cb][data-type="${CSS.escape(cb.dataset.type)}"][data-sub="${CSS.escape(cb.dataset.sub1)}"]`);
+            if (parentSubCb && parentSubCb.checked) { parentSubCb.checked = false; _checkedJewelSubCats.delete(key1); }
+          } else {
+            _checkedJewelSubCats2.delete(key2);
           }
           applyFilters();
         });
@@ -546,8 +601,10 @@ async function renderProductGrid() {
     clearBtn.addEventListener("click", () => {
       _checkedJewelCats.clear();
       _checkedJewelSubCats.clear();
+      _checkedJewelSubCats2.clear();
       document.querySelectorAll("[data-jewelcat-cb]").forEach((cb) => (cb.checked = false));
       document.querySelectorAll("[data-jewelcat-sub-cb]").forEach((cb) => (cb.checked = false));
+      document.querySelectorAll("[data-jewelcat-sub2-cb]").forEach((cb) => (cb.checked = false));
       _selectedTags.clear();
       document.querySelectorAll("[data-tag]").forEach((chip) => chip.classList.remove("active"));
       ["[data-price-min]", "[data-price-max]", "[data-weight-min]", "[data-weight-max]", "[data-diamond-min]", "[data-diamond-max]"].forEach((sel) => {
@@ -825,10 +882,16 @@ function populateDiamondFilters() {
 function updateProductsHeading() {
   const heading = document.querySelector("[data-products-heading]");
   if (!heading) return;
-  if (_checkedJewelSubCats.size === 1) {
+  if (_checkedJewelSubCats2.size === 1) {
+    const [key] = [..._checkedJewelSubCats2];
+    const [type, sub1, sub2] = key.split("||");
+    heading.textContent = [type, sub1, sub2].filter(Boolean).join(" › ");
+  } else if (_checkedJewelSubCats2.size > 1) {
+    heading.textContent = "Selected Categories";
+  } else if (_checkedJewelSubCats.size === 1) {
     const [key] = [..._checkedJewelSubCats];
-    const [type, sub] = key.split("||");
-    heading.textContent = sub || type;
+    const [type, sub1] = key.split("||");
+    heading.textContent = [type, sub1].filter(Boolean).join(" › ");
   } else if (_checkedJewelSubCats.size > 1) {
     heading.textContent = "Selected Categories";
   } else if (_checkedJewelCats.size === 1) {
@@ -856,7 +919,16 @@ function applyFilters() {
 
   let list = products;
 
-  if (_checkedJewelSubCats.size) {
+  if (_checkedJewelSubCats2.size) {
+    // Sub-type-2 filtering: match products whose jewel_cats include any checked sub2
+    list = list.filter((p) => {
+      const jcats = p.product_jewel_cats || [];
+      return jcats.some(jc => {
+        const key = (jc.jewel_type || "") + "||" + (jc.sub_type1 || "") + "||" + (jc.sub_type2 || "");
+        return _checkedJewelSubCats2.has(key);
+      });
+    });
+  } else if (_checkedJewelSubCats.size) {
     // Sub-type filtering: match products whose jewel_cats include any checked sub
     list = list.filter((p) => {
       const jcats = p.product_jewel_cats || [];
