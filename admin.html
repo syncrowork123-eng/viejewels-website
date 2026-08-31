@@ -1749,6 +1749,17 @@ document.getElementById('pe-iframe').addEventListener('load', () => {
         <div class="tags-grid" id="f-tags-grid"></div>
       </div>
 
+      <!-- PHOTOS & VIDEO -->
+      <div class="divider"></div>
+      <p class="section-label">Photos &amp; Video <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— paste a hosted image/video URL (e.g. from Cloudinary) and add it</span></p>
+      <div class="media-list" id="f-media-list"></div>
+      <div class="media-add-row">
+        <div class="form-group"><label>Image / Video URL</label><input type="text" id="f-media-url" placeholder="https://res.cloudinary.com/.../photo.jpg" /></div>
+        <div class="form-group" style="flex:0 0 130px;min-width:110px"><label>Type</label><select id="f-media-type"><option value="image">Image</option><option value="video">Video</option></select></div>
+        <div class="form-group" style="flex:0 0 160px;min-width:130px"><label>Alt text <span style="font-weight:400;text-transform:none;color:var(--text-muted)">(optional)</span></label><input type="text" id="f-media-alt" placeholder="e.g. Yellow gold" /></div>
+        <button class="btn btn-primary btn-sm" onclick="addProductMedia()">+ Add</button>
+      </div>
+
       <!-- PART OF A SET -->
       <div class="form-group" style="margin-bottom:16px">
         <label>Part of a Set <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— search and select styles that belong together as a set with this piece</span></label>
@@ -2101,6 +2112,7 @@ let allProducts=[], allCategories=[], allMetals=[], allStones=[], allDiamonds=[]
 let allLabour=[], allMargins=[], allSizes=[], allTags=[], allCurrencies=[], allSiteSettings=[], allEnquiries=[];
 let editingProductId=null, editingCategoryId=null, currentMasterType=null, editingMasterId=null;
 let selectedTags=[], bulkRows=[];
+let productMediaRows=[];
 let calcStones=[], calcDiamonds=[], calcLabourItems=[];
 
 function doLogin(){
@@ -2916,6 +2928,7 @@ function openProductModal(id=null){
   productJewelCats=[];
   productStoneRows=[];
   productSetLinks=[];
+  productMediaRows=[];
   document.getElementById("product-modal-title").textContent=id?"Edit Product":"Add Product";
 
   populateProductJewelTypeDropdown();
@@ -2944,6 +2957,9 @@ function openProductModal(id=null){
     sv("f-size",p.size||""); sv("f-size-custom","");
     // Tags
     selectedTags=(p.product_tags||[]).map(t=>t.tags?.id).filter(Boolean);
+    // Photos / video
+    productMediaRows=(p.product_media||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))
+      .map(m=>({url:m.url||'',media_type:m.media_type||'image',is_primary:!!m.is_primary,alt_text:m.alt_text||''}));
   } else {
     ["f-sku","f-name","f-short-desc","f-description","f-size-custom"].forEach(i=>sv(i,""));
     sv("f-stock-status",""); sv("f-active","true");
@@ -2952,22 +2968,81 @@ function openProductModal(id=null){
     autoAssignSortOrder();
   }
 
+  sv("f-media-url",""); sv("f-media-alt",""); sv("f-media-type","image");
   renderProductJewelCats();
   renderStoneDetailRows();
   renderSetChips();
+  renderProductMedia();
   document.querySelectorAll(".tag-chip").forEach(chip=>chip.classList.toggle("selected",selectedTags.includes(parseInt(chip.dataset.tagId))));
   document.getElementById("product-modal").classList.add("open");
 }
 
 function closeProductModal(){
   document.getElementById("product-modal").classList.remove("open");
-  editingProductId=null; selectedTags=[]; productJewelCats=[]; productStoneRows=[]; productSetLinks=[];
+  editingProductId=null; selectedTags=[]; productJewelCats=[]; productStoneRows=[]; productSetLinks=[]; productMediaRows=[];
 }
 
 function toggleTag(chip){
   const id=parseInt(chip.dataset.tagId);
   if(selectedTags.includes(id)){ selectedTags=selectedTags.filter(t=>t!==id); chip.classList.remove("selected"); }
   else { selectedTags.push(id); chip.classList.add("selected"); }
+}
+
+// ── PHOTOS / VIDEO (product_media) ─────────────────────────────────────
+function renderProductMedia(){
+  const wrap=document.getElementById("f-media-list");
+  if(!wrap) return;
+  if(!productMediaRows.length){
+    wrap.innerHTML='<p style="font-size:12px;color:var(--text-muted);margin:0">No photos or video added yet.</p>';
+    return;
+  }
+  wrap.innerHTML=productMediaRows.map((m,i)=>{
+    const thumb = m.media_type==="video"
+      ? `<div class="no-img" style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface2);border-radius:6px;">🎬</div>`
+      : `<img src="${esc(m.url)}" alt="" onerror="this.style.opacity=0.25" />`;
+    const primaryBtn = m.media_type==="video"
+      ? ""
+      : m.is_primary
+        ? `<span style="font-size:11px;font-weight:600;color:var(--accent);padding:4px 8px;">★ Primary</span>`
+        : `<button class="btn btn-secondary btn-sm" onclick="setPrimaryProductMedia(${i})">Set Primary</button>`;
+    return `<div class="media-item">
+      ${thumb}
+      <div class="media-item-info">
+        <div class="media-url" title="${esc(m.url)}">${esc(m.url)||"(no URL)"}</div>
+        <div style="font-size:11px;color:var(--text-muted);text-transform:capitalize">${esc(m.media_type)}${m.alt_text?" — "+esc(m.alt_text):""}</div>
+      </div>
+      <div class="media-item-controls">
+        ${primaryBtn}
+        <button class="btn btn-danger btn-sm" onclick="removeProductMedia(${i})">Remove</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function addProductMedia(){
+  const url=gv("f-media-url");
+  if(!url){ toast("Paste an image or video URL first.","error"); return; }
+  const media_type=document.getElementById("f-media-type").value||"image";
+  const alt_text=gv("f-media-alt");
+  const isFirstImage = media_type==="image" && !productMediaRows.some(m=>m.media_type==="image");
+  productMediaRows.push({url, media_type, alt_text, is_primary:isFirstImage});
+  sv("f-media-url",""); sv("f-media-alt",""); sv("f-media-type","image");
+  renderProductMedia();
+}
+
+function setPrimaryProductMedia(index){
+  productMediaRows.forEach((m,i)=>{ if(m.media_type==="image") m.is_primary=(i===index); });
+  renderProductMedia();
+}
+
+function removeProductMedia(index){
+  const wasPrimary = productMediaRows[index]?.is_primary;
+  productMediaRows.splice(index,1);
+  if(wasPrimary){
+    const firstImg = productMediaRows.find(m=>m.media_type==="image");
+    if(firstImg) firstImg.is_primary=true;
+  }
+  renderProductMedia();
 }
 
 async function saveProduct(){
@@ -3022,6 +3097,13 @@ async function saveProduct(){
       // Set links (bidirectional)
       try{ await sb("product_set_links?product_id=eq."+pid,"DELETE"); } catch(e){}
       for(const l of productSetLinks) try{ await sb("product_set_links","POST",{product_id:pid,linked_product_id:l.id}); } catch(e){}
+
+      // Photos / video
+      try{ await sb("product_media?product_id=eq."+pid,"DELETE"); } catch(e){}
+      for(let i=0;i<productMediaRows.length;i++){
+        const m=productMediaRows[i];
+        try{ await sb("product_media","POST",{product_id:pid,url:m.url,media_type:m.media_type,is_primary:!!m.is_primary,alt_text:m.alt_text||null,sort_order:i}); } catch(e){}
+      }
     }
 
     toast(editingProductId?"Product updated.":"Product added.");
