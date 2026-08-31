@@ -176,14 +176,14 @@ body.vj-collections .page-hero {
 body.vj-collections .catalog-layout {
   max-width: 1720px;
   padding: 28px 48px 96px;
-  gap: 32px;
-  grid-template-columns: 160px 1fr;
+  gap: 28px;
+  grid-template-columns: 220px 1fr;
 }
 
 /* Sidebar */
 body.vj-collections .catalog-sidebar {
   border-right: 1px solid var(--vj-hair);
-  padding-right: 24px;
+  padding-right: 16px;
   padding-left: 0;
   top: 40px;
 }
@@ -220,7 +220,23 @@ body.vj-collections .filter-tree-label:hover,
 body.vj-collections .filter-tree-sub-label:hover {
   color: var(--vj-ink);
 }
-body.vj-collections .filter-tree-children { border-left: 1px solid var(--vj-hair); }
+body.vj-collections .filter-tree-children {
+  border-left: 1px solid var(--vj-hair);
+  margin-left: 12px !important;
+  padding-left: 8px !important;
+}
+body.vj-collections .filter-tree-label,
+body.vj-collections .filter-tree-sub-label {
+  flex-wrap: nowrap;
+}
+body.vj-collections .filter-tree-name,
+body.vj-collections .filter-tree-sub-label span:not(.filter-count) {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.vj-collections .filter-count { flex-shrink: 0; }
 
 body.vj-collections .filter-range input,
 body.vj-collections .catalog-toolbar input {
@@ -358,7 +374,7 @@ body.vj-collections .section-heading h2 {
 body.vj-collections .product-grid {
   background: transparent;
   border: none;
-  gap: 34px 20px;
+  gap: 18px 20px;
   margin-top: 10px !important;
   grid-template-columns: repeat(3, 1fr);
 }
