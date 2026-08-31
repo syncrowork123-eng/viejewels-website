@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Collections | Vie Jewels</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="collections-luxury.css" />
 </head>
-<body>
+<body class="vj-collections">
   <header class="site-header">
     <div class="top-strip">
       <span>Vie Jewels</span>
@@ -18,23 +19,39 @@
 
       <div class="nav-links">
         <a href="world-of-vie.html">World of Vie</a>
-        <a href="collections.html">Collections</a>
+        <a href="collections.html" aria-current="page">Collections</a>
         <a href="knowledge-lounge.html">Knowledge Lounge</a>
         <a href="contact.html">Contact Us</a>
       </div>
 
       <div class="nav-icons">
-        <a href="cart.html" aria-label="Shopping Cart">&#128722; <span class="nav-badge" data-cart-count style="display:none"></span></a>
-        <a href="account.html" aria-label="My Account">&#9711;</a>
+        <a href="cart.html" aria-label="Shopping Cart">
+          <svg viewBox="0 0 24 24"><path d="M6.5 8h11l1 12.5a1.5 1.5 0 0 1-1.5 1.5H7a1.5 1.5 0 0 1-1.5-1.5L6.5 8Z" stroke-linejoin="round"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" stroke-linecap="round"/></svg>
+          <span class="nav-badge" data-cart-count style="display:none"></span>
+        </a>
+        <a href="account.html" aria-label="My Account">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.4"/><path d="M4.8 20c1.1-3.6 4-5.6 7.2-5.6s6.1 2 7.2 5.6" stroke-linecap="round"/></svg>
+        </a>
       </div>
     </nav>
   </header>
 
   <main>
-    <section class="page-hero">
-      <p class="eyebrow">Collections</p>
-      <h1>Explore Vie Jewels</h1>
-      <p data-collection-intro>Fine jewelry by category, theme, and occasion.</p>
+    <section class="page-hero vj-hero">
+      <div class="vj-hero-inner">
+        <div class="vj-hero-left">
+          <p class="vj-eyebrow">The Collections</p>
+          <h1 class="vj-hero-title">Every piece,<br /><em>considered.</em></h1>
+        </div>
+        <div class="vj-hero-right">
+          <p data-collection-intro class="vj-hero-copy">Fine jewelry composed by category, stone, and occasion &mdash; assembled piece by piece, and refined continually as new work leaves the atelier.</p>
+          <div class="vj-hero-meta">
+            <span>Diamonds</span>
+            <span>Gold &amp; Platinum</span>
+            <span>Bespoke Commissions</span>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="section catalog-layout">
@@ -126,13 +143,13 @@
           </div>
         </div>
 
-        <div class="section-heading" style="text-align:left; margin-bottom:0; padding-bottom:20px; border-bottom:1px solid var(--border-light);">
-          <p class="eyebrow" style="text-align:left">Online Catalog</p>
-          <h2 data-products-heading style="font-size:19px">All Products</h2>
+        <div class="section-heading">
+          <p class="eyebrow">Online Catalog</p>
+          <h2 data-products-heading>All Products</h2>
         </div>
 
-        <div class="product-grid" data-product-grid style="margin-top:1px">
-          <p style="padding:48px;color:var(--text-light);font-size:13px">Loading products...</p>
+        <div class="product-grid" data-product-grid>
+          <p style="padding:48px;color:var(--text-light);font-size:13px">Loading products&hellip;</p>
         </div>
       </div>
     </section>
