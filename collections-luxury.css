@@ -398,14 +398,24 @@ body.vj-collections .product-card:nth-child(6) { animation-delay: 0.22s; }
 }
 
 body.vj-collections .product-card-media {
-  aspect-ratio: 4 / 5;
+  /* No fixed aspect-ratio: forcing every image (product shots, Model
+     Showcase, Spotlight View, etc.) into the same 4:5 box is what caused
+     the white letterbox bars whenever an image's real proportions didn't
+     match 4:5. Instead, let the box hug each image's own intrinsic ratio
+     so it always fills edge-to-edge at the largest size the grid column
+     allows, with nothing cropped and nothing padded. */
   background: #ffffff;
   border: 1px solid var(--vj-hair);
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 body.vj-collections .product-card-media img {
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
+  display: block;
   object-fit: contain !important;
   transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
 }
