@@ -383,7 +383,7 @@ body.vj-collections .product-card:nth-child(6) { animation-delay: 0.22s; }
 
 body.vj-collections .product-card-media {
   aspect-ratio: 4 / 5;
-  background: var(--vj-hair-soft);
+  background: #ffffff;
   border: 1px solid var(--vj-hair);
   position: relative;
 }
@@ -481,7 +481,7 @@ body.vj-collections .sort-btn:hover {
 
 body.vj-collections .product-card-media,
 body.vj-collections .product-card-media img {
-  border-radius: 18px !important;
+  border-radius: 6px !important;
 }
 body.vj-collections .product-card-media {
   overflow: hidden;
