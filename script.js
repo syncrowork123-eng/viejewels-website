@@ -822,7 +822,28 @@ function populateDiamondFilters() {
   }
 }
 
+function updateProductsHeading() {
+  const heading = document.querySelector("[data-products-heading]");
+  if (!heading) return;
+  if (_checkedJewelSubCats.size === 1) {
+    const [key] = [..._checkedJewelSubCats];
+    const [type, sub] = key.split("||");
+    heading.textContent = sub || type;
+  } else if (_checkedJewelSubCats.size > 1) {
+    heading.textContent = "Selected Categories";
+  } else if (_checkedJewelCats.size === 1) {
+    heading.textContent = [..._checkedJewelCats][0];
+  } else if (_checkedJewelCats.size > 1) {
+    heading.textContent = "Selected Categories";
+  } else if (_currentJewelCat) {
+    heading.textContent = _currentJewelCat;
+  } else if (!_currentCategorySlug) {
+    heading.textContent = "All Products";
+  }
+}
+
 function applyFilters() {
+  updateProductsHeading();
   const products = _allProductsCache || [];
   const term = (document.querySelector("[data-product-search]")?.value || "").toLowerCase().trim();
 

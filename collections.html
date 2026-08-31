@@ -40,7 +40,7 @@
     <section class="page-hero vj-hero">
       <div class="vj-hero-inner">
         <div class="vj-hero-left">
-          <h1 class="vj-hero-title">Timeless<br /><em>Elegance,</em></h1>
+          <h1 class="vj-hero-title">Timeless<br /><em>Elegance</em></h1>
         </div>
         <div class="vj-hero-right">
           <p data-collection-intro class="vj-hero-copy">A curated collection of fine jewelry distinguished by thoughtful design and meticulous execution. From everyday signatures to extraordinary statements, each creation embodies enduring beauty that transcends seasons and trends.</p>
@@ -93,52 +93,53 @@
       </aside>
 
       <div class="catalog-main">
-        <div class="top-filter-bar">
-          <div class="top-filter-group">
-            <span class="top-filter-label">Metal Options</span>
-            <div class="top-filter-row">
-              <select data-filter-metal-type><option value="">Metal Type</option></select>
-              <select data-filter-metal-quality><option value="">Metal Quality</option></select>
-              <select data-filter-metal-color><option value="">Metal Color</option></select>
+        <div class="vj-controls-row">
+          <div class="top-filter-bar">
+            <div class="top-filter-group">
+              <span class="top-filter-label">Metal Options</span>
+              <div class="top-filter-row">
+                <select data-filter-metal-type><option value="">Metal Type</option></select>
+                <select data-filter-metal-quality><option value="">Metal Quality</option></select>
+                <select data-filter-metal-color><option value="">Metal Color</option></select>
+              </div>
+            </div>
+            <div class="top-filter-group">
+              <span class="top-filter-label">Diamond Options</span>
+              <div class="top-filter-row">
+                <select data-filter-stone-type><option value="">Stone Type</option></select>
+                <select data-filter-diamond-color><option value="">Diamond Color</option></select>
+                <select data-filter-diamond-quality><option value="">Diamond Quality</option></select>
+              </div>
+            </div>
+            <div class="top-filter-group" style="flex:0;min-width:130px;">
+              <span class="top-filter-label">Currency</span>
+              <div class="top-filter-row">
+                <select data-filter-currency><option value="">$ USD</option></select>
+              </div>
             </div>
           </div>
-          <div class="top-filter-group">
-            <span class="top-filter-label">Diamond Options</span>
-            <div class="top-filter-row">
-              <select data-filter-stone-type><option value="">Stone Type</option></select>
-              <select data-filter-diamond-color><option value="">Diamond Color</option></select>
-              <select data-filter-diamond-quality><option value="">Diamond Quality</option></select>
-            </div>
-          </div>
-          <div class="top-filter-group" style="flex:0;min-width:130px;">
-            <span class="top-filter-label">Currency</span>
-            <div class="top-filter-row">
-              <select data-filter-currency><option value="">$ USD</option></select>
-            </div>
-          </div>
-        </div>
 
-        <div class="catalog-toolbar">
-          <input
-            type="search"
-            data-product-search
-            placeholder="Search by name, SKU, metal, stone&hellip;"
-            aria-label="Search products"
-          />
-          <div class="catalog-toolbar-right">
-            <span class="catalog-count" data-product-count></span>
-            <div class="sort-group">
-              <span class="sort-label">Sort</span>
-              <button class="sort-btn active" data-sort="newest" type="button">Newest</button>
-              <button class="sort-btn" data-sort="sku" type="button">SKU</button>
-              <button class="sort-btn" data-sort="price-asc" type="button">Price &uarr;</button>
-              <button class="sort-btn" data-sort="price-desc" type="button">Price &darr;</button>
+          <div class="catalog-toolbar">
+            <input
+              type="search"
+              data-product-search
+              placeholder="Search by name, SKU, metal, stone&hellip;"
+              aria-label="Search products"
+            />
+            <div class="catalog-toolbar-right">
+              <span class="catalog-count" data-product-count></span>
+              <div class="sort-group">
+                <span class="sort-label">Sort</span>
+                <button class="sort-btn active" data-sort="newest" type="button">Newest</button>
+                <button class="sort-btn" data-sort="sku" type="button">SKU</button>
+                <button class="sort-btn" data-sort="price-asc" type="button">Price &uarr;</button>
+                <button class="sort-btn" data-sort="price-desc" type="button">Price &darr;</button>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="section-heading">
-          <p class="eyebrow">Online Catalog</p>
           <h2 data-products-heading>All Products</h2>
         </div>
 
