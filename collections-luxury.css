@@ -115,13 +115,17 @@ body.vj-collections .page-hero {
 .vj-hero-inner {
   max-width: 1360px;
   margin: 0 auto;
-  padding: 88px 48px 76px;
+  padding: 40px 48px 32px;
   display: grid;
   grid-template-columns: 1.15fr 1fr;
   gap: 0;
 }
 .vj-hero-left {
-  padding-right: 64px;
+  padding-right: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
   animation: vjFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .vj-eyebrow {
@@ -136,13 +140,13 @@ body.vj-collections .page-hero {
 .vj-hero-title {
   font-family: var(--vj-serif);
   font-weight: 300;
-  font-size: 64px;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
   color: var(--vj-ink);
 }
 .vj-hero-title em {
-  font-style: italic;
+  font-style: normal;
   font-weight: 400;
   color: var(--vj-accent-deep);
 }
@@ -184,7 +188,7 @@ body.vj-collections .catalog-sidebar {
 }
 body.vj-collections .catalog-sidebar h3 {
   font-family: var(--vj-serif);
-  font-style: italic;
+  font-style: normal;
   font-weight: 400;
   font-size: 20px;
   letter-spacing: 0.01em;
@@ -285,11 +289,11 @@ body.vj-collections .catalog-toolbar {
 body.vj-collections .catalog-toolbar input {
   max-width: 300px;
   font-family: var(--vj-serif);
-  font-style: italic;
+  font-style: normal;
   font-size: 16px;
   color: var(--vj-ink);
 }
-body.vj-collections .catalog-toolbar input::placeholder { color: var(--vj-ink-faint); font-style: italic; }
+body.vj-collections .catalog-toolbar input::placeholder { color: var(--vj-ink-faint); font-style: normal; }
 
 body.vj-collections .catalog-count {
   color: var(--vj-ink-faint);
@@ -329,7 +333,7 @@ body.vj-collections .section-heading .eyebrow { color: var(--vj-accent); }
 body.vj-collections .section-heading h2 {
   font-family: var(--vj-serif);
   font-weight: 400;
-  font-style: italic;
+  font-style: normal;
   font-size: 22px !important;
   color: var(--vj-ink);
 }
@@ -422,10 +426,10 @@ body.vj-collections .product-card-price {
   body.vj-collections .main-nav { padding: 20px 24px 16px; }
   body.vj-collections .main-nav .brand img { height: 80px; }
   body.vj-collections .nav-icons { right: 24px; }
-  .vj-hero-inner { grid-template-columns: 1fr; padding: 56px 24px; gap: 32px; }
-  .vj-hero-left { padding-right: 0; }
-  .vj-hero-title { font-size: 42px; }
-  .vj-hero-right { padding-left: 0; border-left: none; padding-top: 28px; border-top: 1px solid var(--vj-hair); }
+  .vj-hero-inner { grid-template-columns: 1fr; padding: 32px 24px 28px; gap: 20px; }
+  .vj-hero-left { padding-right: 0; align-items: flex-start; text-align: left; }
+  .vj-hero-title { font-size: 28px; }
+  .vj-hero-right { padding-left: 0; border-left: none; padding-top: 20px; border-top: 1px solid var(--vj-hair); }
   body.vj-collections .catalog-layout { padding: 40px 24px 64px; gap: 32px; grid-template-columns: 1fr; }
   body.vj-collections .catalog-sidebar { border-right: none; padding-right: 0; border-bottom: 1px solid var(--vj-hair); padding-bottom: 24px; }
   body.vj-collections .top-filter-group { border-right: none; border-bottom: 1px solid var(--vj-hair); }
