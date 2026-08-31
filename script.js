@@ -8,6 +8,30 @@ const SUPABASE_KEY = "sb_publishable_-VEloc-EI4CfRx4K9_si3g_E7QDIpfk";
 
 const PLACEHOLDER_IMG = "https://res.cloudinary.com/demo/image/upload/w_500,h_500,c_fill,b_rgb:f0ece5/sample.jpg";
 
+// ── IMAGE SHARPNESS HELPER ──────────────────────────────────────────────
+// Product photos are hosted on Cloudinary but were being rendered with no
+// delivery transformations at all — the browser was just stretching
+// whatever pixel size was originally uploaded to fit the card/gallery box.
+// On any high-density (Retina/2x-3x) screen that upscales past the source
+// resolution, which is what reads as "dull" / "soft".
+//
+// cldImg() asks Cloudinary to deliver a crisp, correctly-sized, best-quality,
+// modern-format version for the *box the image is actually shown in*:
+//   - dpr_auto   → serves 2x/3x pixels on Retina screens automatically
+//   - q_auto:best→ highest-quality compression Cloudinary offers
+//   - f_auto     → serves AVIF/WebP where supported (sharper at same size)
+//   - c_limit    → upscales only if needed, never distorts aspect ratio
+// Non-Cloudinary URLs (e.g. the Supabase placeholder or any external URL)
+// are returned untouched.
+function cldImg(url, width) {
+  if (!url || typeof url !== "string") return url;
+  if (!url.includes("res.cloudinary.com") || !url.includes("/upload/")) return url;
+  // Already run through this helper (or otherwise carries f_auto) — don't double-wrap
+  if (url.includes("f_auto")) return url;
+  const transform = `f_auto,q_auto:best,dpr_auto,c_limit,w_${width}`;
+  return url.replace("/upload/", `/upload/${transform}/`);
+}
+
 async function sbGet(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
@@ -277,7 +301,7 @@ async function renderCategoryGrid() {
         const sample = products.find((p) => p.category_id === c.id);
         const img = sample ? primaryImage(sample) : PLACEHOLDER_IMG;
         return `<a class="category-card" href="collections.html?category=${encodeURIComponent(c.slug)}">
-          <div class="category-card-media"><img src="${esc(img)}" alt="${esc(c.name)}" loading="lazy" /></div>
+          <div class="category-card-media"><img src="${esc(cldImg(img, 700))}" alt="${esc(c.name)}" loading="lazy" /></div>
           <h3>${esc(c.name)}</h3>
           <p>${count} ${count === 1 ? "piece" : "pieces"}</p>
         </a>`;
@@ -291,7 +315,7 @@ async function renderCategoryGrid() {
     .map(([type, entry]) => {
       const img = entry.sample ? primaryImage(entry.sample) : PLACEHOLDER_IMG;
       return `<a class="category-card" href="collections.html?jewelcat=${encodeURIComponent(type)}">
-        <div class="category-card-media"><img src="${esc(img)}" alt="${esc(type)}" loading="lazy" /></div>
+        <div class="category-card-media"><img src="${esc(cldImg(img, 700))}" alt="${esc(type)}" loading="lazy" /></div>
         <h3>${esc(type)}</h3>
         <p>${entry.count} ${entry.count === 1 ? "piece" : "pieces"}</p>
       </a>`;
@@ -302,7 +326,7 @@ async function renderCategoryGrid() {
 // ── PRODUCT GRID ────────────────────────────────────────────────────────
 function productCardHtml(p) {
   return `<a class="product-card" href="product.html?id=${encodeURIComponent(p.id)}">
-    <div class="product-card-media"><img src="${esc(primaryImage(p))}" alt="${esc(p.name)}" loading="lazy" /></div>
+    <div class="product-card-media"><img src="${esc(cldImg(primaryImage(p), 700))}" alt="${esc(p.name)}" loading="lazy" /></div>
     <div class="product-card-body">
       <h3 class="product-card-name">${esc(p.name || "Untitled")}</h3>
       ${p.sku ? `<p class="product-card-sku">${esc(p.sku)}</p>` : ""}
@@ -1191,7 +1215,7 @@ async function _renderProductDetailBase() {
   const thumbsEl = document.querySelector("[data-product-thumbnails]");
 
   const showImage = (url, activeBtn) => {
-    if (mediaEl) mediaEl.innerHTML = `<img src="${esc(url)}" alt="${esc(product.name || "")}" />`;
+    if (mediaEl) mediaEl.innerHTML = `<img src="${esc(cldImg(url, 1400))}" alt="${esc(product.name || "")}" />`;
     if (thumbsEl && activeBtn) {
       thumbsEl.querySelectorAll(".thumb").forEach((t) => t.classList.remove("active"));
       activeBtn.classList.add("active");
@@ -1218,7 +1242,7 @@ async function _renderProductDetailBase() {
         .map(
           (m, i) =>
             `<button class="thumb${i === 0 ? " active" : ""}" data-thumb data-url="${esc(m.url)}" data-url-key="${esc(m.url)}">
-              <img src="${esc(m.url)}" alt="" />
+              <img src="${esc(cldImg(m.url, 200))}" alt="" />
             </button>`
         )
         .join("");
@@ -1387,7 +1411,7 @@ function cartItemRowHtml(item) {
 
   return `<div class="cart-row" data-cart-item="${esc(item.id)}">
     <div class="cart-row-media">
-      <img src="${esc(item.image || PLACEHOLDER_IMG)}" alt="${esc(item.name || '')}" loading="lazy" />
+      <img src="${esc(cldImg(item.image || PLACEHOLDER_IMG, 200))}" alt="${esc(item.name || '')}" loading="lazy" />
     </div>
 
     <div class="cart-row-info">
