@@ -453,3 +453,32 @@ body.vj-collections .product-card-price {
   body.vj-collections .product-grid { grid-template-columns: 1fr; }
   body.vj-collections .sort-group { flex-wrap: wrap; }
 }
+
+/* ---------------------------------------------------------------
+   ROUNDED BUTTONS + PRODUCT IMAGES
+   (overrides the flat-edge reset above; class selectors win over
+   the universal `*` selector regardless of !important, since
+   specificity is compared before rule order.)
+--------------------------------------------------------------- */
+body.vj-collections .filter-clear-btn,
+body.vj-collections .sort-btn,
+body.vj-collections .filter-tag-chip {
+  border-radius: 999px !important;
+}
+
+body.vj-collections .sort-btn {
+  border-right: none !important;
+  margin-right: 4px;
+}
+body.vj-collections .sort-btn.active,
+body.vj-collections .sort-btn:hover {
+  background: var(--vj-hair-soft) !important;
+}
+
+body.vj-collections .product-card-media,
+body.vj-collections .product-card-media img {
+  border-radius: 18px !important;
+}
+body.vj-collections .product-card-media {
+  overflow: hidden;
+}
