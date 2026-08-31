@@ -438,8 +438,6 @@ async function renderProductGrid() {
               const key = type + "||" + sub;
               const isSubChecked = _checkedJewelSubCats.has(key);
               const hasSubs2 = subEntry.subs2.size > 0;
-              const anySub2Checked = hasSubs2 && [...subEntry.subs2.keys()].some(s2 => _checkedJewelSubCats2.has(key + "||" + s2));
-              const isSub2Open = isSubChecked || anySub2Checked;
 
               const sub2Html = hasSubs2 ? [...subEntry.subs2.entries()]
                 .sort((a, b) => a[0].localeCompare(b[0]))
@@ -461,7 +459,7 @@ async function renderProductGrid() {
                     <span class="filter-count">${subEntry.pids.size}</span>
                   </label>
                 </div>
-                ${hasSubs2 ? `<div class="filter-tree-children" data-tree-children2="${esc(key)}" style="${isSub2Open ? "" : "display:none"}">${sub2Html}</div>` : ""}
+                ${hasSubs2 ? `<div class="filter-tree-children" data-tree-children2="${esc(key)}">${sub2Html}</div>` : ""}
               </div>`;
             }).join("") : "";
 

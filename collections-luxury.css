@@ -174,10 +174,10 @@ body.vj-collections .page-hero {
    CATALOG LAYOUT
 --------------------------------------------------------------- */
 body.vj-collections .catalog-layout {
-  max-width: 1620px;
+  max-width: 1720px;
   padding: 28px 48px 96px;
-  gap: 36px;
-  grid-template-columns: 180px 1fr;
+  gap: 32px;
+  grid-template-columns: 160px 1fr;
 }
 
 /* Sidebar */
@@ -358,7 +358,7 @@ body.vj-collections .section-heading h2 {
 body.vj-collections .product-grid {
   background: transparent;
   border: none;
-  gap: 34px 24px;
+  gap: 34px 20px;
   margin-top: 10px !important;
   grid-template-columns: repeat(3, 1fr);
 }
@@ -388,6 +388,9 @@ body.vj-collections .product-card-media {
   position: relative;
 }
 body.vj-collections .product-card-media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
   transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 body.vj-collections .product-card:hover .product-card-media img { transform: scale(1.045); }
