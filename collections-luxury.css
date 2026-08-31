@@ -174,10 +174,10 @@ body.vj-collections .page-hero {
    CATALOG LAYOUT
 --------------------------------------------------------------- */
 body.vj-collections .catalog-layout {
-  max-width: 1500px;
-  padding: 48px 48px 96px;
-  gap: 44px;
-  grid-template-columns: 200px 1fr;
+  max-width: 1620px;
+  padding: 28px 48px 96px;
+  gap: 36px;
+  grid-template-columns: 180px 1fr;
 }
 
 /* Sidebar */
@@ -259,8 +259,9 @@ body.vj-collections .vj-controls-row {
   align-items: center;
   flex-wrap: wrap;
   gap: 28px;
-  border-top: 1px solid var(--vj-hair);
-  border-bottom: 1px solid var(--vj-hair);
+  border: 1px solid var(--vj-hair) !important;
+  border-radius: 14px !important;
+  overflow: hidden;
   margin-bottom: 32px;
 }
 body.vj-collections .top-filter-bar {
@@ -339,8 +340,8 @@ body.vj-collections .sort-btn.active {
 
 body.vj-collections .section-heading {
   border-bottom-color: var(--vj-hair) !important;
-  padding-top: 28px !important;
-  margin-bottom: 4px !important;
+  padding-top: 6px !important;
+  margin-bottom: 2px !important;
 }
 body.vj-collections .section-heading .eyebrow { color: var(--vj-accent); }
 body.vj-collections .section-heading h2 {
@@ -357,8 +358,8 @@ body.vj-collections .section-heading h2 {
 body.vj-collections .product-grid {
   background: transparent;
   border: none;
-  gap: 36px 28px;
-  margin-top: 32px !important;
+  gap: 34px 24px;
+  margin-top: 10px !important;
   grid-template-columns: repeat(3, 1fr);
 }
 body.vj-collections .product-card {
