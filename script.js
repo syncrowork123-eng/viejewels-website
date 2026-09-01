@@ -1212,60 +1212,78 @@ async function _renderProductDetailBase() {
   const media = (product.product_media || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   const images = media.filter((m) => m.media_type !== "video");
   const mediaEl = document.querySelector("[data-product-media]");
-  const thumbsEl = document.querySelector("[data-product-thumbnails]");
+  const showcaseEl = document.querySelector("[data-product-showcase]");
 
-  const showImage = (url, activeBtn) => {
+  const showImage = (url) => {
     if (mediaEl) mediaEl.innerHTML = `<img src="${esc(cldImg(url, 1400))}" alt="${esc(product.name || "")}" />`;
-    if (thumbsEl && activeBtn) {
-      thumbsEl.querySelectorAll(".thumb").forEach((t) => t.classList.remove("active"));
-      activeBtn.classList.add("active");
-    }
   };
 
+  // Model Showcase / Spotlight View are their own fixed slots (below) and
+  // must never be picked as the main swappable color image — e.g. if a
+  // product has no white shot and the fallback logic reaches for
+  // `images[0]`, it should still skip past a model/spotlight shot rather
+  // than accidentally showing that as "the white one".
+  const isShowcaseShot = (m) =>
+    ["model showcase", "spotlight view"].includes((m.metal_color || "").toLowerCase()) ||
+    _imageMatchesColor(m.url, "model showcase") ||
+    _imageMatchesColor(m.url, "spotlight view");
+  const colorImages = images.filter((m) => !isShowcaseShot(m));
+
   const bestImageForColor = () => {
-    if (!images.length) return null;
+    if (!colorImages.length) return images[0] || null;
     if (_selectedMetalColor) {
       const colorKey = _selectedMetalColor.toLowerCase();
       return (
-        images.find((m) => (m.metal_color || "").toLowerCase() === colorKey) ||
-        images.find((m) => _imageMatchesColor(m.url, colorKey)) ||
-        images.find((m) => m.is_primary) ||
-        images[0]
+        colorImages.find((m) => (m.metal_color || "").toLowerCase() === colorKey) ||
+        colorImages.find((m) => _imageMatchesColor(m.url, colorKey)) ||
+        colorImages.find((m) => m.is_primary) ||
+        colorImages[0]
       );
     }
-    return images.find((m) => m.is_primary) || images[0];
+    return colorImages.find((m) => m.is_primary) || colorImages[0];
+  };
+
+  // Model Showcase / Spotlight View: found once, shown always, and never
+  // touched again by a metal color change — unlike the main image, these
+  // don't have per-color variants.
+  const findShowcase = (key) =>
+    images.find((m) => (m.metal_color || "").toLowerCase() === key) ||
+    images.find((m) => _imageMatchesColor(m.url, key)) ||
+    null;
+
+  const renderShowcaseRow = () => {
+    if (!showcaseEl) return;
+    const items = [
+      { label: "Model Showcase", media: findShowcase("model showcase") },
+      { label: "Spotlight View", media: findShowcase("spotlight view") },
+    ].filter((it) => it.media);
+    showcaseEl.innerHTML = items
+      .map(
+        (it) => `<div class="showcase-item">
+          <img src="${esc(cldImg(it.media.url, 900))}" alt="${esc(product.name || "")} — ${esc(it.label)}" />
+          <span class="showcase-label">${esc(it.label)}</span>
+        </div>`
+      )
+      .join("");
+    showcaseEl.style.display = items.length ? "" : "none";
   };
 
   if (images.length) {
-    if (thumbsEl) {
-      thumbsEl.innerHTML = images
-        .map(
-          (m, i) =>
-            `<button class="thumb${i === 0 ? " active" : ""}" data-thumb data-url="${esc(m.url)}" data-url-key="${esc(m.url)}">
-              <img src="${esc(cldImg(m.url, 200))}" alt="" />
-            </button>`
-        )
-        .join("");
-      thumbsEl.querySelectorAll("[data-thumb]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          showImage(btn.dataset.url, btn);
-        });
-      });
-    }
-
     const best = bestImageForColor();
-    const bestBtn = thumbsEl?.querySelector(`[data-url-key="${CSS.escape(best?.url || "")}"]`) || thumbsEl?.querySelector(".thumb");
-    showImage(best?.url || images[0].url, bestBtn);
+    showImage(best?.url || images[0].url);
+    renderShowcaseRow();
 
-    // Called by onCatalogFilterChange when Metal Color dropdown changes
+    // Called by onCatalogFilterChange when a Metal Color swatch is clicked.
+    // Only re-picks the main color image — Model Showcase / Spotlight View
+    // stay exactly as they are.
     _updateProductGalleryColor = () => {
       if (!images.length) return;
       const best = bestImageForColor();
-      const bestBtn = thumbsEl?.querySelector(`[data-url-key="${CSS.escape(best?.url || "")}"]`);
-      showImage(best?.url || images[0].url, bestBtn || thumbsEl?.querySelector(".thumb"));
+      showImage(best?.url || images[0].url);
     };
   } else {
-    showImage(PLACEHOLDER_IMG, null);
+    showImage(PLACEHOLDER_IMG);
+    if (showcaseEl) showcaseEl.style.display = "none";
   }
 
   // Specs

@@ -43,17 +43,25 @@
        the surface2 background rather than having its edges cut off. */
     .product-main-image img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.5s ease; }
     .product-main-image:hover img { transform: scale(1.03); }
-    .product-thumb-strip {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;
+    /* Model Showcase / Spotlight View — always shown, same fixed square
+       size as the main image, never cropped (contain, not cover). These
+       never change when a metal color swatch is clicked; only
+       .product-main-image above does. */
+    .product-showcase-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
     }
-    .product-thumb-strip .thumb {
+    .product-showcase-row .showcase-item {
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .product-showcase-row .showcase-item img {
       aspect-ratio: 1 / 1; width: 100%; border-radius: 10px; overflow: hidden;
-      border: 1px solid var(--border); cursor: pointer; background: var(--surface2);
-      padding: 0; transition: border-color var(--transition);
+      border: 1px solid var(--border-light); background: var(--surface2);
+      object-fit: contain; display: block;
     }
-    .product-thumb-strip .thumb img { width: 100%; height: 100%; object-fit: contain; }
-    .product-thumb-strip .thumb.active { border-color: var(--text); }
-    .product-thumb-strip .thumb:hover { border-color: var(--text-muted); }
+    .product-showcase-row .showcase-label {
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-light); text-align: center;
+    }
 
     /* Info panel header block */
     .product-info-panel { display: flex; flex-direction: column; }
@@ -301,7 +309,7 @@
           <div class="product-main-image" data-product-media>
             <p style="color:var(--text-light);font-size:13px">Loading image...</p>
           </div>
-          <div class="product-thumb-strip" data-product-thumbnails></div>
+          <div class="product-showcase-row" data-product-showcase></div>
         </div>
 
         <!-- RIGHT: Info -->
