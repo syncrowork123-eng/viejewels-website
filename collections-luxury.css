@@ -398,12 +398,20 @@ body.vj-collections .product-card:nth-child(6) { animation-delay: 0.22s; }
 }
 
 body.vj-collections .product-card-media {
-  /* No fixed aspect-ratio: forcing every image (product shots, Model
-     Showcase, Spotlight View, etc.) into the same 4:5 box is what caused
-     the white letterbox bars whenever an image's real proportions didn't
-     match 4:5. Instead, let the box hug each image's own intrinsic ratio
-     so it always fills edge-to-edge at the largest size the grid column
-     allows, with nothing cropped and nothing padded. */
+  /* Do not hardcode aspect-ratio here. A fixed ratio only fills the box
+     with zero gaps if every single image is that exact ratio — the live
+     grid shows that isn't the case yet (bars still show top/bottom on
+     every tile with a fixed 1920:1400 box, because current images don't
+     actually match it). Instead, let the box's height come from the
+     image itself so it always fills edge-to-edge, at the largest size
+     the 3-column grid allows, with nothing cropped and no gaps, no
+     matter what size any given source photo actually is.
+     IMPORTANT: styles.css sets an unscoped `.product-card-media { aspect-ratio: 1 / 1; }`.
+     Simply not mentioning aspect-ratio here does NOT cancel that — the
+     cascade resolves per property, so without this explicit override
+     the 1:1 ratio from styles.css silently wins and forces a square
+     box no matter what else is set below. This is the actual fix. */
+  aspect-ratio: auto;
   background: #ffffff;
   border: 1px solid var(--vj-hair);
   position: relative;
