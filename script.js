@@ -157,6 +157,14 @@ function productJewelType(p) {
 const PRODUCT_SELECT =
   "*,categories(id,name,slug),product_media(id,url,media_type,is_primary,alt_text,sort_order,metal_color),product_tags(tags(id,name,slug)),product_jewel_cats(jewel_type,sub_type1,sub_type2),product_stones(stone_type,setting_type,shape,pcs,length_mm,width_mm),product_size_variants(id,size_label,net_weight_18k,net_weight_14k,net_weight_10k,net_weight_silver,sort_order,product_size_variant_stones(stone_type,setting_type,shape,pcs,length_mm,width_mm))";
 
+// Same as PRODUCT_SELECT, plus "Matching Sets" — other products linked via
+// the admin's "Part of a Set" picker (product_set_links table). Only used
+// on the single-product detail fetch, not the collections grid, so the
+// grid query doesn't pay for this extra nested embed on every tile.
+const PRODUCT_SELECT_DETAIL =
+  PRODUCT_SELECT +
+  ",product_set_links!product_set_links_product_id_fkey(linked_product:products!product_set_links_linked_product_id_fkey(id,name,slug,sku,price,currency,is_active,product_media(url,is_primary,sort_order,metal_color)))";
+
 let _allProducts = null;
 async function getAllProducts() {
   if (_allProducts) return _allProducts;
@@ -1178,7 +1186,7 @@ async function _renderProductDetailBase() {
   let product;
   try {
     const filter = params.get("id") ? `id=eq.${encodeURIComponent(id)}` : `slug=eq.${encodeURIComponent(id)}`;
-    const rows = await sbGet(`products?select=${PRODUCT_SELECT}&${filter}`);
+    const rows = await sbGet(`products?select=${PRODUCT_SELECT_DETAIL}&${filter}`);
     product = rows[0];
   } catch (e) {
     console.error(e);

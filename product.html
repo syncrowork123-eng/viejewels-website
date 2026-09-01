@@ -85,6 +85,32 @@
       color: var(--text-light); text-align: center;
     }
 
+    /* Matching Sets */
+    .pd-set-section { margin-top: 72px; padding-top: 48px; border-top: 1px solid var(--border-light); }
+    .pd-set-heading {
+      font-family: var(--font-display); font-weight: 500; font-size: 22px;
+      color: var(--text); margin-bottom: 24px;
+    }
+    .pd-set-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px;
+    }
+    .pd-set-card { display: block; text-decoration: none; color: inherit; }
+    .pd-set-card-media {
+      aspect-ratio: 1 / 1; background: var(--surface2); border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color var(--transition);
+    }
+    .pd-set-card:hover .pd-set-card-media { border-color: var(--text-muted); }
+    .pd-set-card-media img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.5s ease; }
+    .pd-set-card:hover .pd-set-card-media img { transform: scale(1.03); }
+    .pd-set-card-name {
+      font-family: var(--font-display); font-size: 14px; font-weight: 500;
+      color: var(--text); margin-bottom: 2px;
+    }
+    .pd-set-card-sku { font-size: 11px; color: var(--text-light); letter-spacing: 0.04em; margin-bottom: 6px; }
+    .pd-set-card-price { font-size: 13px; font-weight: 600; color: var(--text); }
+
     /* Info panel header block */
     .product-info-panel { display: flex; flex-direction: column; }
     .product-eyebrow {
@@ -479,6 +505,14 @@
           </div>
 
         </div>
+      </section>
+
+      <!-- MATCHING SETS: other products linked via the admin's "Part of
+           a Set" picker. Hidden entirely (data-product-set-section stays
+           display:none) when this product has no set links. -->
+      <section class="pd-set-section" data-product-set-section style="display:none">
+        <h2 class="pd-set-heading">Matching Sets</h2>
+        <div class="pd-set-grid" data-product-set-grid></div>
       </section>
     </div>
   </main>
@@ -901,6 +935,43 @@
       });
     }
 
+    // Matching Sets: other products linked via the admin's "Part of a
+    // Set" picker (product_set_links, embedded onto the product by
+    // PRODUCT_SELECT_DETAIL in script.js). Hidden entirely if this
+    // product has no set links, or if every linked product turns out to
+    // be inactive/unpublished.
+    function pdRenderMatchingSets(product) {
+      const section = document.querySelector('[data-product-set-section]');
+      const grid = document.querySelector('[data-product-set-grid]');
+      if (!section || !grid || !product) return;
+
+      const linked = (product.product_set_links || [])
+        .map((l) => l.linked_product)
+        .filter((p) => p && p.is_active !== false);
+
+      if (!linked.length) {
+        section.style.display = 'none';
+        grid.innerHTML = '';
+        return;
+      }
+
+      grid.innerHTML = linked
+        .map((p) => {
+          const media = (p.product_media || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+          const primary = media.find((m) => m.is_primary) || media[0];
+          const imgUrl = primary ? cldImg(primary.url, 500) : PLACEHOLDER_IMG;
+          return `<a class="pd-set-card" href="product.html?id=${encodeURIComponent(p.id)}">
+            <div class="pd-set-card-media"><img src="${esc(imgUrl)}" alt="${esc(p.name || '')}" /></div>
+            <div class="pd-set-card-name">${esc(p.name || 'Untitled')}</div>
+            ${p.sku ? `<div class="pd-set-card-sku">${esc(p.sku)}</div>` : ''}
+            <div class="pd-set-card-price">${esc(fmtPrice(p))}</div>
+          </a>`;
+        })
+        .join('');
+
+      section.style.display = '';
+    }
+
     async function renderProductDetail() {
       await _renderProductDetailBase();
       if (!document.querySelector('[data-product-detail]')) return;
@@ -909,6 +980,7 @@
       pdBuildBreadcrumb(_lastLoadedProduct);
       pdWireMetalSwatches(_lastLoadedProduct);
       pdWireLightbox();
+      pdRenderMatchingSets(_lastLoadedProduct);
       await runProductPricing(_lastLoadedProduct);
       pdWireCartButton(_lastLoadedProduct);
     }
