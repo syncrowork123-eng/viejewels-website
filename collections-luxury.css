@@ -434,20 +434,25 @@ body.vj-collections .product-card:hover .product-card-media img { transform: sca
 body.vj-collections .product-card-body {
   /* Slightly darker than the image zone's pure white so the two zones
      read as one tile with two parts, not two separate floating pieces.
-     No divider line needed — the tone shift alone does the job. */
+     No divider line needed — the tone shift alone does the job.
+     Padding and type sizes below are intentionally tight so this panel
+     stays as small as it can while remaining readable — the photo
+     above it (already at its max intrinsic size) reads as the
+     dominant element of the tile as a result. */
   background: var(--vj-hair-soft);
   border-top: none;
-  padding: 16px 18px 18px;
+  padding: 12px 14px 14px;
 }
 body.vj-collections .product-card-name {
   font-family: var(--vj-serif);
   font-weight: 400;
-  font-size: 18px;
+  font-size: 15px;
   color: var(--vj-ink);
   display: inline-block;
   position: relative;
   width: fit-content;
-  margin-bottom: 2px;
+  line-height: 1.25;
+  margin-bottom: 1px;
 }
 body.vj-collections .product-card-name::after {
   content: "";
@@ -461,18 +466,23 @@ body.vj-collections .product-card:hover .product-card-name::after { width: 100%;
 
 body.vj-collections .product-card-sku {
   color: var(--vj-ink-faint);
-  letter-spacing: 0.16em;
-  margin-top: 4px;
-  margin-bottom: 6px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  margin-top: 2px;
+  margin-bottom: 4px;
 }
 body.vj-collections .product-card-desc {
   color: var(--vj-ink-soft);
+  font-size: 12px;
+  line-height: 1.45;
+  /* Compact tiles read better with one line of description, not two. */
+  -webkit-line-clamp: 1;
   /* The base stylesheet makes this flex:1 so it grows to fill leftover
      card height (and pairs with price's margin-top:auto below) — that's
      what was pushing price away from the description. Killing the grow
      keeps the text block tight regardless of how tall the row is. */
   flex: none;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 body.vj-collections .product-card-price {
   /* No border-top / padding-top / margin-top:auto: those three together
