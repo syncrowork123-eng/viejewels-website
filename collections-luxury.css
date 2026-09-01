@@ -379,12 +379,15 @@ body.vj-collections .product-grid {
   grid-template-columns: repeat(3, 1fr);
 }
 body.vj-collections .product-card {
-  background: transparent;
+  background: var(--vj-surface);
+  border: 1px solid var(--vj-hair);
+  border-radius: 6px !important;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   animation: vjCardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-body.vj-collections .product-card:hover { background: transparent; }
+body.vj-collections .product-card:hover { background: var(--vj-surface); }
 body.vj-collections .product-card:nth-child(1) { animation-delay: 0.02s; }
 body.vj-collections .product-card:nth-child(2) { animation-delay: 0.06s; }
 body.vj-collections .product-card:nth-child(3) { animation-delay: 0.10s; }
@@ -413,7 +416,6 @@ body.vj-collections .product-card-media {
      box no matter what else is set below. This is the actual fix. */
   aspect-ratio: auto;
   background: #ffffff;
-  border: 1px solid var(--vj-hair);
   position: relative;
   display: flex;
   align-items: center;
@@ -430,8 +432,12 @@ body.vj-collections .product-card-media img {
 body.vj-collections .product-card:hover .product-card-media img { transform: scale(1.045); }
 
 body.vj-collections .product-card-body {
+  /* Slightly darker than the image zone's pure white so the two zones
+     read as one tile with two parts, not two separate floating pieces.
+     No divider line needed — the tone shift alone does the job. */
+  background: var(--vj-hair-soft);
   border-top: none;
-  padding: 20px 2px 0;
+  padding: 16px 18px 18px;
 }
 body.vj-collections .product-card-name {
   font-family: var(--vj-serif);
@@ -529,10 +535,6 @@ body.vj-collections .sort-btn:hover {
   background: var(--vj-hair-soft) !important;
 }
 
-body.vj-collections .product-card-media,
-body.vj-collections .product-card-media img {
-  border-radius: 6px !important;
-}
-body.vj-collections .product-card-media {
-  overflow: hidden;
-}
+/* .product-card itself now owns border-radius + overflow:hidden (see
+   PRODUCT GRID section above) since the image and text zones are one
+   bordered tile — no separate rounding needed on the media box. */
