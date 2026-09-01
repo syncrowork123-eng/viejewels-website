@@ -174,8 +174,12 @@ body.vj-collections .page-hero {
    CATALOG LAYOUT
 --------------------------------------------------------------- */
 body.vj-collections .catalog-layout {
-  max-width: 1720px;
-  padding: 28px 48px 96px;
+  /* Left padding cut way down (was 48px, matching the right side) so
+     the sidebar sits flush against the left edge instead of centered
+     with generous margin — that reclaimed width, plus a wider
+     max-width, is what makes room for 3 full-size tiles per row again. */
+  max-width: 1880px;
+  padding: 28px 48px 96px 16px;
   gap: 28px;
   grid-template-columns: 220px 1fr;
 }
@@ -374,9 +378,9 @@ body.vj-collections .section-heading h2 {
 body.vj-collections .product-grid {
   background: transparent;
   border: none;
-  gap: 24px 28px;
+  gap: 20px 22px;
   margin-top: 10px !important;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 body.vj-collections .product-card {
   background: var(--vj-surface);
