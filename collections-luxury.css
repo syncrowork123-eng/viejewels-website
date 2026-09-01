@@ -374,9 +374,9 @@ body.vj-collections .section-heading h2 {
 body.vj-collections .product-grid {
   background: transparent;
   border: none;
-  gap: 18px 20px;
+  gap: 24px 28px;
   margin-top: 10px !important;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
 }
 body.vj-collections .product-card {
   background: var(--vj-surface);
@@ -438,31 +438,36 @@ body.vj-collections .product-card-body {
      Padding and type sizes below are intentionally tight so this panel
      stays as small as it can while remaining readable — the photo
      above it (already at its max intrinsic size) reads as the
-     dominant element of the tile as a result. */
+     dominant element of the tile as a result. min-height keeps every
+     panel the same floor height across the row, so tiles line up even
+     when a product is missing an optional field (sku, description). */
   background: var(--vj-hair-soft);
   border-top: none;
   padding: 12px 14px 14px;
+  min-height: 96px;
 }
 body.vj-collections .product-card-name {
   font-family: var(--vj-serif);
   font-weight: 400;
   font-size: 15px;
   color: var(--vj-ink);
-  display: inline-block;
-  position: relative;
-  width: fit-content;
+  display: block;
+  width: 100%;
   line-height: 1.25;
   margin-bottom: 1px;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.3s ease;
+  /* Truncate to one line — a long product name is the single biggest
+     cause of uneven card heights across a row. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-body.vj-collections .product-card-name::after {
-  content: "";
-  position: absolute;
-  left: 0; bottom: -2px;
-  width: 0; height: 1px;
-  background: var(--vj-accent-line);
-  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+body.vj-collections .product-card:hover .product-card-name {
+  text-decoration-color: var(--vj-accent-line);
 }
-body.vj-collections .product-card:hover .product-card-name::after { width: 100%; }
 
 body.vj-collections .product-card-sku {
   color: var(--vj-ink-faint);
