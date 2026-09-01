@@ -3,6 +3,25 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Image protection ────────────────────────────────────────────────
+   Deters casual copying of product photography: no drag-to-desktop
+   save, no iOS/Android long-press "Save Image" menu, no image-as-text
+   selection. Right-click "Save As" is blocked separately in script.js
+   (needs JS, not just CSS, to preventDefault on contextmenu).
+   Honest limitation: nothing here (or anywhere on the web) can block
+   OS-level screenshots/screen recording, or stop someone who opens
+   dev tools and reads the image bytes directly — this only removes
+   the easy, casual copy paths for typical visitors.
+   ─────────────────────────────────────────────────────────────────── */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 :root {
   --bg:           #fafaf8;
   --surface:      #ffffff;

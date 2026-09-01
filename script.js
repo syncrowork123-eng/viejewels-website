@@ -2144,6 +2144,7 @@ async function renderProductDetail() {
 
 // ── INIT ───────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
+  initImageProtection();
   updateNavBadges();
   await setupCatalogFilterBar();
   renderCategoryGrid();
@@ -2153,6 +2154,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   initHeroCarousel();
   initHeaderScrollState();
 });
+
+// Blocks the browser's "Save Image As" / "Copy Image" right-click menu on
+// every <img> sitewide. Delegated on document (not attached per-image) so
+// it also covers images rendered later — product tiles, gallery swaps,
+// hero slides, anything injected after this runs once at page load.
+// Does not, and cannot, block OS-level screenshots or dev-tools access to
+// the image bytes — see the CSS comment in styles.css for the same note.
+function initImageProtection() {
+  document.addEventListener("contextmenu", (e) => {
+    if (e.target.tagName === "IMG") e.preventDefault();
+  });
+  // CSS -webkit-user-drag:none (styles.css) covers Chrome/Safari; Firefox
+  // ignores that property, so block the drag start directly here too.
+  document.addEventListener("dragstart", (e) => {
+    if (e.target.tagName === "IMG") e.preventDefault();
+  });
+}
+
 
 // ── HERO CAROUSEL (fade in/out, images + video) ──────────────────────────
 function initHeroCarousel() {
