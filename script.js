@@ -1215,7 +1215,7 @@ async function _renderProductDetailBase() {
   const showcaseEl = document.querySelector("[data-product-showcase]");
 
   const showImage = (url) => {
-    if (mediaEl) mediaEl.innerHTML = `<img src="${esc(cldImg(url, 1400))}" alt="${esc(product.name || "")}" />`;
+    if (mediaEl) mediaEl.innerHTML = `<img src="${esc(cldImg(url, 1400))}" data-full="${esc(cldImg(url, 2400))}" alt="${esc(product.name || "")}" />`;
   };
 
   // Model Showcase / Spotlight View are their own fixed slots (below) and
@@ -1260,7 +1260,7 @@ async function _renderProductDetailBase() {
     showcaseEl.innerHTML = items
       .map(
         (it) => `<div class="showcase-item">
-          <img src="${esc(cldImg(it.media.url, 900))}" alt="${esc(product.name || "")} — ${esc(it.label)}" />
+          <img src="${esc(cldImg(it.media.url, 900))}" data-full="${esc(cldImg(it.media.url, 2400))}" alt="${esc(product.name || "")} — ${esc(it.label)}" />
           <span class="showcase-label">${esc(it.label)}</span>
         </div>`
       )

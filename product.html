@@ -42,7 +42,7 @@
       border-radius: 14px; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
     }
-    .product-main-image img { width: 100%; height: auto; display: block; object-fit: contain; transition: transform 0.5s ease; }
+    .product-main-image img { width: 100%; height: auto; display: block; object-fit: contain; transition: transform 0.5s ease; cursor: zoom-in; }
     .product-main-image:hover img { transform: scale(1.03); }
     /* Model Showcase / Spotlight View — always shown, same fixed square
        size as the main image, never cropped (contain, not cover). These
@@ -57,8 +57,29 @@
     .product-showcase-row .showcase-item img {
       width: 100%; height: auto; display: block; border-radius: 10px;
       border: 1px solid var(--border-light); background: var(--surface2);
-      object-fit: contain;
+      object-fit: contain; cursor: zoom-in;
     }
+
+    /* Lightbox */
+    .pd-lightbox {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(20, 18, 16, 0.92);
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+    .pd-lightbox.is-open { opacity: 1; visibility: visible; }
+    .pd-lightbox img {
+      max-width: 100%; max-height: 100%;
+      width: auto; height: auto;
+      object-fit: contain;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      cursor: zoom-out;
+      transform: scale(0.96);
+      transition: transform 0.25s ease;
+    }
+    .pd-lightbox.is-open img { transform: scale(1); }
     .product-showcase-row .showcase-label {
       font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
       color: var(--text-light); text-align: center;
@@ -475,6 +496,12 @@
   </footer>
 
   <script src="script.js"></script>
+  <!-- Image lightbox: opens on click of any gallery image, closes on
+       click of the image itself or the surrounding dark overlay. -->
+  <div class="pd-lightbox" data-pd-lightbox aria-hidden="true">
+    <img data-pd-lightbox-img src="" alt="" />
+  </div>
+
   <script>
     /* ── PRODUCT PAGE REDESIGN OVERRIDES ───────────────────────────────
        Everything below builds on top of script.js (loaded above) without
@@ -832,6 +859,48 @@
       pdRefreshCartButtonState(product);
     }
 
+    // Lightbox: click any gallery image (main or showcase) to open it at
+    // full size; click the enlarged image or the dark overlay around it
+    // to close. Delegated on document since gallery images are
+    // re-rendered dynamically (color swaps, product loads) — a direct
+    // listener on the <img> itself would be lost on every re-render.
+    function pdWireLightbox() {
+      const box = document.querySelector('[data-pd-lightbox]');
+      const boxImg = document.querySelector('[data-pd-lightbox-img]');
+      if (!box || !boxImg || box.dataset.pdWired) return;
+      box.dataset.pdWired = '1';
+
+      const open = (src, alt) => {
+        boxImg.src = src;
+        boxImg.alt = alt || '';
+        box.classList.add('is-open');
+        box.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      };
+      const close = () => {
+        box.classList.remove('is-open');
+        box.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      };
+
+      document.addEventListener('click', (e) => {
+        const img = e.target.closest('.product-main-image img, .showcase-item img');
+        if (img) {
+          open(img.dataset.full || img.src, img.alt);
+        }
+      });
+
+      // Clicking the image itself OR anywhere on the dark overlay
+      // outside it both close it — the overlay is the click target in
+      // both cases since the image sits inside it, so one listener
+      // covers "clicked on it or outside".
+      box.addEventListener('click', close);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && box.classList.contains('is-open')) close();
+      });
+    }
+
     async function renderProductDetail() {
       await _renderProductDetailBase();
       if (!document.querySelector('[data-product-detail]')) return;
@@ -839,6 +908,7 @@
       pdSetEyebrow(_lastLoadedProduct);
       pdBuildBreadcrumb(_lastLoadedProduct);
       pdWireMetalSwatches(_lastLoadedProduct);
+      pdWireLightbox();
       await runProductPricing(_lastLoadedProduct);
       pdWireCartButton(_lastLoadedProduct);
     }
