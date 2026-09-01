@@ -174,14 +174,17 @@ body.vj-collections .page-hero {
    CATALOG LAYOUT
 --------------------------------------------------------------- */
 body.vj-collections .catalog-layout {
-  /* Left padding cut way down (was 48px, matching the right side) so
-     the sidebar sits flush against the left edge instead of centered
-     with generous margin — that reclaimed width, plus a wider
-     max-width, is what makes room for 3 full-size tiles per row again. */
-  max-width: 1880px;
-  padding: 28px 48px 96px 16px;
-  gap: 28px;
-  grid-template-columns: 220px 1fr;
+  /* Left padding trimmed to almost nothing (was 48px, then 16px) so the
+     sidebar hugs the left edge. Sidebar column also narrowed (220px ->
+     180px) and the gap to the grid tightened (28px -> 20px). All three
+     changes together give the product grid noticeably more width to
+     spread across, which is what actually makes each of the 3 tiles
+     bigger — the grid itself has no max-width of its own, so any width
+     reclaimed here goes straight into tile size. */
+  max-width: 1900px;
+  padding: 28px 32px 96px 8px;
+  gap: 20px;
+  grid-template-columns: 180px 1fr;
 }
 
 /* Sidebar */
