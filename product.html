@@ -37,7 +37,11 @@
       border-radius: 14px; overflow: hidden; aspect-ratio: 1 / 1;
       display: flex; align-items: center; justify-content: center;
     }
-    .product-main-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    /* object-fit: contain (not cover) so nothing is cropped — the fixed
+       aspect-ratio box above is what keeps every image the same size;
+       any image that isn't naturally square is letterboxed evenly on
+       the surface2 background rather than having its edges cut off. */
+    .product-main-image img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.5s ease; }
     .product-main-image:hover img { transform: scale(1.03); }
     .product-thumb-strip {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;
@@ -47,7 +51,7 @@
       border: 1px solid var(--border); cursor: pointer; background: var(--surface2);
       padding: 0; transition: border-color var(--transition);
     }
-    .product-thumb-strip .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .product-thumb-strip .thumb img { width: 100%; height: 100%; object-fit: contain; }
     .product-thumb-strip .thumb.active { border-color: var(--text); }
     .product-thumb-strip .thumb:hover { border-color: var(--text-muted); }
 
