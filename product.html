@@ -13,7 +13,7 @@
        All data-* hooks below are read by script.js — do not rename them.
     ──────────────────────────────────────────────────────────────────── */
 
-    .pd-page { max-width: 1180px; padding-top: 36px; padding-bottom: 80px; }
+    .pd-page { max-width: 1600px; padding-top: 36px; padding-bottom: 80px; }
 
     /* Breadcrumb */
     .pd-breadcrumb {
@@ -27,21 +27,22 @@
 
     /* Two-column layout */
     .product-detail {
-      display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: flex-start;
+      display: grid; grid-template-columns: 1.6fr 1fr; gap: 56px; align-items: flex-start;
     }
 
     /* Gallery */
     .product-gallery-wrap { display: flex; flex-direction: column; gap: 12px; }
     .product-main-image {
+      /* No fixed aspect-ratio: a fixed box only avoids letterbox bars if
+         every image happens to be that exact ratio. Sizing the box to
+         each image's own intrinsic ratio guarantees zero bars and zero
+         cropping at the largest size the (now wider) gallery column
+         allows — same fix applied earlier to the collections grid. */
       background: var(--surface2); border: 1px solid var(--border-light);
-      border-radius: 14px; overflow: hidden; aspect-ratio: 1 / 1;
+      border-radius: 14px; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
     }
-    /* object-fit: contain (not cover) so nothing is cropped — the fixed
-       aspect-ratio box above is what keeps every image the same size;
-       any image that isn't naturally square is letterboxed evenly on
-       the surface2 background rather than having its edges cut off. */
-    .product-main-image img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.5s ease; }
+    .product-main-image img { width: 100%; height: auto; display: block; object-fit: contain; transition: transform 0.5s ease; }
     .product-main-image:hover img { transform: scale(1.03); }
     /* Model Showcase / Spotlight View — always shown, same fixed square
        size as the main image, never cropped (contain, not cover). These
@@ -54,9 +55,9 @@
       display: flex; flex-direction: column; gap: 6px;
     }
     .product-showcase-row .showcase-item img {
-      aspect-ratio: 1 / 1; width: 100%; border-radius: 10px; overflow: hidden;
+      width: 100%; height: auto; display: block; border-radius: 10px;
       border: 1px solid var(--border-light); background: var(--surface2);
-      object-fit: contain; display: block;
+      object-fit: contain;
     }
     .product-showcase-row .showcase-label {
       font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
