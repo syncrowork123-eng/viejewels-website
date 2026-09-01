@@ -441,6 +441,7 @@ body.vj-collections .product-card-name {
   display: inline-block;
   position: relative;
   width: fit-content;
+  margin-bottom: 2px;
 }
 body.vj-collections .product-card-name::after {
   content: "";
@@ -455,11 +456,26 @@ body.vj-collections .product-card:hover .product-card-name::after { width: 100%;
 body.vj-collections .product-card-sku {
   color: var(--vj-ink-faint);
   letter-spacing: 0.16em;
-  margin-top: 6px;
+  margin-top: 4px;
+  margin-bottom: 6px;
 }
-body.vj-collections .product-card-desc { color: var(--vj-ink-soft); }
+body.vj-collections .product-card-desc {
+  color: var(--vj-ink-soft);
+  /* The base stylesheet makes this flex:1 so it grows to fill leftover
+     card height (and pairs with price's margin-top:auto below) — that's
+     what was pushing price away from the description. Killing the grow
+     keeps the text block tight regardless of how tall the row is. */
+  flex: none;
+  margin-bottom: 8px;
+}
 body.vj-collections .product-card-price {
-  border-top: 1px solid var(--vj-hair);
+  /* No border-top / padding-top / margin-top:auto: those three together
+     drew the divider line and pushed price to the bottom of the card's
+     available height. Zeroing them out sits price directly under the
+     description instead. */
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
   color: var(--vj-ink);
   font-family: var(--vj-sans);
   font-weight: 500;
