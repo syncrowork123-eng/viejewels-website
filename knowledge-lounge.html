@@ -6,54 +6,59 @@
   <title>Knowledge Lounge | Vie Jewels</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* ── KNOWLEDGE LOUNGE HUB — card grid pulling from Supabase `guides` ── */
-    .guide-grid {
+    /* ── KNOWLEDGE LOUNGE — static 6-tile guide grid ──────────────── */
+    .lounge-grid {
       display: grid;
-      gap: 1px;
+      gap: 24px;
       grid-template-columns: repeat(3, 1fr);
-      background: var(--border-light);
-      border: 1px solid var(--border-light);
     }
-    .guide-card {
-      background: var(--surface);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      transition: background var(--transition);
-    }
-    .guide-card:hover { background: var(--bg); }
-    .guide-card:hover .guide-card-media img { transform: scale(1.04); }
-    .guide-card-media {
-      aspect-ratio: 4 / 3;
-      overflow: hidden;
+    .lounge-card {
+      display: block;
       background: var(--surface2);
+      border-radius: 10px;
+      padding: 28px 28px 32px;
+      text-align: center;
+      transition: box-shadow var(--transition), transform var(--transition);
+      box-shadow: 0 1px 3px rgba(22,20,18,0.06);
     }
-    .guide-card-media img {
-      width: 100%; height: 100%; object-fit: cover;
-      transition: transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    .lounge-card:hover {
+      box-shadow: 0 10px 28px rgba(22,20,18,0.10);
+      transform: translateY(-2px);
     }
-    .guide-card-body {
-      padding: 20px 22px 26px;
-      border-top: 1px solid var(--border-light);
-    }
-    .guide-card-body h3 {
+    .lounge-card h3 {
       font-family: var(--font-display);
       font-size: 19px;
-      font-weight: 400;
-      letter-spacing: 0.02em;
-      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
     }
-    .guide-card-body p {
+    .lounge-card p {
       font-size: 13px;
       color: var(--text-muted);
-      line-height: 1.7;
+      margin-bottom: 20px;
     }
-
+    .lounge-card-media {
+      aspect-ratio: 4 / 3;
+      background: var(--surface);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(22,20,18,0.08);
+    }
+    .lounge-card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .lounge-card:hover .lounge-card-media img {
+      transform: scale(1.03);
+    }
     @media (max-width: 860px) {
-      .guide-grid { grid-template-columns: repeat(2, 1fr); }
+      .lounge-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 540px) {
-      .guide-grid { grid-template-columns: 1fr; }
+      .lounge-grid { grid-template-columns: 1fr; gap: 18px; }
     }
   </style>
 </head>
@@ -63,41 +68,76 @@
       <span>Vie Jewels</span>
       <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
     </div>
-
     <nav class="main-nav">
       <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
-
       <div class="nav-links">
         <a href="world-of-vie.html">World of Vie</a>
         <a href="collections.html">Collections</a>
         <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
         <a href="contact.html">Contact Us</a>
       </div>
-
       <div class="nav-icons">
         <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
         <a href="account.html" aria-label="My Account">◎</a>
       </div>
     </nav>
   </header>
-
   <main>
     <section class="page-hero">
       <p class="eyebrow">Knowledge Lounge</p>
       <h1>Guidance for choosing fine jewelry.</h1>
       <p>
-        Learn about diamonds, precious metals, jewelry care, and custom design
-        so every purchase feels confident and meaningful.
+        Explore our brand, our products and services, and find valuable
+        guidance on diamonds and jewelry.
       </p>
     </section>
-
     <section class="section">
-      <div class="guide-grid" data-guide-grid>
-        <p style="padding:48px;color:var(--text-light);font-size:13px;">Loading guides&hellip;</p>
+      <div class="lounge-grid">
+        <a class="lounge-card" href="diamond-guide.html">
+          <h3>Diamond Guide</h3>
+          <p>Your complete guide to diamonds</p>
+          <div class="lounge-card-media">
+            <img src="/assets/diamond-guide.jpg" alt="Diamond Guide" />
+          </div>
+        </a>
+        <a class="lounge-card" href="jewelry-guide.html">
+          <h3>Jewelry Guide</h3>
+          <p>Your complete guide to jewelry</p>
+          <div class="lounge-card-media">
+            <img src="/assets/jewelry-guide.jpg" alt="Jewelry Guide" />
+          </div>
+        </a>
+        <a class="lounge-card" href="gemstone-guide.html">
+          <h3>Gemstone Guide</h3>
+          <p>Your complete guide to gemstones</p>
+          <div class="lounge-card-media">
+            <img src="/assets/gemstone-guide.jpg" alt="Gemstone Guide" />
+          </div>
+        </a>
+        <a class="lounge-card" href="shopping-experience.html">
+          <h3>Shopping Experience</h3>
+          <p>Your complete guide to shopping with us</p>
+          <div class="lounge-card-media">
+            <img src="/assets/shopping-guide.jpg" alt="Shopping Experience" />
+          </div>
+        </a>
+        <a class="lounge-card" href="bespoke-services.html">
+          <h3>Bespoke Services</h3>
+          <p>Our complete guide to services we offer</p>
+          <div class="lounge-card-media">
+            <img src="/assets/bespoke-services.jpg" alt="Bespoke Services" />
+          </div>
+        </a>
+        <a class="lounge-card" href="world-of-vie.html">
+          <h3>About Vie</h3>
+          <p>Your complete guide to learn about us</p>
+          <div class="lounge-card-media">
+            <img src="/assets/about-vie.jpg" alt="About Vie" />
+          </div>
+        </a>
       </div>
     </section>
   </main>
-
   <footer id="contact" class="site-footer">
     <div>
       <h2>VIE JEWELS</h2>
@@ -106,11 +146,9 @@
     <div>
       <h3>Contact Us</h3>
       <p>Email: hello@viejewels.com</p>
-      <p>Website: www.viejewels.com</p>
+      <p>Website: [www.viejewels.com](https://www.viejewels.com)</p>
     </div>
   </footer>
-
   <script src="script.js"></script>
-  <script src="guides.js"></script>
 </body>
 </html>
