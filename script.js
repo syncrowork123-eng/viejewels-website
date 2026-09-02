@@ -1088,68 +1088,77 @@ async function renderSizeSelector(product) {
   _selectedSize = null;
   _selectedSizeVariant = null;
 
-  // The interactive "Select Size" section only ever applies to Rings and
-  // Bangles. Every other jewelry type relies solely on the free-text
-  // "Size" detail entered on the product record itself (product.size),
-  // which is shown separately in the specs grid for ALL jewelry types —
-  // see the Size row in renderProductDetailsGrid — and is unaffected by
-  // this function.
+  // The interactive, price-aware Select Size picker (admin-selected sizes
+  // with their own metal/stone details) only ever applies to Rings and
+  // Bangles. Every other jewelry type — and Rings/Bangles that don't have
+  // any admin-selected sizes — falls through below to show the plain
+  // typed "Size" detail instead, so the section still displays *something*
+  // whenever there's a size to show, rather than going blank.
   const firstJc = (product.product_jewel_cats || [])[0];
   const sizeType = sizeTypeFromJewelCat(firstJc);
-  if (!sizeType) {
-    section.style.display = "none";
-    optionsEl.innerHTML = "";
-    return;
-  }
 
   // Within Rings/Bangles, only sizes that were actually given details and
   // selected in admin (product_size_variants — each carries its own metal
   // net weights + stone rows, so picking one changes the computed price)
-  // are shown. No fallback to a generic, price-less size chart anymore —
-  // if a ring/bangle has no admin-selected sizes, the section stays
-  // hidden rather than listing options nobody configured pricing for.
-  const extraVariants = (product.product_size_variants || [])
-    .slice()
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  // are eligible for the interactive picker. No fallback to a generic,
+  // price-less size chart — that was removed entirely.
+  const extraVariants = sizeType
+    ? (product.product_size_variants || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    : [];
 
-  if (!extraVariants.length) {
-    section.style.display = "none";
-    optionsEl.innerHTML = "";
+  if (extraVariants.length) {
+    // The product's own default size/metal/stone details (entered on the
+    // main product form) are always shown first — the "Sizes" button in
+    // admin only adds MORE sizes alongside this default, it never hides it.
+    const masterOption = { isMaster: true, size_label: product.size || "Default" };
+    const options = [masterOption, ...extraVariants];
+
+    section.style.display = "";
+    optionsEl.innerHTML = options
+      .map((v, i) => `<button class="size-btn" data-variant-index="${i}" type="button">${esc(v.size_label || "—")}</button>`)
+      .join("");
+
+    const buttons = [...optionsEl.querySelectorAll(".size-btn")];
+    buttons.forEach((btn, i) => {
+      btn.addEventListener("click", async () => {
+        buttons.forEach((b) => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        const opt = options[i];
+        _selectedSize = opt.size_label;
+        // Master option → no override (null tells _effectiveProductForPricing
+        // to use the product's own net weights/stones, unchanged).
+        _selectedSizeVariant = opt.isMaster ? null : opt;
+        if (_lastLoadedProduct) await runProductPricing(_lastLoadedProduct);
+      });
+    });
+
+    // Auto-select the master (default) option so it — not an admin-added
+    // extra size — is what shows first on page load.
+    if (buttons[0]) {
+      buttons[0].classList.add("selected");
+      _selectedSize = options[0].size_label;
+      _selectedSizeVariant = null;
+    }
     return;
   }
 
-  // The product's own default size/metal/stone details (entered on the
-  // main product form) are always shown first — the "Sizes" button in
-  // admin only adds MORE sizes alongside this default, it never hides it.
-  const masterOption = { isMaster: true, size_label: product.size || "Default" };
-  const options = [masterOption, ...extraVariants];
-
-  section.style.display = "";
-  optionsEl.innerHTML = options
-    .map((v, i) => `<button class="size-btn" data-variant-index="${i}" type="button">${esc(v.size_label || "—")}</button>`)
-    .join("");
-
-  const buttons = [...optionsEl.querySelectorAll(".size-btn")];
-  buttons.forEach((btn, i) => {
-    btn.addEventListener("click", async () => {
-      buttons.forEach((b) => b.classList.remove("selected"));
-      btn.classList.add("selected");
-      const opt = options[i];
-      _selectedSize = opt.size_label;
-      // Master option → no override (null tells _effectiveProductForPricing
-      // to use the product's own net weights/stones, unchanged).
-      _selectedSizeVariant = opt.isMaster ? null : opt;
-      if (_lastLoadedProduct) await runProductPricing(_lastLoadedProduct);
-    });
-  });
-
-  // Auto-select the master (default) option so it — not an admin-added
-  // extra size — is what shows first on page load.
-  if (buttons[0]) {
-    buttons[0].classList.add("selected");
-    _selectedSize = options[0].size_label;
+  // Fallback: no admin-selected sizes (either not a Ring/Bangle, or a
+  // Ring/Bangle with none configured). If the product at least has a
+  // manually typed custom size, show that as a single, already-selected
+  // entry — it doesn't carry its own pricing override (there's nothing
+  // to pick between), it's just a display of the one size that applies.
+  if (product.size) {
+    section.style.display = "";
+    optionsEl.innerHTML = `<button class="size-btn selected" data-size="${esc(product.size)}" type="button">${esc(product.size)}</button>`;
+    _selectedSize = product.size;
     _selectedSizeVariant = null;
+    return;
   }
+
+  // Nothing at all to show — not a Ring/Bangle with sizes, and no custom
+  // size typed either.
+  section.style.display = "none";
+  optionsEl.innerHTML = "";
 }
 
 // ── PRODUCT DETAIL PAGE ─────────────────────────────────────────────────
