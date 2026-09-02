@@ -60,6 +60,22 @@
     @media (max-width: 540px) {
       .lounge-grid { grid-template-columns: 1fr; gap: 18px; }
     }
+    /* Leaner hero for this page: no eyebrow, no description — heading
+       alone needs a size that reads as a clean statement, not a huge
+       display headline, since it's carrying the whole block on its own. */
+    .knowledge-hero h1 {
+      font-size: 32px;
+      font-weight: 400;
+      max-width: 620px;
+      margin: 0 auto;
+      letter-spacing: 0.01em;
+    }
+    .knowledge-hero {
+      padding-bottom: 24px;
+    }
+    @media (max-width: 640px) {
+      .knowledge-hero h1 { font-size: 26px; }
+    }
   </style>
 </head>
 <body>
@@ -83,13 +99,8 @@
     </nav>
   </header>
   <main>
-    <section class="page-hero">
-      <p class="eyebrow">Knowledge Lounge</p>
-      <h1>Guidance for choosing fine jewelry.</h1>
-      <p>
-        Explore our brand, our products and services, and find valuable
-        guidance on diamonds and jewelry.
-      </p>
+    <section class="page-hero knowledge-hero">
+      <h1>Insights on diamonds, fine jewelry, and bespoke craftsmanship</h1>
     </section>
     <section class="section">
       <div class="lounge-grid">
