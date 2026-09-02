@@ -506,17 +506,18 @@ img { max-width: 100%; display: block; }
 /* ── CART INTRO COPY — compact, uniform, minimal premium ─────────
    All copy under the "Enquiry List" title shares one font, one size,
    one weight, and tight consistent spacing. No paragraph is styled
-   differently from the others — that's the point of "compact and
-   uniform": nothing competes for attention, the block just reads as
-   one clean unit. */
+   differently from the others. The block is wide and shallow rather
+   than narrow and tall — lines run long and horizontal, with no side
+   padding boxing the text in, and minimal vertical gap between lines
+   and paragraphs, for a flat, minimal, premium feel. */
 .cart-intro {
-  max-width: 560px;
+  max-width: 900px;
+  margin: 0 auto;
   text-align: center;
-  padding-top: 4px;
-  padding-bottom: 32px;
+  padding: 0 0 24px;
 }
 .cart-intro .eyebrow {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .cart-intro p,
 .cart-intro p.cart-intro-emphasis {
@@ -524,11 +525,11 @@ img { max-width: 100%; display: block; }
   font-size: 13px;
   font-weight: 400;
   font-style: normal;
-  line-height: 1.7;
+  line-height: 1.55;
   color: var(--text-muted);
   letter-spacing: 0.01em;
   max-width: none;
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   padding-top: 0;
 }
 .cart-intro p:last-child { margin-bottom: 0; }
