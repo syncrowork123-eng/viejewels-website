@@ -503,49 +503,35 @@ img { max-width: 100%; display: block; }
   margin-top: auto;
 }
 
-/* ── CART INTRO COPY — minimal premium ─────────────────────────── */
+/* ── CART INTRO COPY — compact, uniform, minimal premium ─────────
+   All copy under the "Enquiry List" title shares one font, one size,
+   one weight, and tight consistent spacing. No paragraph is styled
+   differently from the others — that's the point of "compact and
+   uniform": nothing competes for attention, the block just reads as
+   one clean unit. */
 .cart-intro {
-  max-width: 620px;
+  max-width: 560px;
   text-align: center;
-  padding-top: 8px;
-  padding-bottom: 56px;
+  padding-top: 4px;
+  padding-bottom: 32px;
 }
 .cart-intro .eyebrow {
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
-.cart-intro p {
-  font-size: 14px;
-  line-height: 2;
+.cart-intro p,
+.cart-intro p.cart-intro-emphasis {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.7;
   color: var(--text-muted);
   letter-spacing: 0.01em;
-  margin-bottom: 22px;
+  max-width: none;
+  margin: 0 0 10px;
+  padding-top: 0;
 }
 .cart-intro p:last-child { margin-bottom: 0; }
-
-/* thin gold hairline separating the intro copy from the emphasis line */
-.cart-intro-emphasis {
-  position: relative;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 300;
-  font-size: 19px !important;
-  color: var(--text) !important;
-  line-height: 1.65 !important;
-  letter-spacing: 0.005em;
-  max-width: 480px;
-  margin: 36px auto !important;
-  padding-top: 32px;
-}
-.cart-intro-emphasis::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40px;
-  height: 1px;
-  background: var(--accent);
-}
 
 /* ── CART PAGE ─────────────────────────────────────────────── */
 .cart-page { max-width: 980px; }
@@ -1077,4 +1063,3 @@ img { max-width: 100%; display: block; }
 @media (max-width: 860px) {
   .hero-fullscreen .hero-content h1 { font-size: 37px; }
 }
-
