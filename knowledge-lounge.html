@@ -15,16 +15,18 @@
     .lounge-card {
       display: block;
       background: var(--surface2);
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 26px 0 0;
       text-align: center;
       overflow: hidden;
-      transition: box-shadow var(--transition), transform var(--transition);
+      transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
       box-shadow: 0 1px 3px rgba(22,20,18,0.06);
     }
     .lounge-card:hover {
       box-shadow: 0 10px 28px rgba(22,20,18,0.10);
       transform: translateY(-2px);
+      border-color: #cfc9bd;
     }
     .lounge-card h3 {
       font-family: var(--font-display);
