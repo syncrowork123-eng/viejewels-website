@@ -1080,96 +1080,76 @@ async function renderSizeSelector(product) {
   const optionsEl = document.querySelector("[data-size-options]");
   if (!section || !optionsEl) return;
 
-  // ── PRIORITY: admin-defined size variants ────────────────────────────
-  // These are ADDITIONAL sizes on top of the product's own default
-  // details — not a replacement for them. Each carries its own metal net
-  // weights + stone rows, so picking one actually changes the computed
-  // price (see _effectiveProductForPricing / runProductPricing). Falls
-  // through to the generic ring/bangle chart below only if the product
-  // has no extra sizes added at all.
+  // Reset on every call — without this, a size picked while viewing one
+  // product (or even just this module-level state existing at all) could
+  // leak into the next product's spec grid via `_selectedSize || product.size`
+  // in renderProductDetailsGrid, showing a stale size that has nothing to
+  // do with the product actually on screen.
+  _selectedSize = null;
+  _selectedSizeVariant = null;
+
+  // The interactive "Select Size" section only ever applies to Rings and
+  // Bangles. Every other jewelry type relies solely on the free-text
+  // "Size" detail entered on the product record itself (product.size),
+  // which is shown separately in the specs grid for ALL jewelry types —
+  // see the Size row in renderProductDetailsGrid — and is unaffected by
+  // this function.
+  const firstJc = (product.product_jewel_cats || [])[0];
+  const sizeType = sizeTypeFromJewelCat(firstJc);
+  if (!sizeType) {
+    section.style.display = "none";
+    optionsEl.innerHTML = "";
+    return;
+  }
+
+  // Within Rings/Bangles, only sizes that were actually given details and
+  // selected in admin (product_size_variants — each carries its own metal
+  // net weights + stone rows, so picking one changes the computed price)
+  // are shown. No fallback to a generic, price-less size chart anymore —
+  // if a ring/bangle has no admin-selected sizes, the section stays
+  // hidden rather than listing options nobody configured pricing for.
   const extraVariants = (product.product_size_variants || [])
     .slice()
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
-  if (extraVariants.length) {
-    // The product's own default size/metal/stone details (entered on the
-    // main product form) are always shown first — the "Sizes" button in
-    // admin only adds MORE sizes alongside this default, it never hides it.
-    const masterOption = { isMaster: true, size_label: product.size || "Default" };
-    const options = [masterOption, ...extraVariants];
-
-    section.style.display = "";
-    optionsEl.innerHTML = options
-      .map((v, i) => `<button class="size-btn" data-variant-index="${i}" type="button">${esc(v.size_label || "—")}</button>`)
-      .join("");
-
-    const buttons = [...optionsEl.querySelectorAll(".size-btn")];
-    buttons.forEach((btn, i) => {
-      btn.addEventListener("click", async () => {
-        buttons.forEach((b) => b.classList.remove("selected"));
-        btn.classList.add("selected");
-        const opt = options[i];
-        _selectedSize = opt.size_label;
-        // Master option → no override (null tells _effectiveProductForPricing
-        // to use the product's own net weights/stones, unchanged).
-        _selectedSizeVariant = opt.isMaster ? null : opt;
-        if (_lastLoadedProduct) await runProductPricing(_lastLoadedProduct);
-      });
-    });
-
-    // Auto-select the master (default) option so it — not an admin-added
-    // extra size — is what shows first on page load.
-    if (buttons[0]) {
-      buttons[0].classList.add("selected");
-      _selectedSize = options[0].size_label;
-      _selectedSizeVariant = null;
-    }
+  if (!extraVariants.length) {
+    section.style.display = "none";
+    optionsEl.innerHTML = "";
     return;
   }
 
-  // ── FALLBACK: generic ring/bangle size chart (labels only — no per-size
-  // price data, since the product has no size variants defined in admin) ──
-  const firstJc = (product.product_jewel_cats || [])[0];
-  const sizeType = sizeTypeFromJewelCat(firstJc);
-  if (!sizeType) return; // not a ring or bangle — hide the section
-
-  let sizes = [];
-  let renderOption;
-
-  if (sizeType === "ring") {
-    sizes = await getRingSizes();
-    renderOption = (s) => {
-      const label = [
-        s.diameter_mm != null && "ID " + s.diameter_mm + "mm",
-        s.india       && "IND " + s.india,
-        s.us          && "US "  + s.us,
-        s.europe      && "EU "  + s.europe,
-        s.uk          && "UK "  + s.uk,
-      ].filter(Boolean).join(" / ");
-      return `<button class="size-btn" data-size="${esc(label)}" type="button">${esc(label || "—")}</button>`;
-    };
-  } else {
-    sizes = await getBangleSizes();
-    renderOption = (s) => {
-      const btnLabel  = (s.label || "") + (s.label ? '"(IN)' : "");
-      const annaLabel = s.size_mm != null ? "ID " + s.size_mm + "mm" : "";
-      const fullLabel = [btnLabel, annaLabel].filter(Boolean).join(" / ");
-      return `<button class="size-btn" data-size="${esc(fullLabel)}" type="button">${esc(fullLabel || "—")}</button>`;
-    };
-  }
-
-  if (!sizes.length) return;
+  // The product's own default size/metal/stone details (entered on the
+  // main product form) are always shown first — the "Sizes" button in
+  // admin only adds MORE sizes alongside this default, it never hides it.
+  const masterOption = { isMaster: true, size_label: product.size || "Default" };
+  const options = [masterOption, ...extraVariants];
 
   section.style.display = "";
-  optionsEl.innerHTML = sizes.map(renderOption).join("");
+  optionsEl.innerHTML = options
+    .map((v, i) => `<button class="size-btn" data-variant-index="${i}" type="button">${esc(v.size_label || "—")}</button>`)
+    .join("");
 
-  optionsEl.querySelectorAll(".size-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      optionsEl.querySelectorAll(".size-btn").forEach((b) => b.classList.remove("selected"));
+  const buttons = [...optionsEl.querySelectorAll(".size-btn")];
+  buttons.forEach((btn, i) => {
+    btn.addEventListener("click", async () => {
+      buttons.forEach((b) => b.classList.remove("selected"));
       btn.classList.add("selected");
-      _selectedSize = btn.dataset.size;
+      const opt = options[i];
+      _selectedSize = opt.size_label;
+      // Master option → no override (null tells _effectiveProductForPricing
+      // to use the product's own net weights/stones, unchanged).
+      _selectedSizeVariant = opt.isMaster ? null : opt;
+      if (_lastLoadedProduct) await runProductPricing(_lastLoadedProduct);
     });
   });
+
+  // Auto-select the master (default) option so it — not an admin-added
+  // extra size — is what shows first on page load.
+  if (buttons[0]) {
+    buttons[0].classList.add("selected");
+    _selectedSize = options[0].size_label;
+    _selectedSizeVariant = null;
+  }
 }
 
 // ── PRODUCT DETAIL PAGE ─────────────────────────────────────────────────
