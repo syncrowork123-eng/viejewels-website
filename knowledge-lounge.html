@@ -42,19 +42,13 @@
       padding: 0 24px;
     }
     .lounge-card-media {
-      aspect-ratio: 4 / 3;
       background: var(--surface);
       overflow: hidden;
     }
     .lounge-card-media img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: auto;
       display: block;
-      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-    .lounge-card:hover .lounge-card-media img {
-      transform: scale(1.03);
     }
     @media (max-width: 860px) {
       .lounge-grid { grid-template-columns: repeat(2, 1fr); }
