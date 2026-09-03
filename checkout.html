@@ -614,9 +614,17 @@
 
       // Redirect to WhatsApp with a prefilled message
       const waNumber = await coFetchWhatsappNumber();
+      const waRef = saved?.id ? coFormatRef(saved.id) : "";
       const waText = encodeURIComponent(
-        "Hi Vie Jewels, I've just submitted an enquiry" + (saved?.id ? " (Ref #" + coFormatRef(saved.id) + ")" : "") + ".\n\n" +
-        summaryLines + "\n\nTotal: " + totalText
+        "*Your Enquiry with VIE Jewels*\n\n" +
+        "Hello " + full_name + ",\n\n" +
+        "Thank you for your interest in VIE Jewels.\n\n" +
+        "Your enquiry has been received:\n" +
+        (waRef ? "Ref #" + waRef + "\n" : "") +
+        summaryLines + "\n" +
+        "Total: " + totalText + "\n\n" +
+        "Our specialists will review your selections and be in touch shortly with tailored recommendations and next steps.\n\n" +
+        "Warm regards,\nVIE Jewels"
       );
       location.href = "https://wa.me/" + waNumber + "?text=" + waText;
       return false;
