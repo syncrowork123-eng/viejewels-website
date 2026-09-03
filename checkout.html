@@ -499,6 +499,10 @@
       }
     }
 
+    function coFormatRef(id) {
+      return "VJ" + String(id).padStart(6, "0");
+    }
+
     // ── SUBMIT ─────────────────────────────────────────────────────────────
     async function coHandleSubmit(e) {
       e.preventDefault();
@@ -598,7 +602,7 @@
           order_summary: summaryLines,
           order_total: totalText,
           customer_notes: notes || "\u2014",
-          enquiry_id: saved?.id || "",
+          enquiry_id: saved?.id ? coFormatRef(saved.id) : "",
         });
       } catch (emailErr) {
         console.error("EmailJS send failed:", emailErr);
@@ -611,7 +615,7 @@
       // Redirect to WhatsApp with a prefilled message
       const waNumber = await coFetchWhatsappNumber();
       const waText = encodeURIComponent(
-        "Hi Vie Jewels, I've just submitted an enquiry" + (saved?.id ? " (Ref #" + saved.id + ")" : "") + ".\n\n" +
+        "Hi Vie Jewels, I've just submitted an enquiry" + (saved?.id ? " (Ref #" + coFormatRef(saved.id) + ")" : "") + ".\n\n" +
         summaryLines + "\n\nTotal: " + totalText
       );
       location.href = "https://wa.me/" + waNumber + "?text=" + waText;
