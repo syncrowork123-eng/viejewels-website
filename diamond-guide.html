@@ -24,6 +24,22 @@
     @media (max-width: 640px) {
       .diamond-hero h1 { font-size: 13px; }
     }
+    .diamond-back-wrap {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .diamond-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #737373;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .diamond-back:hover {
+      color: #1a1a1a;
+    }
     .diamond-grid {
       display: grid;
       gap: 16px;
@@ -170,6 +186,9 @@
             <img src="/assets/Diamond%20Sizes-Thumbnail.jpg" alt="Diamond Size Guide" />
           </div>
         </a>
+      </div>
+      <div class="diamond-back-wrap">
+        <a class="diamond-back" href="knowledge-lounge.html">&larr; Back to Knowledge Lounge</a>
       </div>
     </section>
   </main>
