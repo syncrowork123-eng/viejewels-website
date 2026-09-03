@@ -7,6 +7,33 @@
   <link rel="stylesheet" href="styles.css" />
   <style>
     /* ── CHECKOUT PAGE ──────────────────────────────────────────────── */
+
+    /* Scoped hero override: title + intro text sized 50% smaller than
+       the site default, and switched to a neutral black/gray palette
+       instead of the theme's warm gold accent + tan-tinted grays. */
+    .checkout-hero h1 {
+      font-size: 22px;
+      color: #1a1a1a;
+    }
+    .checkout-hero p {
+      font-size: 7px;
+      color: #6e6e6e;
+    }
+    .checkout-hero .eyebrow {
+      color: #737373;
+    }
+
+    /* Scoped color palette: overriding these custom properties inside
+       .co-page cascades down to every element below that already
+       references var(--text) / var(--text-muted) / var(--text-light),
+       swapping the theme's warm gold-tinted grays for neutral black/
+       gray shades without having to touch every rule individually. */
+    .co-page {
+      --text: #1a1a1a;
+      --text-muted: #6e6e6e;
+      --text-light: #9a9a9a;
+    }
+
     .co-page {
       max-width: 1080px;
       margin: 0 auto;
@@ -249,10 +276,10 @@
   </header>
 
   <main>
-    <section class="page-hero">
+    <section class="page-hero checkout-hero">
       <p class="eyebrow">Checkout</p>
       <h1>Complete Your Enquiry</h1>
-      <p>Review your selections and confirm your details. Our specialists will follow up personally.</p>
+      <p>Review your selections along with your contact and delivery details. We will reach out shortly via WhatsApp and email with tailored recommendations and next steps.</p>
     </section>
 
     <div class="co-page">
@@ -276,7 +303,6 @@
         <!-- RIGHT: CLIENT DETAILS FORM -->
         <div class="co-form-card">
           <p class="co-form-heading">Your Details</p>
-          <p class="co-form-sub">Confirm your contact and delivery details below. A member of our team will reach out via WhatsApp and email shortly.</p>
 
           <div class="co-error" id="co-error"></div>
 
@@ -302,7 +328,7 @@
             </div>
 
             <div class="co-field">
-              <label for="co-notes">Notes for our team <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-light)">(optional)</span></label>
+              <label for="co-notes">Note for our team <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-light)">(optional)</span></label>
               <textarea id="co-notes" placeholder="Any special requests, timelines, or questions..."></textarea>
             </div>
 
