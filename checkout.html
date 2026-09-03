@@ -622,8 +622,9 @@
         "Your enquiry has been received:\n" +
         (waRef ? "Ref #" + waRef + "\n" : "") +
         summaryLines + "\n" +
-        "Total: " + totalText + "\n\n" +
-        "Our specialists will review your selections and be in touch shortly with tailored recommendations and next steps.\n\n" +
+        "Total: " + totalText + "\n" +
+        (notes ? "\nNote: " + notes + "\n" : "") +
+        "\nOur specialists will review your selections and be in touch shortly with tailored recommendations and next steps.\n\n" +
         "Warm regards,\nVIE Jewels"
       );
       location.href = "https://wa.me/" + waNumber + "?text=" + waText;
