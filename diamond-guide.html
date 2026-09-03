@@ -11,11 +11,18 @@
       padding-top: 8px;
       padding-bottom: 12px;
     }
-    .diamond-hero p {
-      font-size: 13px;
-      color: #737373;
-      max-width: 480px;
+    /* Title styling matched to Knowledge Lounge's h1 hero heading:
+       same size, weight, letter-spacing, and default (unset) heading
+       color instead of the muted gray paragraph style. */
+    .diamond-hero h1 {
+      font-size: 16px;
+      font-weight: 400;
+      max-width: 620px;
       margin: 0 auto;
+      letter-spacing: 0.01em;
+    }
+    @media (max-width: 640px) {
+      .diamond-hero h1 { font-size: 13px; }
     }
     .diamond-grid {
       display: grid;
@@ -96,7 +103,7 @@
   </header>
   <main>
     <section class="page-hero diamond-hero">
-      <p>Your complete guide to diamonds</p>
+      <h1>Your complete guide to diamonds</h1>
     </section>
     <section class="section">
       <div class="diamond-grid">
