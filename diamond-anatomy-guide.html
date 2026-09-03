@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diamond Anatomy Guide | Vie Jewels</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── DIAMOND ANATOMY GUIDE — banner + 5-part anatomy breakdown ── */
+    .guide-banner {
+      width: 100%;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      border: 1px solid var(--border);
+    }
+    .guide-banner img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .guide-hero {
+      padding-top: 8px;
+      padding-bottom: 16px;
+      text-align: center;
+    }
+    .guide-hero h1 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 400;
+      max-width: 620px;
+      margin: 0 auto;
+      letter-spacing: 0.01em;
+    }
+    .guide-hero p.guide-subtitle {
+      font-size: 13px;
+      color: #737373;
+      max-width: 560px;
+      margin: 8px auto 0;
+    }
+    @media (max-width: 640px) {
+      .guide-hero h1 { font-size: 13px; }
+    }
+
+    .guide-content {
+      max-width: 960px;
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+
+    /* Anatomy parts: alternating image/text rows */
+    .anatomy-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .anatomy-step {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 24px;
+      align-items: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(22,20,18,0.06);
+      transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+    }
+    .anatomy-step:hover {
+      box-shadow: 0 10px 28px rgba(22,20,18,0.10);
+      transform: translateY(-2px);
+      border-color: #cfc9bd;
+    }
+    .anatomy-step-media {
+      background: var(--surface);
+      overflow: hidden;
+      height: 100%;
+    }
+    .anatomy-step-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .anatomy-step-body {
+      padding: 20px 24px 20px 0;
+    }
+    .anatomy-step-number {
+      font-family: var(--font-display);
+      font-size: 12px;
+      color: #a89b7f;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .anatomy-step-body h3 {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a1a1a;
+      letter-spacing: 0.01em;
+      margin-bottom: 8px;
+    }
+    .anatomy-step-body p {
+      font-size: 13px;
+      color: #737373;
+      line-height: 1.6;
+    }
+
+    /* Reverse alternating rows on wider screens for visual rhythm */
+    .anatomy-step:nth-child(even) {
+      grid-template-columns: 1fr 240px;
+    }
+    .anatomy-step:nth-child(even) .anatomy-step-media {
+      order: 2;
+    }
+    .anatomy-step:nth-child(even) .anatomy-step-body {
+      padding: 20px 0 20px 24px;
+    }
+
+    @media (max-width: 700px) {
+      .anatomy-step,
+      .anatomy-step:nth-child(even) {
+        grid-template-columns: 1fr;
+      }
+      .anatomy-step-media {
+        order: -1 !important;
+        height: 200px;
+      }
+      .anatomy-step-body,
+      .anatomy-step:nth-child(even) .anatomy-step-body {
+        padding: 16px 20px 20px;
+      }
+    }
+
+    .guide-back-wrap {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .guide-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #737373;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .guide-back:hover {
+      color: #1a1a1a;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero guide-hero">
+      <h1>Diamond Anatomy Guide</h1>
+      <p class="guide-subtitle">A diamond's anatomy — its basic structure — determines its proportions, brilliance, dispersion, and scintillation. Each part contributes to the diamond as a whole.</p>
+    </section>
+
+    <section class="section">
+      <div class="guide-content">
+        <div class="guide-banner">
+          <img src="/assets/Diamond%20Anatomy-Banner-1.png" alt="Diamond Anatomy Guide" />
+        </div>
+
+        <div class="anatomy-steps">
+          <div class="anatomy-step">
+            <div class="anatomy-step-media">
+              <img src="/assets/Diamond%20Anatomy-1-Table.png" alt="The Table" />
+            </div>
+            <div class="anatomy-step-body">
+              <div class="anatomy-step-number">01 · Top Facet</div>
+              <h3>The Table</h3>
+              <p>The Table is the largest facet, located on the very top and centre of the diamond. It's very important because it's the main place where light enters and exits the diamond.</p>
+            </div>
+          </div>
+
+          <div class="anatomy-step">
+            <div class="anatomy-step-media">
+              <img src="/assets/Diamond%20Anatomy-2-Crown.png" alt="The Crown" />
+            </div>
+            <div class="anatomy-step-body">
+              <div class="anatomy-step-number">02 · Upper Portion</div>
+              <h3>The Crown</h3>
+              <p>The Crown is the top portion of the diamond between the Table and the Girdle. It contains several types of facets — bezels, stars, and upper girdle facets — that gather and disperse light to create brightness, fire, and a scintillating pattern of light and dark. Like the Table, it's one of the most visible surfaces.</p>
+            </div>
+          </div>
+
+          <div class="anatomy-step">
+            <div class="anatomy-step-media">
+              <img src="/assets/Diamond%20Anatomy-3-Girdle.png" alt="The Girdle" />
+            </div>
+            <div class="anatomy-step-body">
+              <div class="anatomy-step-number">03 · The Rim</div>
+              <h3>The Girdle</h3>
+              <p>The Girdle is the narrow rim around the widest edge of the diamond. It can be rough, polished, or faceted, and it's where the Crown and Pavilion meet.</p>
+            </div>
+          </div>
+
+          <div class="anatomy-step">
+            <div class="anatomy-step-media">
+              <img src="/assets/Diamond%20Anatomy-4-Pavillion.png" alt="The Pavilion" />
+            </div>
+            <div class="anatomy-step-body">
+              <div class="anatomy-step-number">04 · Depth &amp; Reflection</div>
+              <h3>The Pavilion</h3>
+              <p>The Pavilion is located at the bottom of the diamond and determines light reflection. A quality cut allows for maximum light return — the more light that can pass through and reflect within the diamond, the more brilliance it will have.</p>
+            </div>
+          </div>
+
+          <div class="anatomy-step">
+            <div class="anatomy-step-media">
+              <img src="/assets/Diamond%20Anatomy-5-Culet.png" alt="The Culet" />
+            </div>
+            <div class="anatomy-step-body">
+              <div class="anatomy-step-number">05 · The Base Apex</div>
+              <h3>The Culet</h3>
+              <p>The Culet is a facet located at the apex, at the very bottom of the diamond's Pavilion, intended to prevent chipping and abrasion at the point. It needs to be small enough to allow for proper light refraction — its size can affect the face-up appearance, as it's commonly visible through the Table.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-back-wrap">
+          <a class="guide-back" href="diamond-guide.html">&larr; Back to Diamond Guide</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
