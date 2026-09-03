@@ -422,6 +422,9 @@
       const summaryLine = summaryParts.length
         ? `<p class="co-row-options">${summaryParts.map(esc).join(" &middot; ")}</p>`
         : "";
+      const notesLine = item.notes
+        ? `<p class="co-row-options">Special Requirements: ${esc(item.notes)}</p>`
+        : "";
 
       return `<div class="co-row">
         <div class="co-row-media"><img src="${esc(item.image || "")}" alt="${esc(item.name || "")}" loading="lazy" /></div>
@@ -429,6 +432,7 @@
           <p class="co-row-name">${esc(item.name || "Untitled")}</p>
           <p class="co-row-meta">${esc(item.sku || "")}</p>
           ${summaryLine}
+          ${notesLine}
           <p class="co-row-qty">Qty: ${qty}</p>
         </div>
         <div class="co-row-price">${hasRate ? esc(sym + " " + fmtAmt(lineTotal)) : "Price on request"}</div>
@@ -588,7 +592,8 @@
       const summaryLines = items.map((i, idx) => {
         const qty = parseInt(i.qty, 10) || 1;
         const rate = i.priceValue != null ? (i.priceSymbol + " " + fmtAmt(i.priceValue)) : "Price on request";
-        return (idx + 1) + ". " + (i.name || "Item") + (i.sku ? " (SKU: " + i.sku + ")" : "") + " \u2014 Qty: " + qty + " \u2014 " + rate + " each";
+        const base = (idx + 1) + ". " + (i.name || "Item") + (i.sku ? " (SKU: " + i.sku + ")" : "") + " \u2014 Qty: " + qty + " \u2014 " + rate + " each";
+        return i.notes ? base + "\n   Special Requirements: " + i.notes : base;
       }).join("\n");
       const totalText = totalAmount ? (currencySymbol + " " + fmtAmt(totalAmount)) : "Price on request";
 
