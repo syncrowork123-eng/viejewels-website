@@ -54,7 +54,7 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 20px 22px;
+      overflow: hidden;
       box-shadow: 0 1px 3px rgba(22,20,18,0.06);
       transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
     }
@@ -62,6 +62,21 @@
       box-shadow: 0 10px 28px rgba(22,20,18,0.10);
       transform: translateY(-2px);
       border-color: #cfc9bd;
+    }
+    .shape-card-media {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .shape-card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .shape-card-body {
+      padding: 20px 22px;
     }
     .shape-card h3 {
       font-family: var(--font-display);
@@ -132,44 +147,94 @@
 
         <div class="shape-grid">
           <div class="shape-card">
-            <h3>Round</h3>
-            <p>The classic and most popular diamond shape, engineered with 58 facets to maximize brilliance and fire. Its symmetry gives it the highest overall light performance of any shape.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Round.jpg" alt="Round diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Round</h3>
+              <p>The classic and most popular diamond shape, engineered with 58 facets to maximize brilliance and fire. Its symmetry gives it the highest overall light performance of any shape.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Princess</h3>
-            <p>A square shape with sharp, uncut corners and a modern silhouette. It offers exceptional brilliance, second only to the round cut, at a more accessible price point.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Princess.jpg" alt="Princess diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Princess</h3>
+              <p>A square shape with sharp, uncut corners and a modern silhouette. It offers exceptional brilliance, second only to the round cut, at a more accessible price point.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Emerald</h3>
-            <p>A rectangular shape with step-cut facets that create a hall-of-mirrors effect. It prioritizes clarity and elegant, understated light play over sparkle.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Emerald.jpg" alt="Emerald diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Emerald</h3>
+              <p>A rectangular shape with step-cut facets that create a hall-of-mirrors effect. It prioritizes clarity and elegant, understated light play over sparkle.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Oval</h3>
-            <p>An elongated variation of the round brilliant, offering similar fire and sparkle while creating a flattering, elongating effect on the finger.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Oval.jpg" alt="Oval diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Oval</h3>
+              <p>An elongated variation of the round brilliant, offering similar fire and sparkle while creating a flattering, elongating effect on the finger.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Marquise</h3>
-            <p>A boat-shaped diamond with pointed ends, prized for its elongated silhouette that maximizes perceived size and creates a dramatic, elegant look.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Marquise.jpg" alt="Marquise diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Marquise</h3>
+              <p>A boat-shaped diamond with pointed ends, prized for its elongated silhouette that maximizes perceived size and creates a dramatic, elegant look.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Pear</h3>
-            <p>A hybrid of round and marquise shapes, tapering to a single point. Its teardrop silhouette is a versatile choice for rings, pendants, and earrings.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Pear.jpg" alt="Pear diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Pear</h3>
+              <p>A hybrid of round and marquise shapes, tapering to a single point. Its teardrop silhouette is a versatile choice for rings, pendants, and earrings.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Cushion</h3>
-            <p>A square or rectangular shape with rounded corners and larger facets, resembling a pillow. It combines vintage charm with modern brilliance.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Cushion.jpg" alt="Cushion diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Cushion</h3>
+              <p>A square or rectangular shape with rounded corners and larger facets, resembling a pillow. It combines vintage charm with modern brilliance.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Heart</h3>
-            <p>A romantic, symmetrical shape requiring exceptional cutting precision to achieve well-defined lobes and a clean point at the base.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Heart.jpg" alt="Heart diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Heart</h3>
+              <p>A romantic, symmetrical shape requiring exceptional cutting precision to achieve well-defined lobes and a clean point at the base.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Tapered &amp; Baguette</h3>
-            <p>Elongated step-cut shapes most often used as accent stones, framing a center diamond with clean, geometric lines.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Diamond%20Size-Tapered%20Bugget.jpg" alt="Tapered and Baguette diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Tapered &amp; Baguette</h3>
+              <p>Elongated step-cut shapes most often used as accent stones, framing a center diamond with clean, geometric lines.</p>
+            </div>
           </div>
           <div class="shape-card">
-            <h3>Trillion</h3>
-            <p>A triangular shape with pointed corners, offering bold, distinctive geometry — striking as a solitaire or as a complement to a center stone.</p>
+            <div class="shape-card-media">
+              <img src="/assets/Diamond%20Size-Trillion.jpg" alt="Trillion diamond shape" />
+            </div>
+            <div class="shape-card-body">
+              <h3>Trillion</h3>
+              <p>A triangular shape with pointed corners, offering bold, distinctive geometry — striking as a solitaire or as a complement to a center stone.</p>
+            </div>
           </div>
         </div>
 
