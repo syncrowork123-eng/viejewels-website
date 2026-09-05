@@ -519,6 +519,14 @@ img { max-width: 100%; display: block; }
 .cart-intro .eyebrow {
   margin-bottom: 10px;
 }
+.cart-intro-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  margin-bottom: 20px;
+}
 .cart-intro p,
 .cart-intro p.cart-intro-emphasis {
   font-family: var(--font);
