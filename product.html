@@ -853,19 +853,17 @@
 
         if (alreadyInCart) {
           updateStoredCartItem(product, notes, options);
-          if (msgEl) {
-            msgEl.classList.add('pd-cart-message-success');
-            msgEl.textContent = 'Enquiry details updated.';
-            msgEl.classList.add('show');
-            setTimeout(() => msgEl.classList.remove('show'), 2500);
-          }
         } else {
           toggleStored('vj_cart', product, 'cart', notes, options);
         }
 
-        refreshCartBtn(newBtn, product.id);
         updateNavBadges();
-        pdRefreshCartButtonState(product);
+        // Previously the "add new item" path showed no confirmation at
+        // all (only the "update existing item" path had a message).
+        // Taking the client straight to the cart page — where they can
+        // see the item and choose Continue Shopping or Proceed to
+        // Checkout — is the confirmation now, for both paths.
+        window.location.href = 'cart.html';
       });
 
       // Re-check whenever any option control changes.
