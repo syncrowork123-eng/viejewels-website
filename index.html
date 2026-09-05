@@ -2,395 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Vie Jewels | Jewels for Life</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enquiry List | Vie Jewels</title>
   <link rel="stylesheet" href="styles.css" />
-
-  <style>
-    /* ── FULL-PAGE-SLIDER-ONLY HOMEPAGE ──────────────────────────────
-       No sections below the fold, no footer. The slider IS the page.
-       Navigation lives entirely in the off-canvas menu triggered by
-       the "Menu" button, top right — same pattern as carlobarberis.com
-    ──────────────────────────────────────────────────────────────── */
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden; /* single immersive screen — nothing to scroll to */
-      background: #ffffff;
-    }
-
-    /* ── FIXED, TRANSPARENT HEADER OVER THE SLIDE ─────────────────── */
-    .slider-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 150;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 36px 48px;
-      background: linear-gradient(180deg, rgba(10,9,8,0.38) 0%, rgba(10,9,8,0.18) 60%, rgba(10,9,8,0) 100%);
-    }
-    .slider-header .brand {
-      display: block;
-    }
-    .slider-header .brand img {
-      display: block;
-      height: 120px;
-      width: auto;
-      filter:
-        drop-shadow(0 0 2px rgba(255,255,255,0.95))
-        drop-shadow(0 0 6px rgba(255,255,255,0.9))
-        drop-shadow(0 0 12px rgba(255,255,255,0.75))
-        drop-shadow(0 0 20px rgba(255,255,255,0.55))
-        drop-shadow(0 2px 10px rgba(0,0,0,0.25));
-    }
-
-    /* ── DESKTOP: nav links + icons shown directly on the page ────── */
-    .slider-nav-desktop {
-      display: flex;
-      align-items: center;
-      gap: 36px;
-      flex: 1;
-      justify-content: center;
-    }
-    .slider-nav-desktop a {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: capitalize;
-      color: rgba(255,255,255,0.9);
-      text-shadow: 0 2px 12px rgba(0,0,0,0.35);
-      transition: color 0.25s ease, border-color 0.25s ease;
-      padding-bottom: 2px;
-      border-bottom: 1px solid transparent;
-    }
-    .slider-nav-desktop a:hover {
-      color: var(--accent-light);
-      border-bottom-color: var(--accent-light);
-    }
-
-    .slider-header-icons {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
-    .slider-header-icons a {
-      position: relative;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: #fff;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.35);
-      transition: color 0.25s ease;
-    }
-    .slider-header-icons a:hover { color: var(--accent-light); }
-    .slider-header-icons .nav-badge {
-      position: absolute; top: -8px; right: -12px;
-      background: var(--accent); color: #fff;
-      font-size: 10px; font-weight: 600; border-radius: 50%;
-      width: 15px; height: 15px; display: flex; align-items: center; justify-content: center;
-      letter-spacing: 0;
-    }
-
-    /* Hamburger trigger — hidden on desktop, the menu items are shown inline instead */
-    .menu-trigger {
-      display: none;
-      align-items: center;
-      gap: 12px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #fff;
-      padding: 6px;
-    }
-    .menu-trigger-bars {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-    .menu-trigger-bars span {
-      display: block;
-      width: 26px;
-      height: 1px;
-      background: #fff;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-    .menu-trigger.menu-open .menu-trigger-bars span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-    .menu-trigger.menu-open .menu-trigger-bars span:nth-child(2) { opacity: 0; }
-    .menu-trigger.menu-open .menu-trigger-bars span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-    .menu-trigger-label {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.35);
-    }
-
-    /* ── FULL-BLEED SLIDER — fills the entire viewport ─────────────── */
-    .slider-viewport {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
-      background: #ffffff;
-    }
-    .slider-viewport .hero-slide {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 1.8s ease, visibility 1.8s ease;
-    }
-    .slider-viewport .hero-slide.active {
-      opacity: 1;
-      visibility: visible;
-      z-index: 1;
-    }
-    .slider-viewport .hero-slide img,
-    .slider-viewport .hero-slide video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    /* soft scrim so the header + dots stay legible over any image */
-    .slider-scrim {
-      position: fixed;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none;
-      background: linear-gradient(180deg,
-        rgba(10,9,8,0.42) 0%,
-        rgba(10,9,8,0) 20%,
-        rgba(10,9,8,0) 70%,
-        rgba(10,9,8,0.48) 100%);
-    }
-
-    .slider-dots {
-      position: fixed;
-      bottom: 36px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 5;
-      display: flex;
-      gap: 8px;
-      margin: 0;
-    }
-    .slider-dots button {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255,255,255,0.4);
-      cursor: pointer;
-      padding: 0;
-      transition: background 0.3s ease, transform 0.3s ease;
-    }
-    .slider-dots button.active {
-      background: #fff;
-      transform: scale(1.2);
-    }
-
-    /* ── OFF-CANVAS MENU ─────────────────────────────────────────── */
-    .site-menu {
-      position: fixed;
-      inset: 0;
-      z-index: 300;
-      background: rgba(15,13,11,0.98);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 22px;
-      opacity: 0;
-      visibility: hidden;
-      overflow-y: auto;
-      padding: 80px 24px;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
-    }
-    .site-menu.open { opacity: 1; visibility: visible; }
-
-    .site-menu-close {
-      position: absolute;
-      top: 32px; right: 40px;
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 28px;
-      font-weight: 300;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .site-menu-links {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-    }
-    .site-menu-links a {
-      font-family: var(--font-display);
-      font-size: 34px;
-      font-weight: 300;
-      color: #fff;
-      letter-spacing: 0.02em;
-      transition: color 0.25s ease;
-    }
-    .site-menu-links a:hover { color: var(--accent-light); }
-
-    .site-menu-divider {
-      width: 40px; height: 1px;
-      background: rgba(255,255,255,0.22);
-      margin: 8px 0;
-    }
-
-    .site-menu-icons {
-      display: flex;
-      gap: 26px;
-    }
-    .site-menu-icons a {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.68);
-      position: relative;
-      transition: color 0.25s ease;
-    }
-    .site-menu-icons a:hover { color: #fff; }
-    .site-menu-icons .nav-badge {
-      position: absolute; top: -8px; right: -12px;
-      background: var(--accent); color: #fff;
-      font-size: 10px; font-weight: 600; border-radius: 50%;
-      width: 15px; height: 15px; display: flex; align-items: center; justify-content: center;
-      letter-spacing: 0;
-    }
-
-    .site-menu-contact {
-      margin-top: 6px;
-      text-align: center;
-    }
-    .site-menu-contact p {
-      font-size: 12px;
-      color: rgba(255,255,255,0.48);
-      letter-spacing: 0.04em;
-      margin: 2px 0;
-    }
-
-    @media (max-width: 860px) {
-      .slider-header { padding: 22px 24px; }
-      .slider-header .brand img { height: 90px; }
-      .slider-nav-desktop,
-      .slider-header-icons { display: none; }
-      .menu-trigger { display: flex; }
-      .site-menu-links a { font-size: 27px; }
-    }
-  </style>
 </head>
 <body>
-
-  <header class="slider-header">
-    <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
-
-    <nav class="slider-nav-desktop">
-      <a href="world-of-vie.html">World of Vie</a>
-      <a href="collections.html">Collections</a>
-      <a href="knowledge-lounge.html">Knowledge Lounge</a>
-      <a href="contact.html">Contact Us</a>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry &bull; Diamonds &bull; Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+     <div class="nav-icons">
+  <a href="cart.html" aria-label="Shopping Cart">&#128722; <span class="nav-badge" data-cart-count style="display:none"></span></a>
+  <a href="account.html" aria-label="My Account">&#9711;</a>
+</div>
     </nav>
-
-    <div class="slider-header-icons">
-      <a href="cart.html">Cart <span class="nav-badge" data-cart-count style="display:none"></span></a>
-      <a href="account.html">Sign in</a>
-    </div>
-
-    <button class="menu-trigger" id="menu-trigger" aria-label="Open menu" aria-expanded="false" onclick="toggleSiteMenu()">
-      <span class="menu-trigger-bars"><span></span><span></span><span></span></span>
-      <span class="menu-trigger-label">Menu</span>
-    </button>
   </header>
-
-  <!-- ── OFF-CANVAS NAVIGATION — carries everything the footer used to ── -->
-  <nav class="site-menu" id="site-menu">
-    <button class="site-menu-close" aria-label="Close menu" onclick="toggleSiteMenu()">&times;</button>
-
-    <div class="site-menu-links">
-      <a href="index.html">World of Vie</a>
-      <a href="collections.html">Collections</a>
-      <a href="knowledge-lounge.html">Knowledge Lounge</a>
-      <a href="contact.html">Contact Us</a>
-    </div>
-
-    <div class="site-menu-divider"></div>
-
-    <div class="site-menu-icons">
-      <a href="cart.html">Cart <span class="nav-badge" data-cart-count style="display:none"></span></a>
-      <a href="account.html">Sign in</a>
-    </div>
-
-    <div class="site-menu-contact">
-      <p>hello@viejewels.com</p>
-      <p>www.viejewels.com</p>
-    </div>
-  </nav>
-
-  <!-- ── FULL-PAGE SLIDER — the entire page ─────────────────────────
-       Add more slides by copying a .hero-slide block. Uncomment the
-       video block for a video slide; keep the matching dot in sync.
-  ──────────────────────────────────────────────────────────────────── -->
-  <main class="slider-viewport" data-hero-carousel>
-
-    <div class="hero-slide active" data-type="image">
-      <img src="/assets/hero-1.jpg" alt="" />
-    </div>
-
-    <div class="hero-slide" data-type="image">
-      <img src="/assets/hero-2.jpg" alt="" />
-    </div>
-
-    <div class="hero-slide" data-type="image">
-      <img src="/assets/hero-3.jpg" alt="" />
-    </div>
-
-    <!--
-    <div class="hero-slide" data-type="video">
-      <video muted loop playsinline preload="none"
-             poster="/assets/hero-video-poster.jpg"
-             src="/assets/hero-video.mp4"></video>
-    </div>
-    -->
-
-    <div class="hero-dots">
-      <button class="active" aria-label="Slide 1"></button>
-      <button aria-label="Slide 2"></button>
-      <button aria-label="Slide 3"></button>
-      <!-- <button aria-label="Slide 4"></button> -->
-    </div>
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">Enquiry List</p>
+    </section>
+    <section class="section cart-intro">
+      <h2 class="cart-intro-title">Your creation(s) are added to the Enquiry List</h2>
+      <p>Fine jewelry deserves a thoughtful and personal approach. Whether for yourself or a meaningful gift, every creation begins with understanding your vision.</p>
+      <p>Our specialists personally review each enquiry and prepare a tailored quotation, ensuring every detail is considered before your jewelry is crafted.</p>
+    </section>
+    <section class="section cart-page">
+      <div class="cart-list" data-cart-grid>
+        <p>Loading enquiry list...</p>
+      </div>
+      <div class="cart-summary" data-cart-summary></div>
+      <div class="cart-actions" data-cart-actions></div>
+    </section>
   </main>
-
-  <div class="slider-scrim"></div>
-
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: [www.viejewels.com](https://www.viejewels.com)</p>
+    </div>
+  </footer>
   <script src="script.js"></script>
-  <script>
-    // script.js already wires up [data-hero-carousel] / .hero-slide / .hero-dots
-    // via initHeroCarousel() on DOMContentLoaded, so the slider above just works.
-
-    // ── OFF-CANVAS MENU TOGGLE ───────────────────────────────────────
-    function toggleSiteMenu(force) {
-      const menu = document.getElementById("site-menu");
-      const trigger = document.getElementById("menu-trigger");
-      const open = force !== undefined ? force : !menu.classList.contains("open");
-      menu.classList.toggle("open", open);
-      trigger.classList.toggle("menu-open", open);
-      trigger.setAttribute("aria-expanded", String(open));
-    }
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") toggleSiteMenu(false);
-    });
-  </script>
 </body>
 </html>
