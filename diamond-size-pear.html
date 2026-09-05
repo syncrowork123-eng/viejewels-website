@@ -6,19 +6,66 @@
   <title>Pear Diamond Size Chart | Vie Jewels</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .guide-banner-placeholder {
-      width: 100%;
-      height: 160px;
-      border-radius: 10px;
-      margin-bottom: 32px;
-      border: 1px dashed var(--border);
-      background: var(--surface);
+    .shape-selector {
       display: flex;
-      align-items: center;
+      gap: 10px;
       justify-content: center;
-      font-size: 12px;
+      align-items: flex-end;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 4px 4px 28px;
+      margin-bottom: 8px;
+    }
+    .shape-selector .shape-btn {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      padding: 8px 6px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: border-color var(--transition), transform var(--transition), background var(--transition);
+    }
+    .shape-selector .shape-btn img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      filter: blur(1.5px) grayscale(20%);
+      opacity: 0.5;
+      transition: filter var(--transition), opacity var(--transition), transform var(--transition);
+    }
+    .shape-selector .shape-btn span {
+      font-size: 10.5px;
       color: #a3a3a3;
       letter-spacing: 0.02em;
+      transition: color var(--transition);
+      white-space: nowrap;
+    }
+    .shape-selector .shape-btn:hover img {
+      filter: none;
+      opacity: 0.85;
+    }
+    .shape-selector .shape-btn:hover span {
+      color: #1a1a1a;
+    }
+    .shape-selector .shape-btn.active {
+      border-color: #a89b7f;
+      background: var(--surface2);
+    }
+    .shape-selector .shape-btn.active img {
+      filter: none;
+      opacity: 1;
+      transform: scale(1.15);
+    }
+    .shape-selector .shape-btn.active span {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    @media (max-width: 640px) {
+      .shape-selector .shape-btn img { width: 44px; height: 44px; }
+      .shape-selector .shape-btn span { font-size: 9.5px; }
     }
     .guide-hero {
       padding-top: 8px;
@@ -141,8 +188,18 @@
 
     <section class="section">
       <div class="guide-content">
-        <!-- Banner image placeholder: replace with <img src="/assets/FILENAME" alt="Pear Diamond Size Chart" /> once the banner is uploaded -->
-        <div class="guide-banner-placeholder">Banner image goes here</div>
+        <div class="shape-selector">
+          <a href="diamond-size-round.html" class="shape-btn"><img src="/assets/Diamond%20Size-Round.jpg" alt="Round" /><span>Round</span></a>
+          <a href="diamond-size-princess.html" class="shape-btn"><img src="/assets/Diamond%20Size-Princess.jpg" alt="Princess" /><span>Princess</span></a>
+          <a href="diamond-size-emerald.html" class="shape-btn"><img src="/assets/Diamond%20Size-Emerald.jpg" alt="Emerald" /><span>Emerald</span></a>
+          <a href="diamond-size-oval.html" class="shape-btn"><img src="/assets/Diamond%20Size-Oval.jpg" alt="Oval" /><span>Oval</span></a>
+          <a href="diamond-size-marquise.html" class="shape-btn"><img src="/assets/Diamond%20Size-Marquise.jpg" alt="Marquise" /><span>Marquise</span></a>
+          <a href="diamond-size-pear.html" class="shape-btn active"><img src="/assets/Diamond%20Size-Pear.jpg" alt="Pear" /><span>Pear</span></a>
+          <a href="diamond-size-cushion.html" class="shape-btn"><img src="/assets/Diamond%20Size-Cushion.jpg" alt="Cushion" /><span>Cushion</span></a>
+          <a href="diamond-size-heart.html" class="shape-btn"><img src="/assets/Diamond%20Size-Heart.jpg" alt="Heart" /><span>Heart</span></a>
+          <a href="diamond-size-tapered-baguette.html" class="shape-btn"><img src="/assets/Diamond%20Size-Diamond%20Size-Tapered%20Bugget.jpg" alt="Tapered &amp; Baguette" /><span>Tapered &amp; Baguette</span></a>
+          <a href="diamond-size-trillion.html" class="shape-btn"><img src="/assets/Diamond%20Size-Trillion.jpg" alt="Trillion" /><span>Trillion</span></a>
+        </div>
 
         <h2>Pear Cut Diamond Size Chart</h2>
         <div class="guide-table-wrap">
