@@ -521,11 +521,11 @@ img { max-width: 100%; display: block; }
 }
 .cart-intro-title {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 400;
   letter-spacing: 0.02em;
   color: var(--text);
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
 .cart-intro p,
 .cart-intro p.cart-intro-emphasis {
