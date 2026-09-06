@@ -33,11 +33,11 @@
       margin: 0 auto;
       padding-bottom: 40px;
     }
-    /* Tiles matched to the Diamond Guide page's grid spacing: 3
-       columns, 16px gap, full-width cards sitting close together. */
+    /* Tiles capped narrower and centered in their grid cell, with a
+       tighter gap, so they read visibly smaller than before. */
     .size-grid {
       display: grid;
-      gap: 16px;
+      gap: 12px;
       grid-template-columns: repeat(3, 1fr);
     }
     .size-card {
@@ -46,6 +46,9 @@
       align-items: center;
       justify-content: center;
       text-align: center;
+      max-width: 150px;
+      margin: 0 auto;
+      width: 100%;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -59,8 +62,8 @@
       transform: translateY(-2px);
       border-color: #cfc9bd;
     }
-    /* No fixed aspect-ratio box — the image sets its own height at
-       full tile width, so it displays completely with zero cropping. */
+    /* No fixed aspect-ratio box — image sets its own height at full
+       tile width, so it displays completely with zero cropping. */
     .size-card-media {
       width: 100%;
       line-height: 0;
@@ -72,9 +75,9 @@
     }
     .size-card span {
       display: block;
-      padding: 8px 6px;
+      padding: 6px 6px;
       font-family: var(--font-display);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       color: #1a1a1a;
       letter-spacing: 0.01em;
@@ -84,6 +87,7 @@
     }
     @media (max-width: 540px) {
       .size-grid { grid-template-columns: 1fr; }
+      .size-card { max-width: 180px; }
     }
   </style>
 </head>
