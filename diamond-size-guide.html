@@ -33,20 +33,19 @@
       margin: 0 auto;
       padding-bottom: 40px;
     }
-    /* Fixed-height media band on every tile keeps all cards the same
-       size, so the grid aligns cleanly with no uneven gaps. */
+    /* Wider tiles, tighter gap, so cards sit closer together. */
     .size-grid {
       display: grid;
-      gap: 12px;
+      gap: 8px;
       grid-template-columns: repeat(3, 1fr);
     }
     .size-card {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       text-align: center;
-      max-width: 150px;
+      max-width: 190px;
       margin: 0 auto;
       width: 100%;
       background: var(--surface2);
@@ -62,25 +61,20 @@
       transform: translateY(-2px);
       border-color: #cfc9bd;
     }
-    /* Fixed height + object-fit: contain — every tile is the same
-       size, and each image shows in full without any cropping. */
+    /* No fixed aspect-ratio box — image sets its own height at full
+       tile width, so it displays completely with zero cropping. */
     .size-card-media {
       width: 100%;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      line-height: 0;
     }
     .size-card-media img {
       width: 100%;
-      height: 100%;
-      object-fit: contain;
+      height: auto;
       display: block;
     }
     .size-card span {
       display: block;
-      padding: 6px 6px 10px;
+      padding: 6px 6px;
       font-family: var(--font-display);
       font-size: 12px;
       font-weight: 500;
@@ -92,7 +86,7 @@
     }
     @media (max-width: 540px) {
       .size-grid { grid-template-columns: 1fr; }
-      .size-card { max-width: 180px; }
+      .size-card { max-width: 220px; }
     }
   </style>
 </head>
