@@ -45,15 +45,21 @@
       margin: 0 auto;
       padding-bottom: 40px;
     }
+    /* Cards shrunk to roughly half their previous footprint: capped
+       max-width per tile (centered within its grid cell), tighter
+       padding, smaller type, and a shorter fixed-height image band
+       using object-fit: contain so nothing gets cropped. */
     .shape-grid {
       display: grid;
-      gap: 18px;
+      gap: 14px;
       grid-template-columns: repeat(2, 1fr);
     }
     .shape-card {
+      max-width: 220px;
+      margin: 0 auto;
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 1px 3px rgba(22,20,18,0.06);
       transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
@@ -65,34 +71,39 @@
     }
     .shape-card-media {
       width: 100%;
-      aspect-ratio: 4 / 3;
+      height: 90px;
       overflow: hidden;
       background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .shape-card-media img {
-      width: 100%;
+      width: auto;
       height: 100%;
-      object-fit: cover;
+      max-width: 100%;
+      object-fit: contain;
       display: block;
     }
     .shape-card-body {
-      padding: 20px 22px;
+      padding: 10px 12px;
     }
     .shape-card h3 {
       font-family: var(--font-display);
-      font-size: 16px;
+      font-size: 13px;
       font-weight: 500;
       color: #1a1a1a;
       letter-spacing: 0.01em;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .shape-card p {
-      font-size: 13px;
+      font-size: 11px;
       color: #737373;
-      line-height: 1.55;
+      line-height: 1.45;
     }
     @media (max-width: 640px) {
       .shape-grid { grid-template-columns: 1fr; }
+      .shape-card { max-width: 260px; }
     }
     .guide-back-wrap {
       text-align: center;
