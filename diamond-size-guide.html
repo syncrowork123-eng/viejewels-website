@@ -40,13 +40,14 @@
     }
     .size-card {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 22px 12px;
+      padding: 16px 12px;
       text-decoration: none;
       box-shadow: 0 1px 3px rgba(22,20,18,0.06);
       transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
@@ -55,6 +56,24 @@
       box-shadow: 0 10px 28px rgba(22,20,18,0.10);
       transform: translateY(-2px);
       border-color: #cfc9bd;
+    }
+    /* Fixed-height media band, image scaled with object-fit: contain
+       so the full shape image always shows without being cropped. */
+    .size-card-media {
+      width: 100%;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .size-card-media img {
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
     }
     .size-card span {
       font-family: var(--font-display);
@@ -101,16 +120,46 @@
     <section class="section">
       <div class="guide-content">
         <div class="size-grid">
-          <a class="size-card" href="diamond-size-round.html"><span>Round</span></a>
-          <a class="size-card" href="diamond-size-princess.html"><span>Princess</span></a>
-          <a class="size-card" href="diamond-size-emerald.html"><span>Emerald</span></a>
-          <a class="size-card" href="diamond-size-oval.html"><span>Oval</span></a>
-          <a class="size-card" href="diamond-size-marquise.html"><span>Marquise</span></a>
-          <a class="size-card" href="diamond-size-pear.html"><span>Pear</span></a>
-          <a class="size-card" href="diamond-size-cushion.html"><span>Cushion</span></a>
-          <a class="size-card" href="diamond-size-heart.html"><span>Heart</span></a>
-          <a class="size-card" href="diamond-size-tapered-bugget.html"><span>Tapered &amp; Bugget</span></a>
-          <a class="size-card" href="diamond-size-trillion.html"><span>Trillion</span></a>
+          <a class="size-card" href="diamond-size-round.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Round.jpg" alt="Round" /></div>
+            <span>Round</span>
+          </a>
+          <a class="size-card" href="diamond-size-princess.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Princess.jpg" alt="Princess" /></div>
+            <span>Princess</span>
+          </a>
+          <a class="size-card" href="diamond-size-emerald.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Emerald.jpg" alt="Emerald" /></div>
+            <span>Emerald</span>
+          </a>
+          <a class="size-card" href="diamond-size-oval.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Oval.jpg" alt="Oval" /></div>
+            <span>Oval</span>
+          </a>
+          <a class="size-card" href="diamond-size-marquise.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Marquise.jpg" alt="Marquise" /></div>
+            <span>Marquise</span>
+          </a>
+          <a class="size-card" href="diamond-size-pear.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Pear.jpg" alt="Pear" /></div>
+            <span>Pear</span>
+          </a>
+          <a class="size-card" href="diamond-size-cushion.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Cushion.jpg" alt="Cushion" /></div>
+            <span>Cushion</span>
+          </a>
+          <a class="size-card" href="diamond-size-heart.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Heart.jpg" alt="Heart" /></div>
+            <span>Heart</span>
+          </a>
+          <a class="size-card" href="diamond-size-tapered-bugget.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Tapered%20Bugget.jpg" alt="Tapered &amp; Bugget" /></div>
+            <span>Tapered &amp; Bugget</span>
+          </a>
+          <a class="size-card" href="diamond-size-trillion.html">
+            <div class="size-card-media"><img src="/assets/Diamond%20Size-Trillion.jpg" alt="Trillion" /></div>
+            <span>Trillion</span>
+          </a>
         </div>
 
         <div class="guide-back-wrap" style="text-align:center; margin-top:32px;">
