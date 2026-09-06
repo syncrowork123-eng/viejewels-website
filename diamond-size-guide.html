@@ -33,11 +33,16 @@
       margin: 0 auto;
       padding-bottom: 40px;
     }
-    /* Tile size unchanged (max-width: 220px) — only the gap is tighter. */
+    /* Switched from a fixed 3-column grid to a wrapping flex row.
+       A grid's columns stretch to fill the container width, so a
+       narrower fixed-width card just gets centered with empty space
+       around it. Flex-wrap packs same-size tiles edge-to-edge with
+       only the small "gap" value between them. */
     .size-grid {
-      display: grid;
-      gap: 0px;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
     }
     .size-card {
       display: flex;
@@ -45,9 +50,8 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      max-width: 220px;
-      margin: 0 auto;
-      width: 100%;
+      width: 220px;
+      flex: 0 0 220px;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -81,12 +85,8 @@
       color: #1a1a1a;
       letter-spacing: 0.01em;
     }
-    @media (max-width: 860px) {
-      .size-grid { grid-template-columns: repeat(2, 1fr); }
-    }
     @media (max-width: 540px) {
-      .size-grid { grid-template-columns: 1fr; }
-      .size-card { max-width: 240px; }
+      .size-card { width: 240px; flex-basis: 240px; }
     }
   </style>
 </head>
