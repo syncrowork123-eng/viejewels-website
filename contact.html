@@ -125,6 +125,16 @@
       object-fit: contain;
       flex-shrink: 0;
     }
+    /* WhatsApp's source PNG has more built-in transparent padding around
+       the glyph than the Instagram PNG, so at the same 40x40 box the
+       WhatsApp logo renders visually smaller. Bump its box up so the
+       visible glyph reads as the same size. Tweak this value to taste —
+       50px is a reasonable starting point, go higher if it still looks
+       small on your screen. */
+    .connect-section-icon.icon-whatsapp {
+      width: 50px;
+      height: 50px;
+    }
     .connect-section-text {
       font-size: 14.5px;
       font-weight: 500;
@@ -198,7 +208,7 @@
         <!-- RIGHT: CONNECT SECTIONS -->
         <div class="connect-sections">
           <a class="connect-section" href="https://wa.me/919619616412" target="_blank" rel="noopener">
-            <img class="connect-section-icon" src="/assets/Icon-Whatsapp.png" alt="WhatsApp" />
+            <img class="connect-section-icon icon-whatsapp" src="/assets/Icon-Whatsapp.png" alt="WhatsApp" />
             <span class="connect-section-text">Message us on WhatsApp</span>
           </a>
           <a class="connect-section" href="https://instagram.com/vie.jewels" target="_blank" rel="noopener">
