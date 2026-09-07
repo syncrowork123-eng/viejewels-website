@@ -7,14 +7,12 @@
   <link rel="stylesheet" href="styles.css" />
   <style>
     /* ── CONTACT PAGE ─────────────────────────────────────────────────
-       No new visual language introduced — every value below is pulled
-       directly from styles.css's existing components:
-         • form fields   → same pattern as .catalog-toolbar input /
-                            .filter-range input (border, radius, focus)
-         • connect card  → same pattern as .theme-card
-         • connect rows  → same pattern as .cart-row-modify hover
-         • layout        → same two-column gap as .catalog-layout /
-                            .product-detail (48–64px)
+       Same component patterns as the rest of the site (form fields
+       modeled on .catalog-toolbar input, connect card modeled on
+       .theme-card), with one deliberate override: a larger, rounded
+       corner radius on this page's boxes only, per request — the
+       site-wide --radius (2px) / --radius-lg (4px) tokens are left
+       untouched so no other page is affected.
     ──────────────────────────────────────────────────────────────── */
 
     .contact-layout {
@@ -39,7 +37,7 @@
       box-sizing: border-box;
       padding: 11px 16px;
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 10px;
       background: var(--surface);
       font-size: 14px;
       font-family: var(--font);
@@ -57,7 +55,11 @@
       font-family: var(--font);
       line-height: 1.6;
     }
-    .contact-submit-btn { width: 100%; margin-top: 4px; }
+    .contact-submit-btn {
+      width: 100%;
+      margin-top: 4px;
+      border-radius: 10px;
+    }
     .contact-form-status {
       font-size: 13px;
       color: var(--text-muted);
@@ -71,7 +73,7 @@
     .contact-connect {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-radius: 14px;
       padding: 28px;
       transition: border-color var(--transition);
     }
@@ -111,7 +113,12 @@
       color: var(--accent);
       text-decoration: underline;
     }
-    .connect-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
+    .connect-icon-img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
 
     @media (max-width: 860px) {
       .contact-layout { grid-template-columns: 1fr; gap: 32px; }
@@ -142,11 +149,13 @@
 
   <main>
     <section class="page-hero">
-      <p class="eyebrow">Contact Us</p>
-      <h1>Get in touch with Vie Jewels.</h1>
+      <h1>Connect with us</h1>
       <p>
-        Whether you're asking about a collection piece, a bespoke design, or simply want to say hello —
-        we would love to hear from you.
+        Whether enquiring about a collection piece, a bespoke creation, or seeking personal guidance,
+        our helpful specialists are here to assist.
+      </p>
+      <p>
+        We invite you to connect with us to discover a more considered and a personal approach.
       </p>
     </section>
 
@@ -157,14 +166,14 @@
         <form class="contact-form" id="contact-form" onsubmit="return handleContactSubmit(event)">
           <div class="form-row">
             <input type="text" id="c-name" name="from_name" placeholder="Your name *" required />
-            <input type="tel" id="c-phone" name="from_phone" placeholder="Phone number" />
+            <input type="tel" id="c-phone" name="from_phone" placeholder="Phone number *" required />
           </div>
           <div class="form-row">
             <input type="email" id="c-email" name="from_email" placeholder="Email address *" required />
             <input type="text" id="c-company" name="company" placeholder="Company (optional)" />
           </div>
           <input type="text" id="c-subject" name="subject" placeholder="Subject *" required />
-          <textarea id="c-question" name="question" placeholder="Your question *" required></textarea>
+          <textarea id="c-message" name="message" placeholder="Your message *" required></textarea>
 
           <button class="primary-btn contact-submit-btn" type="submit" id="contact-submit-btn">Send Message</button>
           <p id="contact-form-status" class="contact-form-status"></p>
@@ -176,13 +185,13 @@
           <p>Prefer a quicker reply? Reach us directly through any of these channels.</p>
           <div class="connect-icons">
             <a class="connect-icon-link" href="https://wa.me/919619616412" target="_blank" rel="noopener">
-              <span class="connect-icon">💬</span> WhatsApp
+              <img class="connect-icon-img" src="/assets/Icon-Whatsapp.png" alt="WhatsApp" /> WhatsApp
             </a>
             <a class="connect-icon-link" href="mailto:hello@viejewels.com">
-              <span class="connect-icon">✉️</span> hello@viejewels.com
+              <img class="connect-icon-img" src="/assets/Icon-Email.png" alt="Email" /> hello@viejewels.com
             </a>
             <a class="connect-icon-link" href="https://instagram.com/vie.jewels" target="_blank" rel="noopener">
-              <span class="connect-icon">📷</span> @vie.jewels
+              <img class="connect-icon-img" src="/assets/Icon-Instagram.png" alt="Instagram" /> @vie.jewels
             </a>
           </div>
         </div>
@@ -220,7 +229,7 @@
        3. Add these variables to the template body — they match the
           object keys sent in emailjs.send() below exactly:
             {{from_name}}   {{from_phone}}   {{from_email}}
-            {{company}}     {{subject}}      {{question}}
+            {{company}}     {{subject}}      {{message}}
        4. Copy the new Template ID and paste it below, replacing
           "REPLACE_WITH_NEW_TEMPLATE_ID".
     ──────────────────────────────────────────────────────────────── */
@@ -246,9 +255,9 @@
       const from_email = document.getElementById("c-email").value.trim();
       const company    = document.getElementById("c-company").value.trim();
       const subject    = document.getElementById("c-subject").value.trim();
-      const question   = document.getElementById("c-question").value.trim();
+      const message    = document.getElementById("c-message").value.trim();
 
-      if (!from_name || !from_email || !subject || !question) {
+      if (!from_name || !from_phone || !from_email || !subject || !message) {
         setContactStatus("Please fill in all required fields.", "is-error");
         return false;
       }
@@ -261,11 +270,11 @@
       try {
         await emailjs.send(CONTACT_EMAILJS_SERVICE_ID, CONTACT_EMAILJS_TEMPLATE_ID, {
           from_name,
-          from_phone: from_phone || "—",
+          from_phone,
           from_email,
           company: company || "—",
           subject,
-          question,
+          message,
         });
         setContactStatus("Thank you — your message has been sent. We'll be in touch shortly.", "is-success");
         document.getElementById("contact-form").reset();
