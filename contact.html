@@ -5,6 +5,106 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Contact Us | Vie Jewels</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── CONTACT PAGE — scoped additions only; everything else inherits
+       fonts/colors/spacing from styles.css via the site's existing
+       CSS variables, same pattern used on checkout.html ──────────────── */
+
+    .contact-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 48px;
+      align-items: flex-start;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    /* ── FORM ── */
+    .contact-form .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .contact-form textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .contact-form-status {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      min-height: 1.2em;
+    }
+    .contact-form-status.is-error { color: #b3261e; }
+    .contact-form-status.is-success { color: #2e7d32; }
+
+    /* ── CONNECT WITH US ── */
+    .contact-connect {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg, var(--radius));
+      background: var(--surface2);
+      padding: 28px 26px;
+    }
+    .contact-connect h2 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 400;
+      color: var(--text);
+      margin: 0 0 8px;
+      letter-spacing: 0.01em;
+    }
+    .contact-connect > p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0 0 22px;
+    }
+    .connect-icons {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .connect-icon-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 10px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      border: 1px solid transparent;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .connect-icon-link:hover {
+      border-color: var(--border);
+      background: var(--surface);
+    }
+    .connect-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 860px) {
+      .contact-layout { grid-template-columns: 1fr; gap: 32px; }
+      .contact-form .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -18,34 +118,66 @@
         <a href="world-of-vie.html">World of Vie</a>
         <a href="collections.html">Collections</a>
         <a href="knowledge-lounge.html">Knowledge Lounge</a>
-        <a href="contact.html">Contact Us</a>
+        <a href="contact.html" aria-current="page">Contact Us</a>
       </div>
       <div class="nav-icons">
-
         <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
         <a href="account.html" aria-label="My Account">◎</a>
       </div>
     </nav>
   </header>
+
   <main>
     <section class="page-hero">
       <p class="eyebrow">Contact Us</p>
-      <h1>Begin a conversation with Vie Jewels.</h1>
+      <h1>Get in touch with Vie Jewels.</h1>
       <p>
-        Ask about a collection piece, a bespoke design, or a jewelry consultation.
+        Whether you're asking about a collection piece, a bespoke design, or simply want to say hello —
+        we would love to hear from you.
       </p>
     </section>
+
     <section class="section">
-      <form class="form-wrap" id="contact-form">
-        <input type="text" name="from_name" id="from_name" placeholder="Your name" required />
-        <input type="email" name="from_email" id="from_email" placeholder="Email address" required />
-        <input type="tel" name="from_phone" id="from_phone" placeholder="Phone / WhatsApp" />
-        <textarea name="message" id="message" data-contact-message placeholder="Tell us what you are looking for" required></textarea>
-        <button class="primary-btn" type="submit" id="submit-btn">Send Inquiry</button>
-        <p id="form-status" style="margin-top:1rem;font-size:0.95rem;"></p>
-      </form>
+      <div class="contact-layout">
+
+        <!-- LEFT: INQUIRY FORM -->
+        <form class="form-wrap contact-form" id="contact-form" onsubmit="return handleContactSubmit(event)">
+          <div class="form-row">
+            <input type="text" id="c-name" name="from_name" placeholder="Your name *" required />
+            <input type="tel" id="c-phone" name="from_phone" placeholder="Phone number" />
+          </div>
+          <div class="form-row">
+            <input type="email" id="c-email" name="from_email" placeholder="Email address *" required />
+            <input type="text" id="c-company" name="company" placeholder="Company (optional)" />
+          </div>
+          <input type="text" id="c-subject" name="subject" placeholder="Subject *" required />
+          <textarea id="c-question" name="question" placeholder="Your question *" required></textarea>
+
+          <button class="primary-btn" type="submit" id="contact-submit-btn">Send Message</button>
+          <p id="contact-form-status" class="contact-form-status"></p>
+        </form>
+
+        <!-- RIGHT: CONNECT WITH US -->
+        <div class="contact-connect">
+          <h2>Connect With Us</h2>
+          <p>Prefer a quicker reply? Reach us directly through any of these channels.</p>
+          <div class="connect-icons">
+            <a class="connect-icon-link" href="https://wa.me/919619616412" target="_blank" rel="noopener">
+              <span class="connect-icon">💬</span> WhatsApp
+            </a>
+            <a class="connect-icon-link" href="mailto:hello@viejewels.com">
+              <span class="connect-icon">✉️</span> hello@viejewels.com
+            </a>
+            <a class="connect-icon-link" href="https://instagram.com/vie.jewels" target="_blank" rel="noopener">
+              <span class="connect-icon">📷</span> @vie.jewels
+            </a>
+          </div>
+        </div>
+
+      </div>
     </section>
   </main>
+
   <footer id="contact" class="site-footer">
     <div>
       <h2>VIE JEWELS</h2>
@@ -54,10 +186,86 @@
     <div>
       <h3>Contact Us</h3>
       <p>Email: hello@viejewels.com</p>
-      <p>Website: www.viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
     </div>
   </footer>
+
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="script.js"></script>
+  <script>
+    /* ── CONTACT FORM — EmailJS wiring ─────────────────────────────────
+       Reuses the same EmailJS account/service as checkout.html
+       (service_ht8azjl / public key 1OPjVCSh3Z-UuW3aG), but needs its
+       OWN template since checkout's template (template_tnlzzgy) expects
+       order-specific variables (order_summary, enquiry_id, etc.) that
+       don't apply here.
+
+       ACTION REQUIRED before this goes live:
+       1. In your EmailJS dashboard, create a new Email Template for
+          general contact inquiries.
+       2. Set the template's "To Email" field to hello@viejewels.com.
+       3. Add these variables to the template body — they match the
+          object keys sent in emailjs.send() below exactly:
+            {{from_name}}   {{from_phone}}   {{from_email}}
+            {{company}}     {{subject}}      {{question}}
+       4. Copy the new Template ID and paste it below, replacing
+          "REPLACE_WITH_NEW_TEMPLATE_ID".
+    ──────────────────────────────────────────────────────────────── */
+
+    const CONTACT_EMAILJS_SERVICE_ID  = "service_ht8azjl";
+    const CONTACT_EMAILJS_TEMPLATE_ID = "REPLACE_WITH_NEW_TEMPLATE_ID";
+    const CONTACT_EMAILJS_PUBLIC_KEY  = "1OPjVCSh3Z-UuW3aG";
+
+    emailjs.init(CONTACT_EMAILJS_PUBLIC_KEY);
+
+    function setContactStatus(msg, type) {
+      const el = document.getElementById("contact-form-status");
+      el.textContent = msg;
+      el.classList.remove("is-error", "is-success");
+      if (type) el.classList.add(type);
+    }
+
+    async function handleContactSubmit(e) {
+      e.preventDefault();
+
+      const from_name  = document.getElementById("c-name").value.trim();
+      const from_phone  = document.getElementById("c-phone").value.trim();
+      const from_email  = document.getElementById("c-email").value.trim();
+      const company     = document.getElementById("c-company").value.trim();
+      const subject     = document.getElementById("c-subject").value.trim();
+      const question    = document.getElementById("c-question").value.trim();
+
+      if (!from_name || !from_email || !subject || !question) {
+        setContactStatus("Please fill in all required fields.", "is-error");
+        return false;
+      }
+
+      const btn = document.getElementById("contact-submit-btn");
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+      setContactStatus("", null);
+
+      try {
+        await emailjs.send(CONTACT_EMAILJS_SERVICE_ID, CONTACT_EMAILJS_TEMPLATE_ID, {
+          from_name,
+          from_phone: from_phone || "—",
+          from_email,
+          company: company || "—",
+          subject,
+          question,
+        });
+        setContactStatus("Thank you — your message has been sent. We'll be in touch shortly.", "is-success");
+        document.getElementById("contact-form").reset();
+      } catch (err) {
+        console.error("EmailJS send failed:", err);
+        setContactStatus("Something went wrong sending your message. Please try again, or reach us via WhatsApp/email directly.", "is-error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Send Message";
+      }
+
+      return false;
+    }
+  </script>
 </body>
 </html>
