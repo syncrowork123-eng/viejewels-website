@@ -587,7 +587,7 @@
         return false;
       }
 
-      // Build a plain-text order summary for the confirmation email + WhatsApp message
+      // Plain-text order summary — used for the WhatsApp message only.
       const fmtAmt = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const summaryLines = items.map((i, idx) => {
         const qty = parseInt(i.qty, 10) || 1;
@@ -597,6 +597,27 @@
       }).join("\n");
       const totalText = totalAmount ? (currencySymbol + " " + fmtAmt(totalAmount)) : "Price on request";
 
+      // HTML order summary — used for the confirmation email. Sent as
+      // ready-made <tr> rows because EmailJS templates can't loop over
+      // arrays themselves; this string is dropped straight into the
+      // <table> in the email template via {{order_summary}}.
+      const summaryRowsHtml = items.map((i) => {
+        const qty = parseInt(i.qty, 10) || 1;
+        const rate = i.priceValue != null ? (i.priceSymbol + " " + fmtAmt(i.priceValue)) : "Price on request";
+        return `
+          <tr>
+            <td style="padding:16px 0;border-bottom:1px solid #e8e2d8;font-family:Helvetica,Arial,sans-serif;">
+              <p style="margin:0 0 4px;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#1a1a1a;">${esc(i.name || "Item")}</p>
+              <p style="margin:0 0 6px;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9a9a9a;">SKU: ${esc(i.sku || "\u2014")}</p>
+              ${i.notes ? `<p style="margin:0 0 4px;font-size:12px;color:#6e6e6e;">Special Requirements: ${esc(i.notes)}</p>` : ""}
+              <p style="margin:0;font-size:12px;color:#6e6e6e;">Qty: ${qty}</p>
+            </td>
+            <td style="padding:16px 0;border-bottom:1px solid #e8e2d8;text-align:right;vertical-align:top;white-space:nowrap;">
+              <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#1a1a1a;font-weight:bold;">${esc(rate)}</p>
+            </td>
+          </tr>`;
+      }).join("");
+
       // Email confirmation — best-effort; a failed email should not block checkout
       try {
         await emailjs.send(CO_EMAILJS_SERVICE_ID, CO_EMAILJS_TEMPLATE_ID, {
@@ -604,7 +625,7 @@
           customer_name: full_name,
           customer_phone: phone,
           customer_address: address,
-          order_summary: summaryLines,
+          order_summary: summaryRowsHtml,
           order_total: totalText,
           customer_notes: notes || "\u2014",
           enquiry_id: saved?.id ? coFormatRef(saved.id) : "",
