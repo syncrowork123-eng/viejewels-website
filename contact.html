@@ -6,9 +6,16 @@
   <title>Contact Us | Vie Jewels</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* ── CONTACT PAGE — scoped additions only; everything else inherits
-       fonts/colors/spacing from styles.css via the site's existing
-       CSS variables, same pattern used on checkout.html ──────────────── */
+    /* ── CONTACT PAGE ─────────────────────────────────────────────────
+       No new visual language introduced — every value below is pulled
+       directly from styles.css's existing components:
+         • form fields   → same pattern as .catalog-toolbar input /
+                            .filter-range input (border, radius, focus)
+         • connect card  → same pattern as .theme-card
+         • connect rows  → same pattern as .cart-row-modify hover
+         • layout        → same two-column gap as .catalog-layout /
+                            .product-detail (48–64px)
+    ──────────────────────────────────────────────────────────────── */
 
     .contact-layout {
       display: grid;
@@ -20,6 +27,7 @@
     }
 
     /* ── FORM ── */
+    .contact-form { display: flex; flex-direction: column; gap: 14px; }
     .contact-form .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -29,76 +37,81 @@
     .contact-form textarea {
       width: 100%;
       box-sizing: border-box;
+      padding: 11px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
     }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder { color: var(--text-light); }
+    .contact-form input:focus,
+    .contact-form textarea:focus { border-color: var(--text); }
     .contact-form textarea {
-      min-height: 120px;
+      min-height: 130px;
       resize: vertical;
+      font-family: var(--font);
+      line-height: 1.6;
     }
+    .contact-submit-btn { width: 100%; margin-top: 4px; }
     .contact-form-status {
-      margin-top: 14px;
       font-size: 13px;
       color: var(--text-muted);
       min-height: 1.2em;
+      letter-spacing: 0.01em;
     }
     .contact-form-status.is-error { color: #b3261e; }
-    .contact-form-status.is-success { color: #2e7d32; }
+    .contact-form-status.is-success { color: var(--accent); }
 
     /* ── CONNECT WITH US ── */
     .contact-connect {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg, var(--radius));
-      background: var(--surface2);
-      padding: 28px 26px;
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: border-color var(--transition);
     }
+    .contact-connect:hover { border-color: var(--accent); }
     .contact-connect h2 {
       font-family: var(--font-display);
       font-size: 19px;
       font-weight: 400;
+      letter-spacing: 0.02em;
       color: var(--text);
-      margin: 0 0 8px;
-      letter-spacing: 0.01em;
+      margin-bottom: 8px;
     }
     .contact-connect > p {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-muted);
-      line-height: 1.6;
-      margin: 0 0 22px;
+      line-height: 1.65;
+      margin-bottom: 22px;
     }
     .connect-icons {
       display: flex;
       flex-direction: column;
-      gap: 4px;
     }
     .connect-icon-link {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px 10px;
-      border-radius: var(--radius);
-      text-decoration: none;
-      color: var(--text);
+      padding: 12px 0;
       font-size: 13.5px;
       font-weight: 500;
       letter-spacing: 0.02em;
-      border: 1px solid transparent;
-      transition: border-color var(--transition), background var(--transition);
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-light);
+      transition: color var(--transition);
     }
+    .connect-icon-link:last-child { border-bottom: none; }
     .connect-icon-link:hover {
-      border-color: var(--border);
-      background: var(--surface);
+      color: var(--accent);
+      text-decoration: underline;
     }
-    .connect-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      font-size: 15px;
-      flex-shrink: 0;
-    }
+    .connect-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
 
     @media (max-width: 860px) {
       .contact-layout { grid-template-columns: 1fr; gap: 32px; }
@@ -141,7 +154,7 @@
       <div class="contact-layout">
 
         <!-- LEFT: INQUIRY FORM -->
-        <form class="form-wrap contact-form" id="contact-form" onsubmit="return handleContactSubmit(event)">
+        <form class="contact-form" id="contact-form" onsubmit="return handleContactSubmit(event)">
           <div class="form-row">
             <input type="text" id="c-name" name="from_name" placeholder="Your name *" required />
             <input type="tel" id="c-phone" name="from_phone" placeholder="Phone number" />
@@ -153,7 +166,7 @@
           <input type="text" id="c-subject" name="subject" placeholder="Subject *" required />
           <textarea id="c-question" name="question" placeholder="Your question *" required></textarea>
 
-          <button class="primary-btn" type="submit" id="contact-submit-btn">Send Message</button>
+          <button class="primary-btn contact-submit-btn" type="submit" id="contact-submit-btn">Send Message</button>
           <p id="contact-form-status" class="contact-form-status"></p>
         </form>
 
@@ -229,11 +242,11 @@
       e.preventDefault();
 
       const from_name  = document.getElementById("c-name").value.trim();
-      const from_phone  = document.getElementById("c-phone").value.trim();
-      const from_email  = document.getElementById("c-email").value.trim();
-      const company     = document.getElementById("c-company").value.trim();
-      const subject     = document.getElementById("c-subject").value.trim();
-      const question    = document.getElementById("c-question").value.trim();
+      const from_phone = document.getElementById("c-phone").value.trim();
+      const from_email = document.getElementById("c-email").value.trim();
+      const company    = document.getElementById("c-company").value.trim();
+      const subject    = document.getElementById("c-subject").value.trim();
+      const question   = document.getElementById("c-question").value.trim();
 
       if (!from_name || !from_email || !subject || !question) {
         setContactStatus("Please fill in all required fields.", "is-error");
