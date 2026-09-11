@@ -8,9 +8,6 @@
   <style>
     /* ── CHECKOUT PAGE ──────────────────────────────────────────────── */
 
-    /* Scoped hero override: title + intro text sized 50% smaller than
-       the site default, and switched to a neutral black/gray palette
-       instead of the theme's warm gold accent + tan-tinted grays. */
     .checkout-hero h1 {
       font-size: 34px;
       color: #1a1a1a;
@@ -23,11 +20,6 @@
       color: #737373;
     }
 
-    /* Scoped color palette: overriding these custom properties inside
-       .co-page cascades down to every element below that already
-       references var(--text) / var(--text-muted) / var(--text-light),
-       swapping the theme's warm gold-tinted grays for neutral black/
-       gray shades without having to touch every rule individually. */
     .co-page {
       --text: #1a1a1a;
       --text-muted: #6e6e6e;
@@ -47,7 +39,6 @@
       align-items: flex-start;
     }
 
-    /* ── ORDER SUMMARY ── */
     .co-summary-heading {
       font-family: var(--font-display);
       font-size: 20px;
@@ -152,7 +143,6 @@
     }
     .co-edit-link:hover { color: var(--text); }
 
-    /* ── FORM CARD ── */
     .co-form-card {
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
@@ -353,7 +343,6 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="script.js"></script>
   <script>
     /* ── CHECKOUT LOGIC ───────────────────────────────────────────────────
@@ -362,21 +351,16 @@
        mirrors crGetSession() in register.html — same "vj_auth" key.
     ──────────────────────────────────────────────────────────────────── */
 
-    const CO_EMAILJS_SERVICE_ID  = "service_ht8azjl";
-    const CO_EMAILJS_TEMPLATE_ID = "template_tnlzzgy";
-    const CO_EMAILJS_PUBLIC_KEY  = "1OPjVCSh3Z-UuW3aG";
     const CO_WHATSAPP_FALLBACK   = "919619616412"; // used only if site_settings lookup fails
-
-    emailjs.init(CO_EMAILJS_PUBLIC_KEY);
+    // Email confirmations now send server-side via a Supabase Edge Function
+    // (send-enquiry-email) using Resend — see coHandleSubmit() below.
+    // EmailJS is no longer used for checkout confirmations.
 
     function coGetSession() {
       try { return JSON.parse(localStorage.getItem("vj_auth") || "null"); }
       catch { return null; }
     }
 
-    // Redirects to sign-in if there's no session, or if the stored session
-    // has expired. Returns the session object if valid, otherwise null
-    // (caller should stop and not proceed further).
     function coRequireLogin() {
       const session = coGetSession();
       if (!session || !session.access_token || !session.user) {
@@ -403,7 +387,6 @@
       el.textContent = "";
     }
 
-    // ── ORDER SUMMARY RENDER ──────────────────────────────────────────────
     function coRowHtml(item) {
       const qty = Math.max(1, parseInt(item.qty, 10) || 1);
       const hasRate = item.priceValue != null;
@@ -479,7 +462,6 @@
       return items;
     }
 
-    // ── PREFILL CLIENT DETAILS FROM SESSION ───────────────────────────────
     function coPrefillDetails(session) {
       const meta = session.user?.user_metadata || {};
       document.getElementById("co-email").value = session.user?.email || "";
@@ -489,7 +471,6 @@
       document.getElementById("co-address").value = addressParts.join(", ");
     }
 
-    // ── WHATSAPP NUMBER (from site_settings, editable in admin) ──────────
     async function coFetchWhatsappNumber() {
       try {
         const res = await fetch(SUPABASE_URL + "/rest/v1/site_settings?key=eq.whatsapp_number&select=value", {
@@ -507,7 +488,6 @@
       return "VJ" + String(id).padStart(6, "0");
     }
 
-    // ── SUBMIT ─────────────────────────────────────────────────────────────
     async function coHandleSubmit(e) {
       e.preventDefault();
       coClearError();
@@ -532,8 +512,6 @@
       btn.disabled = true;
       btn.textContent = "Submitting\u2026";
 
-      // Totals — represented in the currency of the first priced item.
-      // (Full per-item breakdown always lives in the items jsonb column.)
       let totalAmount = 0;
       let currencySymbol = "";
       items.forEach((i) => {
@@ -587,7 +565,7 @@
         return false;
       }
 
-      // Plain-text order summary — used for the WhatsApp message only.
+      // Plain-text order summary — used for the WhatsApp message.
       const fmtAmt = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const summaryLines = items.map((i, idx) => {
         const qty = parseInt(i.qty, 10) || 1;
@@ -597,48 +575,36 @@
       }).join("\n");
       const totalText = totalAmount ? (currencySymbol + " " + fmtAmt(totalAmount)) : "Price on request";
 
-      // HTML order summary — used for the confirmation email. Sent as
-      // ready-made <tr> rows because EmailJS templates can't loop over
-      // arrays themselves; this string is dropped straight into the
-      // <table> in the email template via {{order_summary}}.
-      const summaryRowsHtml = items.map((i) => {
-        const qty = parseInt(i.qty, 10) || 1;
-        const rate = i.priceValue != null ? (i.priceSymbol + " " + fmtAmt(i.priceValue)) : "Price on request";
-        return `
-          <tr>
-            <td style="padding:16px 0;border-bottom:1px solid #f0ede6;font-family:'Inter',Helvetica,Arial,sans-serif;">
-              <p style="margin:0 0 5px;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:15px;font-weight:500;color:#161412;">${esc(i.name || "Item")}</p>
-              <p style="margin:0 0 6px;font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#b8b0a4;">SKU: ${esc(i.sku || "\u2014")}</p>
-              ${i.notes ? `<p style="margin:0 0 4px;font-size:12.5px;color:#8a8176;">Special Requirements: ${esc(i.notes)}</p>` : ""}
-              <p style="margin:0;font-size:12.5px;color:#8a8176;">Qty: ${qty}</p>
-            </td>
-            <td style="padding:16px 0;border-bottom:1px solid #f0ede6;text-align:right;vertical-align:top;white-space:nowrap;">
-              <p style="margin:0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:#9a7b3a;">${esc(rate)}</p>
-            </td>
-          </tr>`;
-      }).join("");
-
-      // Email confirmation — best-effort; a failed email should not block checkout
+      // Email confirmation — sent server-side via Supabase Edge Function
+      // (send-enquiry-email), which builds the HTML email and calls Resend.
+      // Best-effort: a failed email should not block checkout.
       try {
-        await emailjs.send(CO_EMAILJS_SERVICE_ID, CO_EMAILJS_TEMPLATE_ID, {
-          to_email: email,
-          customer_name: full_name,
-          customer_phone: phone,
-          customer_address: address,
-          order_summary: summaryRowsHtml,
-          order_total: totalText,
-          customer_notes: notes || "\u2014",
-          enquiry_id: saved?.id ? coFormatRef(saved.id) : "",
+        const emailRes = await fetch(SUPABASE_URL + "/functions/v1/send-enquiry-email", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to_email: email,
+            customer_name: full_name,
+            customer_phone: phone,
+            customer_address: address,
+            customer_notes: notes || "\u2014",
+            enquiry_id: saved?.id ? coFormatRef(saved.id) : "",
+            items,
+          }),
         });
+        if (!emailRes.ok) {
+          console.error("send-enquiry-email failed:", await emailRes.text());
+        }
       } catch (emailErr) {
-        console.error("EmailJS send failed:", emailErr);
+        console.error("send-enquiry-email request failed:", emailErr);
       }
 
-      // Clear the enquiry list now that it's been submitted
       setStored("vj_cart", []);
       updateNavBadges();
 
-      // Redirect to WhatsApp with a prefilled message
       const waNumber = await coFetchWhatsappNumber();
       const waRef = saved?.id ? coFormatRef(saved.id) : "";
       const waText = encodeURIComponent(
@@ -657,13 +623,12 @@
       return false;
     }
 
-    // ── INIT ───────────────────────────────────────────────────────────────
     document.addEventListener("DOMContentLoaded", () => {
       const session = coRequireLogin();
-      if (!session) return; // already redirecting
+      if (!session) return;
 
       const items = coRenderSummary();
-      if (!items.length) return; // empty-state already shown
+      if (!items.length) return;
 
       coPrefillDetails(session);
     });
