@@ -555,12 +555,12 @@
       catch { return null; }
     }
 
-    function crShowSuccess(message) {
+    function crShowSuccess(message, delayMs) {
       document.getElementById("cr-forms-wrap").style.display = "none";
       const successEl = document.getElementById("cr-success");
       successEl.classList.add("show");
       if (message) document.getElementById("cr-success-message").textContent = message;
-      setTimeout(() => { location.href = crRedirectTarget; }, 1400);
+      setTimeout(() => { location.href = crRedirectTarget; }, delayMs || 1400);
     }
 
     async function crHandleLogin(e) {
@@ -622,7 +622,10 @@
       btn.textContent = "Creating Account\u2026";
 
       try {
-        const res = await fetch(CR_AUTH_URL + "/signup", {
+        // Send users back to this exact page (with any ?redirect= param preserved)
+        // after they click the confirmation link in their email.
+        const confirmRedirectTo = encodeURIComponent(location.origin + location.pathname + location.search);
+        const res = await fetch(CR_AUTH_URL + "/signup?redirect_to=" + confirmRedirectTo, {
           method: "POST",
           headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -725,10 +728,14 @@
         // bookmarked, or re-processed on refresh.
         history.replaceState(null, "", location.pathname + location.search);
 
-        const message = type === "recovery"
-          ? "Your email is confirmed \u2014 taking you to complete your enquiry\u2026"
-          : "Email confirmed \u2014 you're signed in. Taking you to complete your enquiry\u2026";
-        crShowSuccess(message);
+        if (type === "recovery") {
+          crShowSuccess("Your email is confirmed \u2014 taking you to complete your enquiry\u2026", 1400);
+        } else {
+          crShowSuccess(
+            "Registration successful. Welcome to the world of VIE Jewels. Explore our collection of exceptional jewelry, crafted with timeless elegance and refined artistry.",
+            3200
+          );
+        }
       } catch (err) {
         history.replaceState(null, "", location.pathname + location.search);
         crShowError(crFriendlyAuthError(err.message));
