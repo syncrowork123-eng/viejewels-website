@@ -5,6 +5,231 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Account | Vie Jewels</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── ACCOUNT PAGE ───────────────────────────────────────────────── */
+
+    .ac-page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 24px 100px;
+    }
+
+    /* Loading state */
+    .ac-loading {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--text-muted);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Guest (not signed in) state */
+    .ac-guest {
+      display: none;
+      text-align: center;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    .ac-guest h2 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      margin-bottom: 14px;
+      color: var(--text);
+    }
+    .ac-guest p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.75;
+      margin-bottom: 28px;
+    }
+
+    /* Signed-in dashboard layout */
+    .ac-dashboard {
+      display: none;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 48px;
+      align-items: flex-start;
+    }
+    .ac-dashboard.show { display: grid; }
+
+    /* Profile card */
+    .ac-profile-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 26px;
+      background: var(--surface);
+    }
+    .ac-profile-name {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .ac-profile-email {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .ac-profile-field { padding: 12px 0; border-bottom: 1px solid var(--border-light); }
+    .ac-profile-field:last-of-type { border-bottom: none; }
+    .ac-profile-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 5px;
+    }
+    .ac-profile-value {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .ac-signout-btn { margin-top: 24px; width: 100%; }
+
+    /* Enquiry history */
+    .ac-history-heading {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 18px;
+      color: var(--text);
+    }
+
+    .ac-enquiry-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .ac-enquiry-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 20px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .ac-enquiry-date {
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .ac-status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .ac-status-new        { background: rgba(154, 123, 58, 0.12); color: var(--accent); }
+    .ac-status-progress   { background: rgba(58, 108, 154, 0.12); color: #3a6c9a; }
+    .ac-status-completed  { background: rgba(58, 154, 90, 0.12);  color: #3a9a5e; }
+    .ac-status-cancelled  { background: rgba(154, 58, 58, 0.12);  color: #9a3a3a; }
+
+    .ac-enquiry-body { padding: 4px 20px; }
+
+    .ac-row {
+      display: grid;
+      grid-template-columns: 64px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .ac-row:last-child { border-bottom: none; }
+    .ac-row-media {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface2);
+      flex-shrink: 0;
+    }
+    .ac-row-media img { width: 100%; height: 100%; object-fit: cover; }
+    .ac-row-info { min-width: 0; }
+    .ac-row-name {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .ac-row-meta {
+      font-size: 11px;
+      color: var(--text-light);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .ac-row-options {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+    .ac-row-qty { font-size: 12px; color: var(--text-muted); }
+    .ac-row-price {
+      text-align: right;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .ac-enquiry-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border-light);
+      background: var(--surface2);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .ac-enquiry-total {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .ac-empty {
+      text-align: center;
+      padding: 56px 24px;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.8;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+    }
+    .ac-empty a { text-decoration: underline; color: var(--text); }
+
+    @media (max-width: 860px) {
+      .ac-dashboard.show { grid-template-columns: 1fr; }
+      .ac-row {
+        grid-template-columns: 56px 1fr;
+        grid-template-areas: "media info" "price price";
+        row-gap: 8px;
+      }
+      .ac-row-media { grid-area: media; width: 56px; height: 56px; }
+      .ac-row-info { grid-area: info; }
+      .ac-row-price { grid-area: price; text-align: left; }
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -24,30 +249,65 @@
       </div>
 
       <div class="nav-icons">
-
-  <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
-  <a href="account.html" aria-label="My Account">◎</a>
-</div>
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account" aria-current="page">◎</a>
+      </div>
     </nav>
   </header>
 
   <main>
     <section class="page-hero">
       <p class="eyebrow">My Account</p>
-      <h1>Account access.</h1>
-      <p>
-        Customer login and admin access will be connected later. For now this page
-        keeps the same website structure as the current site.
-      </p>
+      <h1 id="ac-hero-title">Your Account</h1>
+      <p id="ac-hero-sub">Sign in to view your profile and enquiry history.</p>
     </section>
 
-    <section class="section">
-      <form class="form-wrap">
-        <input type="email" name="email" placeholder="Email address" />
-        <input type="password" name="password" placeholder="Password" />
-        <button class="primary-btn" type="button">Sign In</button>
-      </form>
-    </section>
+    <div class="ac-page">
+
+      <div class="ac-loading" id="ac-loading">Loading your account&hellip;</div>
+
+      <!-- GUEST STATE -->
+      <div class="ac-guest" id="ac-guest">
+        <p class="eyebrow">Welcome</p>
+        <h2>Sign in to your account</h2>
+        <p>
+          Access your profile details and track the status of your enquiries.
+          New to Vie Jewels? You can create an account in the same step.
+        </p>
+        <a class="primary-btn" href="register.html?redirect=account.html">Sign In / Create Account</a>
+      </div>
+
+      <!-- SIGNED-IN DASHBOARD -->
+      <div class="ac-dashboard" id="ac-dashboard">
+        <aside class="ac-profile-card">
+          <p class="ac-profile-name" id="ac-name"></p>
+          <p class="ac-profile-email" id="ac-email"></p>
+
+          <div class="ac-profile-field">
+            <p class="ac-profile-label">Phone</p>
+            <p class="ac-profile-value" id="ac-phone">—</p>
+          </div>
+          <div class="ac-profile-field">
+            <p class="ac-profile-label">Address</p>
+            <p class="ac-profile-value" id="ac-address">—</p>
+          </div>
+          <div class="ac-profile-field">
+            <p class="ac-profile-label">Location</p>
+            <p class="ac-profile-value" id="ac-location">—</p>
+          </div>
+
+          <button class="secondary-btn ac-signout-btn" id="ac-signout-btn" onclick="acSignOut()">Sign Out</button>
+        </aside>
+
+        <div class="ac-history">
+          <p class="ac-history-heading">Your Enquiries</p>
+          <div id="ac-enquiry-list">
+            <p class="ac-loading">Loading your enquiries&hellip;</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </main>
 
   <footer id="contact" class="site-footer">
@@ -62,6 +322,176 @@
       <p>Website: www.viejewels.com</p>
     </div>
   </footer>
-<script src="script.js"></script>
+
+  <script src="script.js"></script>
+  <script>
+    /* ── ACCOUNT PAGE LOGIC ─────────────────────────────────────────────
+       Reuses SUPABASE_URL / SUPABASE_KEY / esc from script.js. Session
+       handling mirrors coGetSession() / coRequireLogin() in checkout.html
+       and crGetSession() in register.html — same "vj_auth" localStorage
+       key throughout the site.
+
+       NOTE: reading /rest/v1/enquiries here assumes a Row Level Security
+       SELECT policy exists allowing a user to read rows where
+       user_id = auth.uid(). The existing checkout flow only INSERTs
+       enquiries — if no SELECT policy has been added yet, this fetch
+       will return an empty array (or a permissions error) even for
+       users who do have enquiries on file. Worth confirming/adding that
+       policy in Supabase (Database → Policies → enquiries) if the
+       history list stays empty for an account you know has enquiries.
+    ──────────────────────────────────────────────────────────────────── */
+
+    function acGetSession() {
+      try { return JSON.parse(localStorage.getItem("vj_auth") || "null"); }
+      catch { return null; }
+    }
+
+    function acSignOut() {
+      localStorage.removeItem("vj_auth");
+      location.href = "index.html";
+    }
+
+    function acFmtDate(iso) {
+      try {
+        return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+      } catch {
+        return "";
+      }
+    }
+
+    function acStatusClass(status) {
+      const s = (status || "").toLowerCase();
+      if (s.includes("progress")) return "ac-status-progress";
+      if (s.includes("complete")) return "ac-status-completed";
+      if (s.includes("cancel")) return "ac-status-cancelled";
+      return "ac-status-new";
+    }
+
+    // Mirrors coRowHtml() in checkout.html exactly, with ac- prefixed classes.
+    function acRowHtml(item) {
+      const qty = Math.max(1, parseInt(item.qty, 10) || 1);
+      const hasRate = item.priceValue != null;
+      const lineTotal = hasRate ? item.priceValue * qty : null;
+      const sym = item.priceSymbol || "";
+      const fmtAmt = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const opts = item.options || {};
+      const summaryParts = [
+        opts.metalQuality,
+        opts.metalColor,
+        opts.stoneType,
+        opts.diamond,
+        (opts.size || item.size) ? "Size: " + (opts.size || item.size) : null,
+      ].filter(Boolean);
+      const summaryLine = summaryParts.length
+        ? `<p class="ac-row-options">${summaryParts.map(esc).join(" &middot; ")}</p>`
+        : "";
+      const notesLine = item.notes
+        ? `<p class="ac-row-options">Special Requirements: ${esc(item.notes)}</p>`
+        : "";
+
+      return `<div class="ac-row">
+        <div class="ac-row-media"><img src="${esc(item.image || "")}" alt="${esc(item.name || "")}" loading="lazy" /></div>
+        <div class="ac-row-info">
+          <p class="ac-row-name">${esc(item.name || "Untitled")}</p>
+          <p class="ac-row-meta">${esc(item.sku || "")}</p>
+          ${summaryLine}
+          ${notesLine}
+          <p class="ac-row-qty">Qty: ${qty}</p>
+        </div>
+        <div class="ac-row-price">${hasRate ? esc(sym + " " + fmtAmt(lineTotal)) : "Price on request"}</div>
+      </div>`;
+    }
+
+    function acEnquiryCardHtml(enq) {
+      const items = Array.isArray(enq.items) ? enq.items : [];
+      const fmtAmt = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const total = enq.total_amount != null
+        ? esc((enq.currency || "") + " " + fmtAmt(enq.total_amount))
+        : "Price on request";
+
+      return `<div class="ac-enquiry-card">
+        <div class="ac-enquiry-head">
+          <span class="ac-enquiry-date">${esc(acFmtDate(enq.created_at))}</span>
+          <span class="ac-status-badge ${acStatusClass(enq.status)}">${esc(enq.status || "New")}</span>
+        </div>
+        <div class="ac-enquiry-body">
+          ${items.map(acRowHtml).join("")}
+        </div>
+        <div class="ac-enquiry-foot">
+          <span>Total</span>
+          <span class="ac-enquiry-total">${total}</span>
+        </div>
+      </div>`;
+    }
+
+    async function acLoadEnquiries(session) {
+      const listEl = document.getElementById("ac-enquiry-list");
+      try {
+        const res = await fetch(
+          SUPABASE_URL + "/rest/v1/enquiries?select=*&user_id=eq." + encodeURIComponent(session.user.id) + "&order=created_at.desc",
+          { headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + session.access_token } }
+        );
+        if (!res.ok) throw new Error("Could not load enquiries.");
+        const rows = await res.json();
+
+        if (!rows.length) {
+          listEl.innerHTML = `<div class="ac-empty">
+            You haven't submitted any enquiries yet.<br />
+            <a href="collections.html">Browse the Collections &rarr;</a>
+          </div>`;
+          return;
+        }
+        listEl.innerHTML = rows.map(acEnquiryCardHtml).join("");
+      } catch (err) {
+        listEl.innerHTML = `<div class="ac-empty">
+          We couldn't load your enquiries right now. Please refresh the page,
+          or contact us if this continues.
+        </div>`;
+      }
+    }
+
+    function acShowGuest() {
+      document.getElementById("ac-loading").style.display = "none";
+      document.getElementById("ac-guest").style.display = "";
+    }
+
+    async function acLoadAccount() {
+      const session = acGetSession();
+
+      if (!session || !session.access_token || !session.user) {
+        acShowGuest();
+        return;
+      }
+      if (session.expires_at && Math.floor(Date.now() / 1000) > session.expires_at) {
+        localStorage.removeItem("vj_auth");
+        acShowGuest();
+        return;
+      }
+
+      const user = session.user;
+      const meta = user.user_metadata || {};
+
+      document.getElementById("ac-hero-title").textContent =
+        "Welcome back" + (meta.full_name ? ", " + meta.full_name.split(" ")[0] : "");
+      document.getElementById("ac-hero-sub").textContent =
+        "Here's your profile and the status of your enquiries.";
+
+      document.getElementById("ac-name").textContent = meta.full_name || "Vie Jewels Client";
+      document.getElementById("ac-email").textContent = user.email || "";
+      document.getElementById("ac-phone").textContent = meta.phone || "—";
+      document.getElementById("ac-address").textContent = meta.address || "—";
+
+      const locationParts = [meta.city, meta.state, meta.country].filter(Boolean);
+      document.getElementById("ac-location").textContent = locationParts.length ? locationParts.join(", ") : "—";
+
+      document.getElementById("ac-loading").style.display = "none";
+      document.getElementById("ac-dashboard").classList.add("show");
+
+      acLoadEnquiries(session);
+    }
+
+    document.addEventListener("DOMContentLoaded", acLoadAccount);
+  </script>
 </body>
 </html>
