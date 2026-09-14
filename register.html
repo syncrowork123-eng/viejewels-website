@@ -744,7 +744,11 @@
       const email = (document.getElementById("cr-login-email").value || "").trim();
       if (!email) { crShowError("Enter your email above first, then click \u201cForgot password?\u201d again."); return; }
       try {
-        const res = await fetch(CR_AUTH_URL + "/recover", {
+        // Send users back to this exact page after they click the reset
+        // link, so crHandleEmailConfirmation() runs and shows the
+        // set-new-password form (same fix applied to signup earlier).
+        const confirmRedirectTo = encodeURIComponent(location.origin + location.pathname);
+        const res = await fetch(CR_AUTH_URL + "/recover?redirect_to=" + confirmRedirectTo, {
           method: "POST",
           headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
