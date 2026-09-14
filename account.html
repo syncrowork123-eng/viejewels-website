@@ -93,6 +93,73 @@
     }
     .ac-signout-btn { margin-top: 24px; width: 100%; }
 
+    .ac-profile-actions { display: flex; gap: 10px; margin-top: 24px; }
+    .ac-profile-actions .primary-btn,
+    .ac-profile-actions .secondary-btn { flex: 1; text-align: center; }
+
+    /* Edit-profile form (mirrors register.html's cr-field styling) */
+    .ac-edit-form { display: none; flex-direction: column; gap: 16px; }
+    .ac-edit-form.show { display: flex; }
+    .ac-field { display: flex; flex-direction: column; gap: 7px; }
+    .ac-field label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    .ac-field input,
+    .ac-field textarea,
+    .ac-field select {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .ac-field textarea { resize: vertical; min-height: 64px; }
+    .ac-field select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' viewBox='0 0 10 6'%3E%3Cpath stroke='%238a8176' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.2' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 34px;
+    }
+    .ac-field input:focus, .ac-field textarea:focus, .ac-field select:focus { border-color: var(--text); }
+    .ac-field-state { display: none; }
+    .ac-field-state.show { display: flex; }
+    .ac-edit-actions { display: flex; gap: 10px; margin-top: 4px; }
+    .ac-edit-actions .primary-btn,
+    .ac-edit-actions .secondary-btn { flex: 1; text-align: center; }
+    .ac-profile-error {
+      display: none;
+      font-size: 12.5px;
+      color: #9a3a3a;
+      background: rgba(154, 58, 58, 0.08);
+      border: 1px solid rgba(154, 58, 58, 0.2);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      line-height: 1.5;
+    }
+    .ac-profile-error.show { display: block; }
+    .ac-profile-success {
+      display: none;
+      font-size: 12.5px;
+      color: var(--accent);
+      background: rgba(154, 123, 58, 0.08);
+      border: 1px solid rgba(154, 123, 58, 0.2);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .ac-profile-success.show { display: block; }
+
     /* Enquiry history */
     .ac-history-heading {
       font-family: var(--font-display);
@@ -280,23 +347,73 @@
       <!-- SIGNED-IN DASHBOARD -->
       <div class="ac-dashboard" id="ac-dashboard">
         <aside class="ac-profile-card">
-          <p class="ac-profile-name" id="ac-name"></p>
-          <p class="ac-profile-email" id="ac-email"></p>
+          <div class="ac-profile-success" id="ac-profile-success">Your profile has been updated.</div>
 
-          <div class="ac-profile-field">
-            <p class="ac-profile-label">Phone</p>
-            <p class="ac-profile-value" id="ac-phone">—</p>
-          </div>
-          <div class="ac-profile-field">
-            <p class="ac-profile-label">Address</p>
-            <p class="ac-profile-value" id="ac-address">—</p>
-          </div>
-          <div class="ac-profile-field">
-            <p class="ac-profile-label">Location</p>
-            <p class="ac-profile-value" id="ac-location">—</p>
+          <!-- VIEW MODE -->
+          <div id="ac-profile-view">
+            <p class="ac-profile-name" id="ac-name"></p>
+            <p class="ac-profile-email" id="ac-email"></p>
+
+            <div class="ac-profile-field">
+              <p class="ac-profile-label">Phone</p>
+              <p class="ac-profile-value" id="ac-phone">—</p>
+            </div>
+            <div class="ac-profile-field">
+              <p class="ac-profile-label">Address</p>
+              <p class="ac-profile-value" id="ac-address">—</p>
+            </div>
+            <div class="ac-profile-field">
+              <p class="ac-profile-label">Location</p>
+              <p class="ac-profile-value" id="ac-location">—</p>
+            </div>
+
+            <div class="ac-profile-actions">
+              <button class="secondary-btn" onclick="acEnterEditMode()">Edit Profile</button>
+              <button class="secondary-btn" id="ac-signout-btn" onclick="acSignOut()">Sign Out</button>
+            </div>
           </div>
 
-          <button class="secondary-btn ac-signout-btn" id="ac-signout-btn" onclick="acSignOut()">Sign Out</button>
+          <!-- EDIT MODE -->
+          <form class="ac-edit-form" id="ac-edit-form" onsubmit="return acSaveProfile(event)">
+            <div class="ac-profile-error" id="ac-edit-error"></div>
+
+            <div class="ac-field">
+              <label for="ac-edit-name">Full Name</label>
+              <input type="text" id="ac-edit-name" required />
+            </div>
+            <div class="ac-field">
+              <label for="ac-edit-phone">WhatsApp / Phone Number</label>
+              <input type="tel" id="ac-edit-phone" required />
+            </div>
+            <div class="ac-field">
+              <label for="ac-edit-address">Address</label>
+              <textarea id="ac-edit-address" required></textarea>
+            </div>
+            <div class="ac-field">
+              <label for="ac-edit-country">Country</label>
+              <select id="ac-edit-country" required onchange="acUpdateLocationFields()">
+                <option value="" disabled>Select country&hellip;</option>
+              </select>
+            </div>
+            <div class="ac-field">
+              <label for="ac-edit-city">City</label>
+              <select id="ac-edit-city" required disabled>
+                <option value="" disabled selected>Select country first&hellip;</option>
+              </select>
+              <input type="text" id="ac-edit-city-other" placeholder="Enter your city" style="display:none" />
+            </div>
+            <div class="ac-field ac-field-state" id="ac-edit-state-wrap">
+              <label for="ac-edit-state">State</label>
+              <select id="ac-edit-state">
+                <option value="" disabled selected>Select state&hellip;</option>
+              </select>
+            </div>
+
+            <div class="ac-edit-actions">
+              <button type="submit" class="primary-btn" id="ac-save-btn">Save Changes</button>
+              <button type="button" class="secondary-btn" onclick="acCancelEdit()">Cancel</button>
+            </div>
+          </form>
         </aside>
 
         <div class="ac-history">
@@ -344,6 +461,240 @@
     function acGetSession() {
       try { return JSON.parse(localStorage.getItem("vj_auth") || "null"); }
       catch { return null; }
+    }
+
+    function acStoreSession(session) {
+      localStorage.setItem("vj_auth", JSON.stringify(session));
+    }
+
+    // Same country/city/state dataset used on register.html, kept in sync
+    // so the "Edit Profile" experience matches signup exactly.
+    const AC_COUNTRIES = [
+      "India","United States","United Arab Emirates","United Kingdom","Canada","Australia",
+      "Singapore","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Germany","France","Italy",
+      "Spain","Netherlands","Switzerland","Ireland","Sweden","Norway","Denmark","Belgium",
+      "Austria","Portugal","Japan","China","Hong Kong","South Korea","Malaysia","Indonesia",
+      "Thailand","Philippines","Vietnam","Pakistan","Bangladesh","Sri Lanka","Nepal",
+      "New Zealand","South Africa","Nigeria","Kenya","Egypt","Turkey","Israel","Brazil",
+      "Mexico","Argentina","Russia","Other"
+    ];
+    const AC_CITIES = {
+      "India": ["Mumbai","Delhi","Bengaluru","Hyderabad","Ahmedabad","Chennai","Kolkata","Pune","Jaipur","Surat","Lucknow","Chandigarh","Kochi","Other"],
+      "United States": ["New York","Los Angeles","Chicago","Houston","San Francisco","Miami","Dallas","Seattle","Boston","Atlanta","San Jose","Washington DC","Other"],
+      "United Arab Emirates": ["Dubai","Abu Dhabi","Sharjah","Ajman","Ras Al Khaimah","Fujairah","Other"],
+      "United Kingdom": ["London","Manchester","Birmingham","Leeds","Glasgow","Edinburgh","Liverpool","Bristol","Other"],
+      "Canada": ["Toronto","Vancouver","Montreal","Calgary","Ottawa","Edmonton","Other"],
+      "Australia": ["Sydney","Melbourne","Brisbane","Perth","Adelaide","Canberra","Other"],
+      "Singapore": ["Singapore","Other"],
+      "Saudi Arabia": ["Riyadh","Jeddah","Dammam","Mecca","Medina","Other"],
+      "Qatar": ["Doha","Al Rayyan","Other"],
+      "Kuwait": ["Kuwait City","Hawalli","Other"],
+      "Bahrain": ["Manama","Riffa","Other"],
+      "Oman": ["Muscat","Salalah","Other"],
+      "Germany": ["Berlin","Munich","Frankfurt","Hamburg","Cologne","Stuttgart","Other"],
+      "France": ["Paris","Marseille","Lyon","Nice","Toulouse","Other"],
+      "Italy": ["Rome","Milan","Naples","Turin","Florence","Other"],
+      "Spain": ["Madrid","Barcelona","Valencia","Seville","Other"],
+      "Netherlands": ["Amsterdam","Rotterdam","The Hague","Utrecht","Other"],
+      "Switzerland": ["Zurich","Geneva","Basel","Bern","Other"],
+      "Ireland": ["Dublin","Cork","Galway","Other"],
+      "Sweden": ["Stockholm","Gothenburg","Malmo","Other"],
+      "Norway": ["Oslo","Bergen","Other"],
+      "Denmark": ["Copenhagen","Aarhus","Other"],
+      "Belgium": ["Brussels","Antwerp","Other"],
+      "Austria": ["Vienna","Salzburg","Other"],
+      "Portugal": ["Lisbon","Porto","Other"],
+      "Japan": ["Tokyo","Osaka","Yokohama","Nagoya","Other"],
+      "China": ["Shanghai","Beijing","Shenzhen","Guangzhou","Other"],
+      "Hong Kong": ["Hong Kong","Kowloon","Other"],
+      "South Korea": ["Seoul","Busan","Incheon","Other"],
+      "Malaysia": ["Kuala Lumpur","Penang","Johor Bahru","Other"],
+      "Indonesia": ["Jakarta","Surabaya","Bali (Denpasar)","Other"],
+      "Thailand": ["Bangkok","Phuket","Chiang Mai","Other"],
+      "Philippines": ["Manila","Cebu City","Davao City","Other"],
+      "Vietnam": ["Ho Chi Minh City","Hanoi","Da Nang","Other"],
+      "Pakistan": ["Karachi","Lahore","Islamabad","Other"],
+      "Bangladesh": ["Dhaka","Chittagong","Other"],
+      "Sri Lanka": ["Colombo","Kandy","Other"],
+      "Nepal": ["Kathmandu","Pokhara","Other"],
+      "New Zealand": ["Auckland","Wellington","Christchurch","Other"],
+      "South Africa": ["Johannesburg","Cape Town","Durban","Pretoria","Other"],
+      "Nigeria": ["Lagos","Abuja","Other"],
+      "Kenya": ["Nairobi","Mombasa","Other"],
+      "Egypt": ["Cairo","Alexandria","Other"],
+      "Turkey": ["Istanbul","Ankara","Izmir","Other"],
+      "Israel": ["Tel Aviv","Jerusalem","Haifa","Other"],
+      "Brazil": ["Sao Paulo","Rio de Janeiro","Brasilia","Other"],
+      "Mexico": ["Mexico City","Guadalajara","Monterrey","Other"],
+      "Argentina": ["Buenos Aires","Cordoba","Other"],
+      "Russia": ["Moscow","Saint Petersburg","Other"],
+    };
+    const AC_STATES_INDIA = [
+      "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar",
+      "Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and Daman and Diu","Delhi","Goa",
+      "Gujarat","Haryana","Himachal Pradesh","Jammu and Kashmir","Jharkhand","Karnataka",
+      "Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya",
+      "Mizoram","Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu",
+      "Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"
+    ];
+    const AC_STATES_US = [
+      "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware",
+      "District of Columbia","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
+      "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota",
+      "Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey",
+      "New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon",
+      "Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah",
+      "Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"
+    ];
+
+    function acPopulateCountries() {
+      const sel = document.getElementById("ac-edit-country");
+      sel.innerHTML = '<option value="" disabled>Select country&hellip;</option>' +
+        AC_COUNTRIES.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    }
+
+    // Mirrors crUpdateLocationFields() in register.html. `preselectCity` /
+    // `preselectState` let us restore the user's saved values when opening
+    // edit mode, instead of always resetting to blank.
+    function acUpdateLocationFields(preselectCity, preselectState) {
+      const country = document.getElementById("ac-edit-country").value;
+      const citySelect = document.getElementById("ac-edit-city");
+      const cityOther = document.getElementById("ac-edit-city-other");
+      const stateWrap = document.getElementById("ac-edit-state-wrap");
+      const stateSelect = document.getElementById("ac-edit-state");
+
+      const cities = AC_CITIES[country];
+      if (cities) {
+        citySelect.innerHTML = '<option value="" disabled selected>Select city&hellip;</option>' +
+          cities.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+        citySelect.disabled = false;
+        citySelect.required = true;
+        citySelect.style.display = "";
+        cityOther.style.display = "none";
+        cityOther.required = false;
+        cityOther.value = "";
+        if (preselectCity && cities.includes(preselectCity)) citySelect.value = preselectCity;
+        else if (preselectCity) citySelect.value = "Other";
+      } else if (country) {
+        citySelect.style.display = "none";
+        citySelect.required = false;
+        citySelect.disabled = true;
+        cityOther.style.display = "";
+        cityOther.required = true;
+        if (preselectCity) cityOther.value = preselectCity;
+      } else {
+        citySelect.innerHTML = '<option value="" disabled selected>Select country first&hellip;</option>';
+        citySelect.disabled = true;
+        citySelect.style.display = "";
+        cityOther.style.display = "none";
+        cityOther.required = false;
+      }
+
+      if (country === "India" || country === "United States") {
+        const list = country === "India" ? AC_STATES_INDIA : AC_STATES_US;
+        stateSelect.innerHTML = '<option value="" disabled selected>Select state&hellip;</option>' +
+          list.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+        stateWrap.classList.add("show");
+        stateSelect.required = true;
+        if (preselectState && list.includes(preselectState)) stateSelect.value = preselectState;
+      } else {
+        stateWrap.classList.remove("show");
+        stateSelect.required = false;
+        stateSelect.value = "";
+      }
+    }
+
+    function acClearEditError() {
+      const el = document.getElementById("ac-edit-error");
+      el.classList.remove("show");
+      el.textContent = "";
+    }
+    function acShowEditError(msg) {
+      const el = document.getElementById("ac-edit-error");
+      el.textContent = msg;
+      el.classList.add("show");
+    }
+
+    function acEnterEditMode() {
+      acClearEditError();
+      document.getElementById("ac-profile-success").classList.remove("show");
+
+      const session = acGetSession();
+      const meta = (session && session.user && session.user.user_metadata) || {};
+
+      document.getElementById("ac-edit-name").value = meta.full_name || "";
+      document.getElementById("ac-edit-phone").value = meta.phone || "";
+      document.getElementById("ac-edit-address").value = meta.address || "";
+
+      document.getElementById("ac-edit-country").value = meta.country || "";
+      acUpdateLocationFields(meta.city || "", meta.state || "");
+
+      document.getElementById("ac-profile-view").style.display = "none";
+      document.getElementById("ac-edit-form").classList.add("show");
+    }
+
+    function acCancelEdit() {
+      acClearEditError();
+      document.getElementById("ac-edit-form").classList.remove("show");
+      document.getElementById("ac-profile-view").style.display = "block";
+    }
+
+    async function acSaveProfile(e) {
+      e.preventDefault();
+      acClearEditError();
+
+      const session = acGetSession();
+      if (!session || !session.access_token) {
+        acShowEditError("Your session has expired. Please sign in again.");
+        return false;
+      }
+
+      const country = document.getElementById("ac-edit-country").value;
+      const citySelect = document.getElementById("ac-edit-city");
+      const cityOther = document.getElementById("ac-edit-city-other");
+      const city = citySelect.style.display === "none" ? cityOther.value.trim() : citySelect.value;
+      const stateWrap = document.getElementById("ac-edit-state-wrap");
+      const state = stateWrap.classList.contains("show") ? document.getElementById("ac-edit-state").value : "";
+
+      const updated = {
+        full_name: document.getElementById("ac-edit-name").value.trim(),
+        phone: document.getElementById("ac-edit-phone").value.trim(),
+        address: document.getElementById("ac-edit-address").value.trim(),
+        country,
+        city,
+        state: state || null,
+      };
+
+      const btn = document.getElementById("ac-save-btn");
+      btn.disabled = true;
+      btn.textContent = "Saving\u2026";
+
+      try {
+        const res = await fetch(SUPABASE_URL + "/auth/v1/user", {
+          method: "PUT",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data: updated }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error_description || data.msg || data.error || "Could not update your profile.");
+
+        acStoreSession({ ...session, user: data });
+        acRenderProfile(data);
+
+        document.getElementById("ac-edit-form").classList.remove("show");
+        document.getElementById("ac-profile-view").style.display = "block";
+        document.getElementById("ac-profile-success").classList.add("show");
+      } catch (err) {
+        acShowEditError(err.message || "Something went wrong. Please try again.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Save Changes";
+      }
+      return false;
     }
 
     function acSignOut() {
@@ -456,20 +807,7 @@
       document.getElementById("ac-guest").style.display = "block";
     }
 
-    async function acLoadAccount() {
-      const session = acGetSession();
-
-      if (!session || !session.access_token || !session.user) {
-        acShowGuest();
-        return;
-      }
-      if (session.expires_at && Math.floor(Date.now() / 1000) > session.expires_at) {
-        localStorage.removeItem("vj_auth");
-        acShowGuest();
-        return;
-      }
-
-      const user = session.user;
+    function acRenderProfile(user) {
       const meta = user.user_metadata || {};
 
       document.getElementById("ac-hero-title").textContent =
@@ -484,6 +822,22 @@
 
       const locationParts = [meta.city, meta.state, meta.country].filter(Boolean);
       document.getElementById("ac-location").textContent = locationParts.length ? locationParts.join(", ") : "—";
+    }
+
+    async function acLoadAccount() {
+      const session = acGetSession();
+
+      if (!session || !session.access_token || !session.user) {
+        acShowGuest();
+        return;
+      }
+      if (session.expires_at && Math.floor(Date.now() / 1000) > session.expires_at) {
+        localStorage.removeItem("vj_auth");
+        acShowGuest();
+        return;
+      }
+
+      acRenderProfile(session.user);
 
       document.getElementById("ac-loading").style.display = "none";
       document.getElementById("ac-dashboard").classList.add("show");
@@ -491,7 +845,10 @@
       acLoadEnquiries(session);
     }
 
-    document.addEventListener("DOMContentLoaded", acLoadAccount);
+    document.addEventListener("DOMContentLoaded", () => {
+      acPopulateCountries();
+      acLoadAccount();
+    });
   </script>
 </body>
 </html>
