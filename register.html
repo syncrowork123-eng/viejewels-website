@@ -243,11 +243,14 @@
     <div class="cr-page">
 
       <div id="cr-forms-wrap">
-        <div class="cr-intro">
+        <div class="cr-intro" id="cr-intro-default">
           <p>Sign in to an existing account, or register as a new client to continue with your enquiry.</p>
         </div>
+        <div class="cr-intro" id="cr-intro-reset" style="display:none">
+          <p>Choose a new password for your account.</p>
+        </div>
 
-        <div class="cr-tabs">
+        <div class="cr-tabs" id="cr-tabs">
           <button class="cr-tab active" id="cr-tab-login" onclick="crSwitchTab('login')">Sign In</button>
           <button class="cr-tab" id="cr-tab-register" onclick="crSwitchTab('register')">Create Account</button>
         </div>
@@ -327,6 +330,19 @@
           </div>
           <button type="submit" class="primary-btn cr-submit" id="cr-register-btn">Create Account</button>
           <p class="cr-terms">By creating an account you agree to be contacted by Vie Jewels regarding your enquiries.</p>
+        </form>
+
+        <!-- RESET PASSWORD (shown only after clicking the reset-password email link) -->
+        <form class="cr-form" id="cr-form-reset-password" onsubmit="return crHandleResetPassword(event)">
+          <div class="cr-field">
+            <label for="cr-reset-password">New Password</label>
+            <input type="password" id="cr-reset-password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required />
+          </div>
+          <div class="cr-field">
+            <label for="cr-reset-password2">Confirm New Password</label>
+            <input type="password" id="cr-reset-password2" placeholder="Re-enter new password" autocomplete="new-password" minlength="8" required />
+          </div>
+          <button type="submit" class="primary-btn cr-submit" id="cr-reset-btn">Update Password</button>
         </form>
       </div>
 
@@ -536,6 +552,7 @@
       if (s.includes("password") && s.includes("least")) return "Password must be at least 8 characters.";
       if (s.includes("email") && s.includes("invalid")) return "Please enter a valid email address.";
       if (s.includes("email not confirmed")) return "Please confirm your email — we've sent you a verification link.";
+      if (s.includes("different from the old password")) return "Your new password must be different from your current password.";
       return raw || "Something went wrong. Please try again.";
     }
 
@@ -555,12 +572,68 @@
       catch { return null; }
     }
 
-    function crShowSuccess(message, delayMs) {
+    function crShowSuccess(message, delayMs, redirectUrl) {
       document.getElementById("cr-forms-wrap").style.display = "none";
       const successEl = document.getElementById("cr-success");
       successEl.classList.add("show");
       if (message) document.getElementById("cr-success-message").textContent = message;
-      setTimeout(() => { location.href = crRedirectTarget; }, delayMs || 1400);
+      setTimeout(() => { location.href = redirectUrl || crRedirectTarget; }, delayMs || 1400);
+    }
+
+    // Switches the login/register tabs off and shows the "set a new
+    // password" form instead. Used only after clicking a password-reset
+    // link from email (see crHandleEmailConfirmation below).
+    function crShowPasswordResetForm() {
+      document.getElementById("cr-intro-default").style.display = "none";
+      document.getElementById("cr-intro-reset").style.display = "block";
+      document.getElementById("cr-tabs").style.display = "none";
+      document.getElementById("cr-form-login").classList.remove("active");
+      document.getElementById("cr-form-register").classList.remove("active");
+      document.getElementById("cr-form-reset-password").classList.add("active");
+    }
+
+    async function crHandleResetPassword(e) {
+      e.preventDefault();
+      crClearError();
+
+      const password = document.getElementById("cr-reset-password").value;
+      const password2 = document.getElementById("cr-reset-password2").value;
+      if (password !== password2) { crShowError("Passwords don't match. Please re-enter them."); return false; }
+      if (password.length < 8) { crShowError("Password must be at least 8 characters."); return false; }
+
+      const session = crGetSession();
+      if (!session || !session.access_token) {
+        crShowError("Your password reset link has expired. Please request a new one from the Sign In tab.");
+        return false;
+      }
+
+      const btn = document.getElementById("cr-reset-btn");
+      btn.disabled = true;
+      btn.textContent = "Updating\u2026";
+
+      try {
+        const res = await fetch(CR_AUTH_URL + "/user", {
+          method: "PUT",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: "Bearer " + session.access_token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error_description || data.msg || data.error || "Could not update password.");
+
+        // Keep the session's user object in sync with any changes returned.
+        crStoreSession({ ...session, user: data });
+
+        crShowSuccess("Your password has been successfully changed.", 2600, "account.html");
+      } catch (err) {
+        crShowError(crFriendlyAuthError(err.message));
+        btn.disabled = false;
+        btn.textContent = "Update Password";
+      }
+      return false;
     }
 
     async function crHandleLogin(e) {
@@ -729,7 +802,7 @@
         history.replaceState(null, "", location.pathname + location.search);
 
         if (type === "recovery") {
-          crShowSuccess("Your email is confirmed \u2014 taking you to complete your enquiry\u2026", 1400);
+          crShowPasswordResetForm();
         } else {
           crShowSuccess(
             "Registration successful. Welcome to the world of VIE Jewels. Explore our collection of exceptional jewelry, crafted with timeless elegance and refined artistry.",
