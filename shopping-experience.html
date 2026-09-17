@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopping Experience | Vie Jewels</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── SHOPPING EXPERIENCE — 2x2 tile grid (mirrors diamond-guide.html / jewelry-guide.html) ─── */
+    .shopping-hero {
+      padding-top: 8px;
+      padding-bottom: 12px;
+    }
+    .shopping-hero h1 {
+      font-size: 16px;
+      font-weight: 400;
+      max-width: 620px;
+      margin: 0 auto;
+      letter-spacing: 0.01em;
+    }
+    @media (max-width: 640px) {
+      .shopping-hero h1 { font-size: 13px; }
+    }
+    .shopping-back-wrap {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .shopping-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #737373;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .shopping-back:hover {
+      color: #1a1a1a;
+    }
+    .shopping-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(4, 1fr);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .shopping-card {
+      display: block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 0 0;
+      text-align: center;
+      overflow: hidden;
+      transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+      box-shadow: 0 1px 3px rgba(22,20,18,0.06);
+    }
+    .shopping-card:hover {
+      box-shadow: 0 10px 28px rgba(22,20,18,0.10);
+      transform: translateY(-2px);
+      border-color: #cfc9bd;
+    }
+    .shopping-card h3 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 500;
+      color: #1a1a1a;
+      letter-spacing: 0.01em;
+      margin-bottom: 4px;
+      padding: 0 16px;
+    }
+    .shopping-card p {
+      font-size: 13px;
+      color: #737373;
+      margin-bottom: 12px;
+      padding: 0 16px;
+    }
+    .shopping-card-media {
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .shopping-card-media img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    main > .section:first-of-type {
+      padding-top: 8px;
+    }
+    @media (max-width: 860px) {
+      .shopping-grid { grid-template-columns: repeat(2, 1fr); max-width: none; }
+    }
+    @media (max-width: 540px) {
+      .shopping-grid { grid-template-columns: 1fr; gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <section class="page-hero shopping-hero">
+      <h1>Your complete guide to shopping with us</h1>
+    </section>
+    <section class="section">
+      <div class="shopping-grid">
+        <a class="shopping-card" href="payment-guide.html">
+          <h3>Payment Options</h3>
+          <p>Your guide to payment methods</p>
+          <div class="shopping-card-media">
+            <img src="/assets/Payment%20Guide-Thumbnail.jpg" alt="Payment Options" />
+          </div>
+        </a>
+        <a class="shopping-card" href="shipping-guide.html">
+          <h3>Shipping Guide</h3>
+          <p>Your guide to shipping</p>
+          <div class="shopping-card-media">
+            <img src="/assets/Shipping%20Guide-Thumbnail.jpg" alt="Shipping Guide" />
+          </div>
+        </a>
+        <a class="shopping-card" href="returns-policy.html">
+          <h3>Returns Policy</h3>
+          <p>Your guide to product returns</p>
+          <div class="shopping-card-media">
+            <img src="/assets/Returns%20Policy%20Guide-Thumbnail.jpg" alt="Returns Policy" />
+          </div>
+        </a>
+        <a class="shopping-card" href="privacy-policy.html">
+          <h3>Privacy Policy</h3>
+          <p>Your guide to our privacy policy</p>
+          <div class="shopping-card-media">
+            <img src="/assets/Privacy%20Policy%20Guide-Thumbnail.jpg" alt="Privacy Policy" />
+          </div>
+        </a>
+      </div>
+      <div class="shopping-back-wrap">
+        <a class="shopping-back" href="knowledge-lounge.html">&larr; Back to Knowledge Lounge</a>
+      </div>
+    </section>
+  </main>
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
