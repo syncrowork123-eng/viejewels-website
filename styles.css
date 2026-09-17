@@ -1,5 +1,5 @@
 /* Vie Jewels — Luxury Minimal Redesign */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -34,9 +34,10 @@ img {
   --text-muted:   #8a8176;
   --text-light:   #b8b0a4;
   --font-display: 'Inter', system-ui, sans-serif;
+  --font-serif:   'Fraunces', 'Times New Roman', serif;
   --font:         'Inter', system-ui, sans-serif;
-  --radius:       2px;
-  --radius-lg:    4px;
+  --radius:       3px;
+  --radius-lg:    5px;
   --transition:   0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -174,11 +175,12 @@ img { max-width: 100%; display: block; }
 }
 .page-hero .eyebrow { display: block; margin-bottom: 12px; }
 .page-hero h1 {
-  font-family: var(--font-display);
-  font-size: 45px;
+  font-family: var(--font-serif);
+  font-size: 36px;
   font-weight: 300;
+  line-height: 1.15;
   margin-bottom: 12px;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.005em;
   color: var(--text);
 }
 .page-hero p { color: var(--text-muted); max-width: 480px; margin: 0 auto; font-size: 14px; line-height: 1.8; }
@@ -186,13 +188,13 @@ img { max-width: 100%; display: block; }
 /* ── BUTTONS ───────────────────────────────────────────────── */
 .primary-btn, .secondary-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 12px 26px;
+  padding: 13px 28px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   font-family: var(--font);
   border-radius: var(--radius);
 }
@@ -200,21 +202,30 @@ img { max-width: 100%; display: block; }
   background: var(--text); color: var(--surface);
   border: 1px solid var(--text);
 }
-.primary-btn:hover { background: var(--accent); border-color: var(--accent); }
+.primary-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(154, 123, 58, 0.28);
+}
 .secondary-btn {
   background: transparent; color: var(--text);
   border: 1px solid var(--border);
 }
-.secondary-btn:hover { border-color: var(--text); }
+.secondary-btn:hover {
+  border-color: var(--text);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(22, 20, 18, 0.10);
+}
 
 /* ── SECTIONS ──────────────────────────────────────────────── */
 .section { padding: 44px 40px; max-width: 1360px; margin: 0 auto; }
 .section-heading { text-align: center; margin-bottom: 40px; }
 .section-heading h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-serif);
   font-size: 35px;
   font-weight: 300;
-  letter-spacing: 0.03em;
+  letter-spacing: -0.005em;
 }
 
 /* ── CATEGORY GRID ─────────────────────────────────────────── */
@@ -844,6 +855,7 @@ img { max-width: 100%; display: block; }
   .site-footer { grid-template-columns: 1fr; padding: 40px 24px; }
   .section, .theme-section, .knowledge-section, .knowledge-section { padding: 40px 24px; }
   .page-hero { padding: 48px 24px 32px; }
+  .page-hero h1 { font-size: 28px; }
   .top-strip, .main-nav { padding-left: 24px; padding-right: 24px; }
 }
 
