@@ -39,17 +39,15 @@
     }
     .shopping-grid {
       display: grid;
-      gap: 16px;
+      gap: 24px;
       grid-template-columns: repeat(4, 1fr);
-      max-width: 900px;
-      margin: 0 auto;
     }
     .shopping-card {
       display: block;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 16px 0 0;
+      padding: 26px 0 0;
       text-align: center;
       overflow: hidden;
       transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
@@ -66,14 +64,14 @@
       font-weight: 500;
       color: #1a1a1a;
       letter-spacing: 0.01em;
-      margin-bottom: 4px;
-      padding: 0 16px;
+      margin-bottom: 6px;
+      padding: 0 24px;
     }
     .shopping-card p {
       font-size: 13px;
       color: #737373;
-      margin-bottom: 12px;
-      padding: 0 16px;
+      margin-bottom: 18px;
+      padding: 0 24px;
     }
     .shopping-card-media {
       background: var(--surface);
@@ -88,7 +86,7 @@
       padding-top: 8px;
     }
     @media (max-width: 860px) {
-      .shopping-grid { grid-template-columns: repeat(2, 1fr); max-width: none; }
+      .shopping-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 540px) {
       .shopping-grid { grid-template-columns: 1fr; gap: 18px; }
