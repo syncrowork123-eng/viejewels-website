@@ -5,6 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>World of Vie | Vie Jewels</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── WORLD OF VIE — 3-tile guide grid (mirrors diamond-guide.html / jewelry-guide.html) ─── */
+    .worldofvie-hero {
+      padding-top: 8px;
+      padding-bottom: 12px;
+    }
+    .worldofvie-hero h1 {
+      font-size: 16px;
+      font-weight: 400;
+      max-width: 620px;
+      margin: 0 auto;
+      letter-spacing: 0.01em;
+    }
+    @media (max-width: 640px) {
+      .worldofvie-hero h1 { font-size: 13px; }
+    }
+    .worldofvie-back-wrap {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .worldofvie-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #737373;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .worldofvie-back:hover {
+      color: #1a1a1a;
+    }
+    .worldofvie-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+    }
+    .worldofvie-card {
+      flex: 0 1 calc((100% - 48px) / 3);
+      display: block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 26px 0 0;
+      text-align: center;
+      overflow: hidden;
+      transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+      box-shadow: 0 1px 3px rgba(22,20,18,0.06);
+    }
+    .worldofvie-card:hover {
+      box-shadow: 0 10px 28px rgba(22,20,18,0.10);
+      transform: translateY(-2px);
+      border-color: #cfc9bd;
+    }
+    .worldofvie-card h3 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 500;
+      color: #1a1a1a;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+      padding: 0 24px;
+    }
+    .worldofvie-card p {
+      font-size: 13px;
+      color: #737373;
+      margin-bottom: 18px;
+      padding: 0 24px;
+    }
+    .worldofvie-card-media {
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .worldofvie-card-media img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    main > .section:first-of-type {
+      padding-top: 8px;
+    }
+    @media (max-width: 860px) {
+      .worldofvie-card { flex-basis: calc((100% - 24px) / 2); }
+    }
+    @media (max-width: 540px) {
+      .worldofvie-card { flex-basis: 100%; }
+      .worldofvie-grid { gap: 18px; }
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -12,75 +102,61 @@
       <span>Vie Jewels</span>
       <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
     </div>
-
     <nav class="main-nav">
-      <a class="brand" href="index.html">VIE JEWELS</a>
-
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
       <div class="nav-links">
-        <a href="world-of-vie.html">World of Vie</a>
+        <a href="world-of-vie.html" aria-current="page">World of Vie</a>
         <a href="collections.html">Collections</a>
         <a href="knowledge-lounge.html">Knowledge Lounge</a>
         <a href="contact.html">Contact Us</a>
       </div>
-
-     <div class="nav-icons">
-
-  <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
-  <a href="account.html" aria-label="My Account">◎</a>
-</div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
     </nav>
   </header>
-
   <main>
-    <section class="page-hero">
-      <p class="eyebrow">World of Vie</p>
-      <h1>Jewelry with meaning, craft, and permanence.</h1>
-      <p>
-        Discover the philosophy behind Vie Jewels: refined design, thoughtful details,
-        and pieces created for life’s most personal moments.
-      </p>
+    <section class="page-hero worldofvie-hero">
+      <h1>Your complete guide to know About Us</h1>
     </section>
-
-    <section class="section content-grid">
-      <article class="content-card">
-        <h2>Our Story</h2>
-        <p>
-          Vie Jewels is built around the belief that jewelry should feel personal,
-          lasting, and beautifully made. Every piece reflects a balance of elegance,
-          wearability, and emotion.
-        </p>
-      </article>
-
-      <article class="content-card">
-        <h2>Our Craft</h2>
-        <p>
-          From diamonds and precious metals to finishing and setting, each detail is
-          considered carefully so every jewel feels complete from every angle.
-        </p>
-      </article>
-
-      <article class="content-card">
-        <h2>Our Promise</h2>
-        <p>
-          We help clients choose and create jewelry with clarity, care, and confidence,
-          whether it is a gift, a celebration, or a bespoke design.
-        </p>
-      </article>
+    <section class="section">
+      <div class="worldofvie-grid">
+        <a class="worldofvie-card" href="about-us.html">
+          <h3>About Us</h3>
+          <p>Know about us</p>
+          <div class="worldofvie-card-media">
+            <img src="/assets/About%20Us.jpg" alt="About Us" />
+          </div>
+        </a>
+        <a class="worldofvie-card" href="why-vie-jewels.html">
+          <h3>Why Vie Jewels</h3>
+          <p>What sets us apart</p>
+          <div class="worldofvie-card-media">
+            <img src="/assets/Why%20Vie%20Jewels.jpg" alt="Why Vie Jewels" />
+          </div>
+        </a>
+        <a class="worldofvie-card" href="authenticity.html">
+          <h3>Authenticity</h3>
+          <p>About our authenticity</p>
+          <div class="worldofvie-card-media">
+            <img src="/assets/Authenticity.jpg" alt="Authenticity" />
+          </div>
+        </a>
+      </div>
     </section>
   </main>
-
   <footer id="contact" class="site-footer">
     <div>
       <h2>VIE JEWELS</h2>
       <p>Jewels for life</p>
     </div>
-
     <div>
       <h3>Contact Us</h3>
       <p>Email: hello@viejewels.com</p>
-      <p>Website: www.viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
     </div>
   </footer>
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
