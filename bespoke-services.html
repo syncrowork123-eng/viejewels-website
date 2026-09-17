@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bespoke Services | Vie Jewels</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── BESPOKE SERVICES — 3-column tile grid (mirrors diamond-guide.html / jewelry-guide.html) ─── */
+    .bespoke-hero {
+      padding-top: 8px;
+      padding-bottom: 12px;
+    }
+    .bespoke-hero h1 {
+      font-size: 16px;
+      font-weight: 400;
+      max-width: 620px;
+      margin: 0 auto;
+      letter-spacing: 0.01em;
+    }
+    @media (max-width: 640px) {
+      .bespoke-hero h1 { font-size: 13px; }
+    }
+    .bespoke-back-wrap {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .bespoke-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #737373;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .bespoke-back:hover {
+      color: #1a1a1a;
+    }
+    .bespoke-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+    }
+    .bespoke-card {
+      flex: 0 1 calc((100% - 48px) / 3);
+      display: block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 26px 0 0;
+      text-align: center;
+      overflow: hidden;
+      transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+      box-shadow: 0 1px 3px rgba(22,20,18,0.06);
+    }
+    .bespoke-card:hover {
+      box-shadow: 0 10px 28px rgba(22,20,18,0.10);
+      transform: translateY(-2px);
+      border-color: #cfc9bd;
+    }
+    .bespoke-card h3 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 500;
+      color: #1a1a1a;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+      padding: 0 24px;
+    }
+    .bespoke-card p {
+      font-size: 13px;
+      color: #737373;
+      margin-bottom: 18px;
+      padding: 0 24px;
+    }
+    .bespoke-card-media {
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .bespoke-card-media img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    main > .section:first-of-type {
+      padding-top: 8px;
+    }
+    @media (max-width: 860px) {
+      .bespoke-card { flex-basis: calc((100% - 24px) / 2); }
+    }
+    @media (max-width: 540px) {
+      .bespoke-card { flex-basis: 100%; }
+      .bespoke-grid { gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <section class="page-hero bespoke-hero">
+      <h1>Your complete guide to jewelry services we offer</h1>
+    </section>
+    <section class="section">
+      <div class="bespoke-grid">
+        <a class="bespoke-card" href="2d-sketch-guide.html">
+          <h3>2D Sketch Guide</h3>
+          <p>Learn about our manual sketch designing services</p>
+          <div class="bespoke-card-media">
+            <img src="/assets/2D%20Sketch%20Guide.png" alt="2D Sketch Guide" />
+          </div>
+        </a>
+        <a class="bespoke-card" href="3d-cad-guide.html">
+          <h3>3D CAD Guide</h3>
+          <p>Learn about our 3D Computer Aided Designing services</p>
+          <div class="bespoke-card-media">
+            <img src="/assets/3D%20CAD%20Guide.jpg" alt="3D CAD Guide" />
+          </div>
+        </a>
+        <a class="bespoke-card" href="3d-sculpting-guide.html">
+          <h3>3D Sculpting Guide</h3>
+          <p>Learn about our 3D sculpting designing services</p>
+          <div class="bespoke-card-media">
+            <img src="/assets/3D%20Sculpting%20Guide.jpg" alt="3D Sculpting Guide" />
+          </div>
+        </a>
+        <a class="bespoke-card" href="cam-printing-guide.html">
+          <h3>CAM Printing Guide</h3>
+          <p>Learn about our CAM printing services</p>
+          <div class="bespoke-card-media">
+            <img src="/assets/CAM%20Printing%20Guide.jpg" alt="CAM Printing Guide" />
+          </div>
+        </a>
+        <a class="bespoke-card" href="image-rendering-guide.html">
+          <h3>Image Rendering Guide</h3>
+          <p>Learn about our HQ Image rendering services</p>
+          <div class="bespoke-card-media">
+            <img src="/assets/Image%20Rendering%20Guide.jpg" alt="Image Rendering Guide" />
+          </div>
+        </a>
+        <a class="bespoke-card" href="animation-video-guide.html">
+          <h3>Animation Video Guide</h3>
+          <p>Learn about our animation video services</p>
+          <div class="bespoke-card-media">
+            <img src="/assets/Animation%20Video%20Guide.jpg" alt="Animation Video Guide" />
+          </div>
+        </a>
+        <a class="bespoke-card" href="user-interface-guide.html">
+          <h3>User Interface Guide</h3>
+          <p>Learn about our UI/UX services</p>
+          <div class="bespoke-card-media">
+            <img src="/assets/User%20Interface%20Guide.jpg" alt="User Interface Guide" />
+          </div>
+        </a>
+      </div>
+      <div class="bespoke-back-wrap">
+        <a class="bespoke-back" href="knowledge-lounge.html">&larr; Back to Knowledge Lounge</a>
+      </div>
+    </section>
+  </main>
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
