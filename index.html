@@ -77,10 +77,10 @@
     }
     .slider-header-icons a {
       position: relative;
-      font-size: 11px;
+      font-size: 17px;
       font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      letter-spacing: 0;
+      text-transform: none;
       color: #fff;
       text-shadow: 0 2px 12px rgba(0,0,0,0.35);
       transition: color 0.25s ease;
@@ -253,10 +253,10 @@
       gap: 26px;
     }
     .site-menu-icons a {
-      font-size: 12px;
+      font-size: 20px;
       font-weight: 500;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+      letter-spacing: 0;
+      text-transform: none;
       color: rgba(255,255,255,0.68);
       position: relative;
       transition: color 0.25s ease;
@@ -303,8 +303,8 @@
     </nav>
 
     <div class="slider-header-icons">
-      <a href="cart.html">Cart <span class="nav-badge" data-cart-count style="display:none"></span></a>
-      <a href="account.html">Sign in</a>
+      <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+      <a href="account.html" aria-label="My Account">◎</a>
     </div>
 
     <button class="menu-trigger" id="menu-trigger" aria-label="Open menu" aria-expanded="false" onclick="toggleSiteMenu()">
@@ -326,8 +326,8 @@
     <div class="site-menu-divider"></div>
 
     <div class="site-menu-icons">
-      <a href="cart.html">Cart <span class="nav-badge" data-cart-count style="display:none"></span></a>
-      <a href="account.html">Sign in</a>
+      <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+      <a href="account.html" aria-label="My Account">◎</a>
     </div>
 
     <div class="site-menu-contact">
