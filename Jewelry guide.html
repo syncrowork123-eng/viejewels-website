@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jewelry Guide | Vie Jewels</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── JEWELRY GUIDE — 3x3 tile grid (mirrors diamond-guide.html) ─── */
+    .jewelry-hero {
+      padding-top: 8px;
+      padding-bottom: 12px;
+    }
+    .jewelry-hero h1 {
+      font-size: 16px;
+      font-weight: 400;
+      max-width: 620px;
+      margin: 0 auto;
+      letter-spacing: 0.01em;
+    }
+    @media (max-width: 640px) {
+      .jewelry-hero h1 { font-size: 13px; }
+    }
+    .jewelry-back-wrap {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .jewelry-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #737373;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .jewelry-back:hover {
+      color: #1a1a1a;
+    }
+    .jewelry-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .jewelry-card {
+      display: block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 0 0;
+      text-align: center;
+      overflow: hidden;
+      transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+      box-shadow: 0 1px 3px rgba(22,20,18,0.06);
+    }
+    .jewelry-card:hover {
+      box-shadow: 0 10px 28px rgba(22,20,18,0.10);
+      transform: translateY(-2px);
+      border-color: #cfc9bd;
+    }
+    .jewelry-card h3 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 500;
+      color: #1a1a1a;
+      letter-spacing: 0.01em;
+      margin-bottom: 4px;
+      padding: 0 24px;
+    }
+    .jewelry-card p {
+      font-size: 13px;
+      color: #737373;
+      margin-bottom: 12px;
+      padding: 0 24px;
+    }
+    .jewelry-card-media {
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .jewelry-card-media img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    main > .section:first-of-type {
+      padding-top: 8px;
+    }
+    @media (max-width: 860px) {
+      .jewelry-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 540px) {
+      .jewelry-grid { grid-template-columns: 1fr; gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="world-of-vie.html">World of Vie</a>
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <section class="page-hero jewelry-hero">
+      <h1>Your complete guide to jewelry</h1>
+    </section>
+    <section class="section">
+      <div class="jewelry-grid">
+        <a class="jewelry-card" href="jewelry-journey-guide.html">
+          <h3>Jewelry Journey Guide</h3>
+          <p>Discover the journey of jewelry</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Journey%20Guide-Thumbnail.jpg" alt="Jewelry Journey Guide" />
+          </div>
+        </a>
+        <a class="jewelry-card" href="jewelry-type-guide.html">
+          <h3>Jewelry Type Guide</h3>
+          <p>Explore various jewelry types</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Type%20Guide-Thumbnail.jpg" alt="Jewelry Type Guide" />
+          </div>
+        </a>
+        <a class="jewelry-card" href="jewelry-setting-guide.html">
+          <h3>Jewelry Setting Guide</h3>
+          <p>Learn about various types of jewelry settings</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Setting%20Guide-Thumbnail.jpg" alt="Jewelry Setting Guide" />
+          </div>
+        </a>
+        <a class="jewelry-card" href="jewelry-metal-guide.html">
+          <h3>Jewelry Metal Guide</h3>
+          <p>Learn about various metal types</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Metal%20Guide-Thumbnail.jpg" alt="Jewelry Metal Guide" />
+          </div>
+        </a>
+        <a class="jewelry-card" href="jewelry-chain-guide.html">
+          <h3>Jewelry Chain Guide</h3>
+          <p>Explore various chain types</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Chain%20Guide-Thumbnail.jpg" alt="Jewelry Chain Guide" />
+          </div>
+        </a>
+        <a class="jewelry-card" href="jewelry-care-guide.html">
+          <h3>Jewelry Care Guide</h3>
+          <p>Learn how to take care of and maintain jewelry</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Care%20Guide-Thumbnail.jpg" alt="Jewelry Care Guide" />
+          </div>
+        </a>
+        <a class="jewelry-card" href="jewelry-size-guide.html">
+          <h3>Jewelry Size Guide</h3>
+          <p>Various jewelry sizes of different types</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Size%20Guide-Thumbnail.jpg" alt="Jewelry Size Guide" />
+          </div>
+        </a>
+        <a class="jewelry-card" href="jewelry-price-guide.html">
+          <h3>Jewelry Price Guide</h3>
+          <p>A simple guide to jewelry pricing</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Price%20Guide-Thumbnail.jpg" alt="Jewelry Price Guide" />
+          </div>
+        </a>
+        <a class="jewelry-card" href="jewelry-certification-guide.html">
+          <h3>Jewelry Certification Guide</h3>
+          <p>Understand jewelry certification and hallmarking</p>
+          <div class="jewelry-card-media">
+            <img src="/assets/Jewelry%20Certification%20Guide-Thumbnail.png" alt="Jewelry Certification Guide" />
+          </div>
+        </a>
+      </div>
+      <div class="jewelry-back-wrap">
+        <a class="jewelry-back" href="knowledge-lounge.html">&larr; Back to Knowledge Lounge</a>
+      </div>
+    </section>
+  </main>
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
