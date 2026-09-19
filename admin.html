@@ -80,6 +80,11 @@
     .media-item-info { flex:1; min-width:0; }
     .media-url { font-size:12px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .media-item-controls { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    .media-item.media-broken { border-color:var(--danger); background:rgba(192,57,43,0.05); }
+    .broken-thumb { width:52px; height:52px; border:1px dashed var(--danger); color:var(--danger); border-radius:6px; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; background:rgba(192,57,43,0.08); }
+    .media-url-input { width:100%; padding:5px 8px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:12px; font-family:var(--font); outline:none; }
+    .media-url-input:focus { border-color:var(--accent); color:var(--text); }
+    .media-warn { font-size:11px; color:var(--danger); margin-top:3px; }
     .media-add-row { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
     .media-add-row .form-group { flex:1; min-width:160px; }
     .tags-grid { display:flex; flex-wrap:wrap; gap:8px; }
@@ -325,6 +330,7 @@
         <select class="filter-select" id="category-filter" onchange="filterProducts()"><option value="">All categories</option></select>
       </div>
       <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
         <button class="btn btn-secondary" onclick="exportProductsXlsx()">⬇ Export Products</button>
         <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
       </div>
@@ -899,7 +905,7 @@
       2. Fill in one product per row. Required: <code>name</code>. Slug is auto-generated from name if left blank.<br>
       3. For <code>jewel_type / jewel_sub1 / jewel_sub2</code> — use exact values from Jewelry Categories master.<br>
       4. For <code>stone_name</code>, <code>metal_type</code>, <code>diamond_quality</code>, <code>labour_category</code> — use exact names from Masters so IDs are resolved automatically.<br>
-      5. Upload images to Cloudinary named <code>SKU-W.jpg</code>, <code>-Y</code>, <code>-R</code>, <code>-Model</code>, <code>-Spot</code>. Leave the image columns blank and new products pick them up from the SKU automatically.<br>
+      5. Images are automatic: every product gets <code>SKU-W.jpg</code>, <code>-Y</code>, <code>-R</code>, <code>-Model</code>, <code>-Spot</code> from the SKU. Leave the image columns blank; files not yet on Cloudinary show as broken in the product editor until fixed.<br>
       6. Save as <code>.xlsx</code>, drag onto zone below, preview, then click <strong>Import All</strong>.</p>
     </div>
     <div style="margin-bottom:20px"><button class="btn btn-secondary" onclick="downloadTemplate()">Download Template (.xlsx)</button></div>
@@ -1714,7 +1720,7 @@ document.getElementById('pe-iframe').addEventListener('load', () => {
       <!-- STYLE IDENTITY -->
       <p class="section-label">Style Identity</p>
       <div class="form-grid">
-        <div class="form-group"><label>SKU (Unique) *</label><input type="text" id="f-sku" placeholder="E.G. VB1002" /></div>
+        <div class="form-group"><label>SKU (Unique) *</label><input type="text" id="f-sku" placeholder="E.G. VB1002" onchange="syncStdImagesFromSku()" /></div>
         <div class="form-group"><label>Design Name</label><input type="text" id="f-name" placeholder="e.g. Petralia" /></div>
       </div>
 
@@ -2706,7 +2712,7 @@ function renderProductsTable(products){
   tbody.innerHTML=products.map(p=>{
     const pm=(p.product_media||[]);
     const primary=pm.find(m=>m.is_primary)||pm[0];
-    const img=primary?.url?`<img src="${esc(primary.url)}" alt="" />`:`<div class="no-img">&#128142;</div>`;
+    const img=primary?.url?`<img src="${esc(primary.url)}" alt="" onerror="tableImgBroken(this)" />`:`<div class="no-img">&#128142;</div>`;
     // Metal: use p.metal text field
     const metalLabel = p.metal || "";
     // Stone: use p.stone text field, fall back to first product_stones row
@@ -2960,6 +2966,8 @@ function openProductModal(id=null){
     // Photos / video
     productMediaRows=(p.product_media||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))
       .map(m=>({url:m.url||'',media_type:m.media_type||'image',is_primary:!!m.is_primary,alt_text:m.alt_text||''}));
+    // Always show the 5 standard SKU images (W, Y, R, Model, Spot) — missing files appear as broken until fixed
+    productMediaRows = mergeStdImages(productMediaRows, p.sku);
   } else {
     ["f-sku","f-name","f-short-desc","f-description","f-size-custom"].forEach(i=>sv(i,""));
     sv("f-stock-status",""); sv("f-active","true");
@@ -2999,7 +3007,7 @@ function renderProductMedia(){
   wrap.innerHTML=productMediaRows.map((m,i)=>{
     const thumb = m.media_type==="video"
       ? `<div class="no-img" style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface2);border-radius:6px;">🎬</div>`
-      : `<img src="${esc(m.url)}" alt="" onerror="this.style.opacity=0.25" />`;
+      : `<img src="${esc(m.url)}" alt="" onerror="mediaImgBroken(this)" /><div class="broken-thumb" style="display:none" title="Image not found">⚠</div>`;
     const primaryBtn = m.media_type==="video"
       ? ""
       : m.is_primary
@@ -3008,7 +3016,8 @@ function renderProductMedia(){
     return `<div class="media-item">
       ${thumb}
       <div class="media-item-info">
-        <div class="media-url" title="${esc(m.url)}">${esc(m.url)||"(no URL)"}</div>
+        <input class="media-url-input" value="${esc(m.url)}" title="Edit the URL to fix this image" onchange="updateProductMediaUrl(${i},this.value)" />
+        <div class="media-warn" style="display:none">⚠ Image not found — paste the correct URL above (or use + Add below)</div>
         <div style="font-size:11px;color:var(--text-muted);text-transform:capitalize">${esc(m.media_type)}${m.alt_text?" — "+esc(m.alt_text):""}</div>
       </div>
       <div class="media-item-controls">
@@ -3034,14 +3043,23 @@ function addProductMedia(){
   const alt_text=gv("f-media-alt");
 
   const items = media_type==="image" ? expandImageVariants(url) : [{url, suffix:null}];
-  let added = 0;
+  let added = 0, replaced = 0;
   items.forEach(it=>{
+    const suffix = media_type==="image" ? (it.suffix || stdSuffixOfUrl(it.url)) : null;
+    const isPasted = it.url===url;
+    const existing = suffix ? productMediaRows.find(r=>mediaRowSuffix(r)===suffix) : null;
+    if(existing){
+      // Slot already there (e.g. a broken auto image): the pasted URL always fixes it;
+      // derived siblings only replace untouched auto rows, never manual fixes.
+      if((isPasted || existing._auto) && existing.url!==it.url){ existing.url=it.url; existing._auto=false; replaced++; }
+      return;
+    }
     if(productMediaRows.some(m=>m.url===it.url)) return; // skip duplicates
     const isFirstImage = media_type==="image" && !productMediaRows.some(m=>m.media_type==="image");
     productMediaRows.push({
       url: it.url,
       media_type,
-      alt_text: it.url===url ? (alt_text || it.suffix || "") : (it.suffix || ""),
+      alt_text: isPasted ? (alt_text || suffix || "") : (suffix || ""),
       is_primary: isFirstImage
     });
     added++;
@@ -3049,7 +3067,41 @@ function addProductMedia(){
 
   sv("f-media-url",""); sv("f-media-alt",""); sv("f-media-type","image");
   renderProductMedia();
-  if(added>1) toast(added+" images added (W, Y, R, Model, Spot).");
+  if(added+replaced>1) toast(added+" added, "+replaced+" replaced.");
+  else if(replaced===1) toast("Image URL updated.");
+}
+
+// Edit a media row's URL in place (used to fix broken images)
+function updateProductMediaUrl(i,val){
+  const r=productMediaRows[i]; if(!r) return;
+  r.url = stripCloudVersion(String(val||"").trim());
+  r._auto = false;
+  renderProductMedia();
+}
+
+// Product modal: keep the auto-generated standard rows in sync with the SKU field
+function syncStdImagesFromSku(){
+  productMediaRows = productMediaRows.filter(r=>!r._auto);
+  productMediaRows = mergeStdImages(productMediaRows, gv("f-sku"));
+  renderProductMedia();
+}
+
+function mediaImgBroken(el){
+  el.style.display="none";
+  const item=el.closest(".media-item"); if(!item) return;
+  item.classList.add("media-broken");
+  const b=item.querySelector(".broken-thumb"); if(b) b.style.display="flex";
+  const w=item.querySelector(".media-warn"); if(w) w.style.display="block";
+}
+
+// Products table: show a visible broken marker instead of an empty thumbnail
+function tableImgBroken(el){
+  const d=document.createElement("div");
+  d.className="no-img";
+  d.style.cssText="color:#c0392b;border:1px dashed #c0392b;";
+  d.title="Image not found — open Edit to fix";
+  d.textContent="⚠";
+  el.replaceWith(d);
 }
 
 function setPrimaryProductMedia(index){
@@ -3070,6 +3122,7 @@ function removeProductMedia(index){
 async function saveProduct(){
   const sku = gv("f-sku");
   if(!sku){ toast("SKU is required.","error"); return; }
+  productMediaRows = mergeStdImages(productMediaRows, sku);
   const btn=document.getElementById("save-product-btn");
   btn.disabled=true; btn.textContent="Saving...";
 
@@ -3962,15 +4015,63 @@ const IMG_SUFFIXES = ["W","Y","R","Model","Spot"];
 // .../upload/v1789787133/... -> .../upload/...
 function stripCloudVersion(u){ return String(u||"").replace(/\/upload\/v\d+\//, "/upload/"); }
 
-function imgExists(url){
-  return new Promise(res=>{ const i=new Image(); i.onload=()=>res(true); i.onerror=()=>res(false); i.src=url; });
+// Which standard slot (W/Y/R/Model/Spot) a URL belongs to, based on the file name
+function stdSuffixOfUrl(url){
+  const m = String(url||"").match(/-(W|Y|R|Model|Spot)\.(?:jpe?g|png|webp)(?:\?.*)?$/i);
+  if(!m) return null;
+  return IMG_SUFFIXES.find(s=>s.toLowerCase()===m[1].toLowerCase()) || null;
+}
+// Slot of a product_media row: alt_text first, then file name
+function mediaRowSuffix(r){
+  if(!r || r.media_type==="video") return null;
+  const a = String(r.alt_text||"").trim().toLowerCase();
+  const hit = IMG_SUFFIXES.find(s=>s.toLowerCase()===a);
+  return hit || stdSuffixOfUrl(r.url);
+}
+function stdImageUrl(sku, suffix){
+  return CLOUD_BASE + encodeURIComponent(String(sku).trim()) + "-" + suffix + ".jpg";
+}
+// Standard rows (W, Y, R, Model, Spot) that `rows` doesn't have yet for this SKU.
+// No existence check on purpose: missing files show as broken so they can be fixed later.
+function missingStdImages(rows, sku){
+  sku = String(sku||"").trim();
+  if(!sku) return [];
+  const have = new Set((rows||[]).map(mediaRowSuffix).filter(Boolean));
+  return IMG_SUFFIXES.filter(s=>!have.has(s))
+    .map(s=>({url:stdImageUrl(sku,s), media_type:"image", alt_text:s, is_primary:false, _auto:true}));
+}
+// rows + any missing standard rows; makes sure exactly one image is primary (W preferred)
+function mergeStdImages(rows, sku){
+  const out = (rows||[]).concat(missingStdImages(rows, sku));
+  const imgs = out.filter(r=>r.media_type!=="video");
+  if(imgs.length && !imgs.some(r=>r.is_primary)){
+    (imgs.find(r=>mediaRowSuffix(r)==="W") || imgs[0]).is_primary = true;
+  }
+  return out;
 }
 
-// Builds the 5 standard URLs for a SKU and keeps only the ones that exist on Cloudinary
-async function autoImagesForSku(sku){
-  const urls = IMG_SUFFIXES.map(s=>({suffix:s, url:`${CLOUD_BASE}${sku}-${s}.jpg`}));
-  const ok = await Promise.all(urls.map(u=>imgExists(u.url)));
-  return urls.filter((_,i)=>ok[i]);
+// Products tab button: add missing standard SKU images to every product in the database
+async function applyStdImagesToAllProducts(){
+  const withSku = allProducts.filter(p=>String(p.sku||"").trim());
+  if(!withSku.length){ toast("No products with a SKU.","error"); return; }
+  if(!confirm("Add any missing W / Y / R / Model / Spot images (built from each SKU) to "+withSku.length+" products?\n\nExisting images are kept. Files that don't exist on Cloudinary will show as broken until you fix them.")) return;
+  let productsUpdated=0, imagesAdded=0, failed=0;
+  for(let i=0;i<withSku.length;i++){
+    const p=withSku[i];
+    const rows=p.product_media||[];
+    const missing=missingStdImages(rows,p.sku);
+    if(!missing.length) continue;
+    const hasPrimary=rows.some(r=>r.media_type!=="video"&&r.is_primary);
+    let order=rows.reduce((m,r)=>Math.max(m,r.sort_order||0),-1)+1;
+    const payload=missing.map(r=>({product_id:p.id,url:r.url,media_type:"image",alt_text:r.alt_text,is_primary:!hasPrimary&&r.alt_text==="W",sort_order:order++}));
+    try{
+      await sbBulk("product_media","POST",payload);
+      productsUpdated++; imagesAdded+=payload.length;
+    }catch(e){ failed++; console.error("Apply SKU images failed:",p.sku,e.message); }
+    if((i+1)%10===0) toast("Applying… "+(i+1)+" / "+withSku.length);
+  }
+  toast(imagesAdded+" images added to "+productsUpdated+" products"+(failed?" ("+failed+" failed)":"")+".", failed?"error":"success");
+  await loadProducts();
 }
 
 async function importProducts(){
@@ -4028,7 +4129,6 @@ async function importProducts(){
       };
 
       // ── UPSERT: PATCH if SKU already exists, POST if new ─────────────
-      let isNewProduct = false;
       let pid = sku ? existingBySku[sku] : null;
 
       // Fallback live-check in case pre-fetch missed it
@@ -4048,7 +4148,6 @@ async function importProducts(){
         // New product — insert
         const r = await sb("products","POST",payload);
         pid = r[0].id;
-        isNewProduct = true;
         if(sku) existingBySku[sku] = pid; // register for later rows in same file
         inserted++;
       }
@@ -4095,7 +4194,7 @@ async function importProducts(){
 
       // Media — only insert if URLs are provided in this import file;
       // skip entirely if no image columns are filled (avoids wiping existing media on update)
-      let mediaUrls = [
+      const mediaUrls = [
         {url:row.image_url,       is_primary:true,  sort_order:0, alt:""},
         {url:row.image_url_y,     is_primary:false, sort_order:1, alt:"Y"},
         {url:row.image_url_w,     is_primary:false, sort_order:2, alt:"W"},
@@ -4105,17 +4204,24 @@ async function importProducts(){
       ].filter(m=>String(m.url||"").trim())
        .map(m=>({...m, url:stripCloudVersion(String(m.url).trim())}));
 
-      // No image columns filled and this is a brand-new product: attach images from the SKU
-      if(!mediaUrls.length && sku && isNewProduct){
-        const found = await autoImagesForSku(sku);
-        mediaUrls = found.map((f,i)=>({url:f.url, is_primary:i===0, sort_order:i, alt:f.suffix}));
-      }
-
       if(mediaUrls.length){
         try{ await sb("product_media?product_id=eq."+pid+"&media_type=eq.image","DELETE"); }catch(e){}
         for(const m of mediaUrls){
           try{ await sb("product_media","POST",{product_id:pid,url:String(m.url).trim(),media_type:"image",is_primary:m.is_primary,sort_order:m.sort_order,alt_text:m.alt}); }catch(e){}
         }
+      }
+      // Every product gets the 5 standard SKU images (W/Y/R/Model/Spot) — anything not already there is added.
+      // No existence check: missing files show as broken in the admin so they can be fixed later.
+      if(sku){
+        try{
+          const have = await sb("product_media?product_id=eq."+pid+"&select=url,alt_text,media_type,is_primary,sort_order") || [];
+          const missing = missingStdImages(have, sku);
+          if(missing.length){
+            const hasPrimary = have.some(r=>r.media_type!=="video"&&r.is_primary);
+            let order = have.reduce((m,r)=>Math.max(m,r.sort_order||0),-1)+1;
+            await sbBulk("product_media","POST",missing.map(r=>({product_id:pid,url:r.url,media_type:"image",alt_text:r.alt_text,is_primary:!hasPrimary&&r.alt_text==="W",sort_order:order++})));
+          }
+        }catch(e){ console.error("Standard images failed:",sku,e.message); }
       }
       if(String(row.video_url||"").trim()){
         try{ await sb("product_media","POST",{product_id:pid,url:String(row.video_url).trim(),media_type:"video",is_primary:false,sort_order:10}); }catch(e){}
