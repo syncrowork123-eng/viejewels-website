@@ -342,7 +342,7 @@
         <select class="filter-select" id="category-filter" onchange="filterProducts()"><option value="">All categories</option></select>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products that have no image media at all">📷 No Images Only</button>
+        <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products with no working image (missing or all broken)">📷 No Images Only</button>
         <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
         <button class="btn btn-secondary" onclick="exportProductsXlsx()">⬇ Export Products</button>
         <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
@@ -2711,9 +2711,18 @@ async function loadProducts(){
 
 let noImageFilterOn = false;
 
-function toggleNoImageFilter(){
-  noImageFilterOn = !noImageFilterOn;
+async function toggleNoImageFilter(){
   const btn = document.getElementById("no-image-filter-btn");
+  if(!noImageFilterOn){
+    // Turning the filter ON: "no images" means no WORKING image, not just no
+    // media rows (auto-added SKU images that 404 still count as "no image" to
+    // the user), so make sure every product's images have actually been
+    // checked before we filter on that.
+    if(btn){ btn.disabled = true; btn.dataset.origText = btn.textContent; btn.textContent = "⏳ Checking images..."; }
+    try { await Promise.all(allProducts.map(ensureProductMediaChecked)); }
+    finally { if(btn){ btn.disabled = false; btn.textContent = btn.dataset.origText; } }
+  }
+  noImageFilterOn = !noImageFilterOn;
   if(btn) btn.classList.toggle("btn-primary", noImageFilterOn);
   filterProducts();
 }
@@ -2724,7 +2733,11 @@ function filterProducts(){
   renderProductsTable(allProducts.filter(p=>{
     const mt=!term||[p.name,p.sku,p.metal,p.stone].filter(Boolean).join(" ").toLowerCase().includes(term);
     const mc=!cat||String(p.category_id)===cat;
-    const mi=!noImageFilterOn||!(p.product_media||[]).some(m=>m.media_type==="image");
+    let mi = true;
+    if(noImageFilterOn){
+      const st = productMediaStatus.get(p.id);
+      mi = st ? st.imagesOk===0 : true; // unknown status shouldn't happen (we await checks before enabling), but don't hide if it does
+    }
     return mt&&mc&&mi;
   }));
 }
@@ -2732,6 +2745,8 @@ function filterProducts(){
 // ── Media validity checking (products table) ──────────────────────────────
 // Cache of url -> Promise<boolean> so the same URL isn't re-tested on every re-render.
 const mediaCheckCache = new Map();
+// product id -> {imagesTotal, imagesOk, videosTotal, videosOk}, filled in once a product's media has been checked.
+const productMediaStatus = new Map();
 
 function checkMediaUrl(url, mediaType){
   if(!url) return Promise.resolve(false);
@@ -2757,43 +2772,62 @@ function checkMediaUrl(url, mediaType){
   return p;
 }
 
-// Kicks off checks for one product's media and fills in the "Media" cell once counted.
-function updateMediaCountCell(p){
-  const cell = document.getElementById("media-count-"+p.id);
-  if(!cell) return;
+// Resolves with {imagesTotal, imagesOk, videosTotal, videosOk} for one product,
+// checking each media URL (cached, so repeat calls are free) and caching the result.
+function ensureProductMediaChecked(p){
+  const cached = productMediaStatus.get(p.id);
+  if(cached) return Promise.resolve(cached);
   const pm = p.product_media||[];
   const images = pm.filter(m=>m.media_type==="image");
   const videos = pm.filter(m=>m.media_type==="video");
-  if(!images.length && !videos.length){
-    cell.innerHTML = `<span style="color:var(--text-muted)">---</span>`;
-    return;
-  }
-  Promise.all(images.map(m=>checkMediaUrl(m.url,"image"))).then(results=>{
-    const okImages = results.filter(Boolean).length;
-    cell.dataset.images = okImages;
-    renderMediaCountCell(cell, images.length, okImages, videos.length, cell.dataset.videos);
+  return Promise.all([
+    Promise.all(images.map(m=>checkMediaUrl(m.url,"image"))),
+    Promise.all(videos.map(m=>checkMediaUrl(m.url,"video")))
+  ]).then(([imgResults, vidResults])=>{
+    const status = {
+      imagesTotal: images.length, imagesOk: imgResults.filter(Boolean).length,
+      videosTotal: videos.length, videosOk: vidResults.filter(Boolean).length
+    };
+    productMediaStatus.set(p.id, status);
+    return status;
   });
-  Promise.all(videos.map(m=>checkMediaUrl(m.url,"video"))).then(results=>{
-    const okVideos = results.filter(Boolean).length;
-    cell.dataset.videos = okVideos;
-    renderMediaCountCell(cell, images.length, cell.dataset.images, videos.length, okVideos);
-  });
-  renderMediaCountCell(cell, images.length, cell.dataset.images, videos.length, cell.dataset.videos);
 }
 
-function renderMediaCountCell(cell, totalImages, okImages, totalVideos, okVideos){
+// Kicks off the check for one product's media and fills in the "Media" cell once counted.
+function updateMediaCountCell(p){
+  const cell = document.getElementById("media-count-"+p.id);
+  if(!cell) return Promise.resolve();
+  return ensureProductMediaChecked(p).then(status=>{
+    renderMediaCountCell(cell, status);
+    // Numeric sort key so the generic table-sort script orders this column by
+    // working-media count instead of alphabetizing the "🖼 x/y" text.
+    cell.dataset.sort = String(status.imagesOk + status.videosOk);
+  });
+}
+
+function renderMediaCountCell(cell, status){
+  const { imagesTotal, imagesOk, videosTotal, videosOk } = status;
   const parts=[];
-  if(totalImages>0){
-    const val = okImages===undefined ? `…/${totalImages}` : `${okImages}/${totalImages}`;
-    const bad = okImages!==undefined && +okImages<totalImages;
-    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${okImages===undefined?'Checking images...':okImages+' of '+totalImages+' images load'}">🖼 ${val}</span>`);
+  if(imagesTotal>0){
+    const bad = imagesOk<imagesTotal;
+    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${imagesOk} of ${imagesTotal} images load">🖼 ${imagesOk}/${imagesTotal}</span>`);
   }
-  if(totalVideos>0){
-    const val = okVideos===undefined ? `…/${totalVideos}` : `${okVideos}/${totalVideos}`;
-    const bad = okVideos!==undefined && +okVideos<totalVideos;
-    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${okVideos===undefined?'Checking videos...':okVideos+' of '+totalVideos+' videos load'}">🎬 ${val}</span>`);
+  if(videosTotal>0){
+    const bad = videosOk<videosTotal;
+    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${videosOk} of ${videosTotal} videos load">🎬 ${videosOk}/${videosTotal}</span>`);
   }
   cell.innerHTML = parts.length ? parts.join(" &nbsp; ") : `<span style="color:var(--text-muted)">---</span>`;
+}
+
+// Nudges the generic sort/filter script (which watches each tbody for childList
+// mutations) to re-run, so a column that was sorted before media checks
+// finished re-sorts correctly once the real dataset.sort values are in.
+function nudgeTableResort(tbodyId){
+  const tbody = document.getElementById(tbodyId);
+  if(!tbody) return;
+  const marker = document.createComment("resort");
+  tbody.appendChild(marker);
+  tbody.removeChild(marker);
 }
 
 function renderProductsTable(products){
@@ -2813,7 +2847,7 @@ function renderProductsTable(products){
     const badge=p.is_active?`<span class="badge badge-active">Active</span>`:`<span class="badge badge-inactive">Hidden</span>`;
     return `<tr><td class="product-thumb-cell">${img}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td><td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
-  products.forEach(p=>updateMediaCountCell(p));
+  Promise.all(products.map(p=>updateMediaCountCell(p))).then(()=>nudgeTableResort("products-tbody"));
 }
 
 // ── PRODUCT MODAL STATE ───────────────────────────────────────────────────
