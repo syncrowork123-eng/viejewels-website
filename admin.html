@@ -3019,15 +3019,37 @@ function renderProductMedia(){
   }).join("");
 }
 
+// If an image URL ends in -W.jpg/.jpeg/.png/.webp, also returns its -Y, -R, -Model and -Spot siblings
+function expandImageVariants(url){
+  const m = url.match(/^(.*)-W(\.(?:jpe?g|png|webp))$/i);
+  if(!m) return [{url, suffix:null}];
+  const [, base, ext] = m;
+  return [{url, suffix:"W"}, ...["Y","R","Model","Spot"].map(s=>({url:`${base}-${s}${ext}`, suffix:s}))];
+}
+
 function addProductMedia(){
   const url=gv("f-media-url");
   if(!url){ toast("Paste an image or video URL first.","error"); return; }
   const media_type=document.getElementById("f-media-type").value||"image";
   const alt_text=gv("f-media-alt");
-  const isFirstImage = media_type==="image" && !productMediaRows.some(m=>m.media_type==="image");
-  productMediaRows.push({url, media_type, alt_text, is_primary:isFirstImage});
+
+  const items = media_type==="image" ? expandImageVariants(url) : [{url, suffix:null}];
+  let added = 0;
+  items.forEach(it=>{
+    if(productMediaRows.some(m=>m.url===it.url)) return; // skip duplicates
+    const isFirstImage = media_type==="image" && !productMediaRows.some(m=>m.media_type==="image");
+    productMediaRows.push({
+      url: it.url,
+      media_type,
+      alt_text: it.url===url ? (alt_text || it.suffix || "") : (it.suffix || ""),
+      is_primary: isFirstImage
+    });
+    added++;
+  });
+
   sv("f-media-url",""); sv("f-media-alt",""); sv("f-media-type","image");
   renderProductMedia();
+  if(added>1) toast(added+" images added (W, Y, R, Model, Spot).");
 }
 
 function setPrimaryProductMedia(index){
