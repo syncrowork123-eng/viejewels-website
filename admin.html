@@ -899,7 +899,7 @@
       2. Fill in one product per row. Required: <code>name</code>. Slug is auto-generated from name if left blank.<br>
       3. For <code>jewel_type / jewel_sub1 / jewel_sub2</code> — use exact values from Jewelry Categories master.<br>
       4. For <code>stone_name</code>, <code>metal_type</code>, <code>diamond_quality</code>, <code>labour_category</code> — use exact names from Masters so IDs are resolved automatically.<br>
-      5. Upload images to Cloudinary first, paste URL in <code>image_url</code>.<br>
+      5. Upload images to Cloudinary named <code>SKU-W.jpg</code>, <code>-Y</code>, <code>-R</code>, <code>-Model</code>, <code>-Spot</code>. Leave the image columns blank and new products pick them up from the SKU automatically.<br>
       6. Save as <code>.xlsx</code>, drag onto zone below, preview, then click <strong>Import All</strong>.</p>
     </div>
     <div style="margin-bottom:20px"><button class="btn btn-secondary" onclick="downloadTemplate()">Download Template (.xlsx)</button></div>
@@ -3028,7 +3028,7 @@ function expandImageVariants(url){
 }
 
 function addProductMedia(){
-  const url=gv("f-media-url");
+  const url=stripCloudVersion(gv("f-media-url"));
   if(!url){ toast("Paste an image or video URL first.","error"); return; }
   const media_type=document.getElementById("f-media-type").value||"image";
   const alt_text=gv("f-media-alt");
@@ -3956,6 +3956,23 @@ function resolveJewelCatId(jewel_type,sub1,sub2){
   );
 }
 
+const CLOUD_BASE = "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/";
+const IMG_SUFFIXES = ["W","Y","R","Model","Spot"];
+
+// .../upload/v1789787133/... -> .../upload/...
+function stripCloudVersion(u){ return String(u||"").replace(/\/upload\/v\d+\//, "/upload/"); }
+
+function imgExists(url){
+  return new Promise(res=>{ const i=new Image(); i.onload=()=>res(true); i.onerror=()=>res(false); i.src=url; });
+}
+
+// Builds the 5 standard URLs for a SKU and keeps only the ones that exist on Cloudinary
+async function autoImagesForSku(sku){
+  const urls = IMG_SUFFIXES.map(s=>({suffix:s, url:`${CLOUD_BASE}${sku}-${s}.jpg`}));
+  const ok = await Promise.all(urls.map(u=>imgExists(u.url)));
+  return urls.filter((_,i)=>ok[i]);
+}
+
 async function importProducts(){
   const valid = bulkRows.filter(r => String(r.name||"").trim());
   if(!valid.length){ toast("No valid rows.","error"); return; }
@@ -4011,6 +4028,7 @@ async function importProducts(){
       };
 
       // ── UPSERT: PATCH if SKU already exists, POST if new ─────────────
+      let isNewProduct = false;
       let pid = sku ? existingBySku[sku] : null;
 
       // Fallback live-check in case pre-fetch missed it
@@ -4030,6 +4048,7 @@ async function importProducts(){
         // New product — insert
         const r = await sb("products","POST",payload);
         pid = r[0].id;
+        isNewProduct = true;
         if(sku) existingBySku[sku] = pid; // register for later rows in same file
         inserted++;
       }
@@ -4076,14 +4095,21 @@ async function importProducts(){
 
       // Media — only insert if URLs are provided in this import file;
       // skip entirely if no image columns are filled (avoids wiping existing media on update)
-      const mediaUrls = [
+      let mediaUrls = [
         {url:row.image_url,       is_primary:true,  sort_order:0, alt:""},
         {url:row.image_url_y,     is_primary:false, sort_order:1, alt:"Y"},
         {url:row.image_url_w,     is_primary:false, sort_order:2, alt:"W"},
         {url:row.image_url_r,     is_primary:false, sort_order:3, alt:"R"},
         {url:row.image_url_model, is_primary:false, sort_order:4, alt:"Model"},
         {url:row.image_url_spot,  is_primary:false, sort_order:5, alt:"Spot"},
-      ].filter(m=>String(m.url||"").trim());
+      ].filter(m=>String(m.url||"").trim())
+       .map(m=>({...m, url:stripCloudVersion(String(m.url).trim())}));
+
+      // No image columns filled and this is a brand-new product: attach images from the SKU
+      if(!mediaUrls.length && sku && isNewProduct){
+        const found = await autoImagesForSku(sku);
+        mediaUrls = found.map((f,i)=>({url:f.url, is_primary:i===0, sort_order:i, alt:f.suffix}));
+      }
 
       if(mediaUrls.length){
         try{ await sb("product_media?product_id=eq."+pid+"&media_type=eq.image","DELETE"); }catch(e){}
