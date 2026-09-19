@@ -85,6 +85,18 @@
     .media-url-input { width:100%; padding:5px 8px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:12px; font-family:var(--font); outline:none; }
     .media-url-input:focus { border-color:var(--accent); color:var(--text); }
     .media-warn { font-size:11px; color:var(--danger); margin-top:3px; }
+    /* Sort & filter (all admin tables) */
+    .tbl-sortable { cursor:pointer; user-select:none; }
+    .tbl-sortable:hover { color:var(--text) !important; }
+    .tbl-arrow { display:inline-block; width:12px; margin-right:4px; font-size:10px; opacity:0.35; letter-spacing:0; }
+    .tbl-arrow::before { content:"↕"; }
+    th[data-sort="asc"] .tbl-arrow, th[data-sort="desc"] .tbl-arrow { opacity:1; color:var(--accent); }
+    th[data-sort="asc"] .tbl-arrow::before { content:"▲"; }
+    th[data-sort="desc"] .tbl-arrow::before { content:"▼"; }
+    .tbl-filter-row th { padding:5px 8px !important; background:var(--surface2) !important; text-transform:none !important; letter-spacing:0 !important; font-weight:400 !important; border-bottom:1px solid var(--border) !important; }
+    .tbl-filter-input { width:100%; min-width:70px; padding:5px 8px; background:var(--surface); border:1px solid var(--border); border-radius:5px; color:var(--text); font-size:12px; font-family:var(--font); outline:none; }
+    .tbl-filter-input:focus { border-color:var(--accent); }
+    .tbl-meta { align-items:center; gap:12px; font-size:12px; color:var(--text-muted); margin:0 0 8px; padding:0 2px; }
     .media-add-row { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
     .media-add-row .form-group { flex:1; min-width:160px; }
     .tags-grid { display:flex; flex-wrap:wrap; gap:8px; }
@@ -2279,7 +2291,7 @@ function renderEnquiriesTable(){
           <option value="archived" ${statusValue === "archived" ? "selected" : ""}>Archived</option>
         </select>
       </td>
-      <td><div class="enquiry-meta">${esc(createdAt)}</div></td>
+      <td data-sort="${esc(row.created_at||"")}"><div class="enquiry-meta">${esc(createdAt)}</div></td>
       <td>
         <div class="enquiry-actions">
           <button class="btn btn-secondary btn-sm" onclick="openEnquiryModal(${row.id})">View</button>
@@ -6047,6 +6059,211 @@ function openConfirm(msg,onOk){
   document.getElementById("confirm-ok-btn").onclick=async()=>{ closeConfirm(); await onOk(); };
 }
 function closeConfirm(){ document.getElementById("confirm-modal").classList.remove("open"); }
+</script>
+<script>
+// ══════════════════════════════════════════════════════════════════
+// SORT & FILTER FOR ALL ADMIN TABLES
+//  • click a column header to sort (▲ asc → ▼ desc → off)
+//  • type in the filter box under a header: text = contains, !text = does not contain,
+//    >5  <=100  =12 = numeric compare; suggestions show the values in that column
+// ══════════════════════════════════════════════════════════════════
+(function(){
+  const EXCLUDE = new Set(["metal-derived-tbody","f-stone-tbody","svm-stone-tbody","ip-tbody"]);
+  const SKIP_HEAD = /^(actions?|image)?$/i;
+  const BLANK = /^[-—–]*$/;
+  const WRAPPERS = ".table-wrap, .spl-table-wrap, .jsc-table-wrap, .labour-table-wrap, .enquiry-table-wrap";
+
+  function cellValue(td){
+    if(!td) return "";
+    if(td.dataset && td.dataset.sort!==undefined) return td.dataset.sort;
+    const f = td.querySelector("select,input,textarea");
+    if(f){
+      if(f.tagName==="SELECT") return (f.options[f.selectedIndex]||{}).text||"";
+      if(f.type==="checkbox") return f.checked?"yes":"no";
+      return f.value;
+    }
+    return td.textContent.replace(/\s+/g," ").trim();
+  }
+  function num(v){
+    let t = String(v).trim();
+    if(BLANK.test(t)) return null;
+    t = t.replace(/^(?:rs\.?|inr|usd|aed|eur|gbp|[$₹€£])\s*/i,"").replace(/\s*(?:%|ct|g|mm|pcs)$/i,"");
+    if(/^-?\d{1,3}(,\d{3})+(\.\d+)?$|^-?\d+(\.\d+)?$/.test(t)) return parseFloat(t.replace(/,/g,""));
+    return null;
+  }
+  const natural = (a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true, sensitivity:"base"});
+
+  function parseFilter(raw){
+    raw = (raw||"").trim();
+    if(!raw) return null;
+    const m = raw.match(/^(>=|<=|>|<|=)\s*(-?[\d.,]+)$/);
+    if(m) return {op:m[1], n:parseFloat(m[2].replace(/,/g,""))};
+    if(raw[0]==="!" && raw.length>1) return {neg:true, t:raw.slice(1).trim().toLowerCase()};
+    return {t:raw.toLowerCase()};
+  }
+  function matches(spec, val){
+    if(spec.op){
+      const n = num(val);
+      if(n===null || isNaN(spec.n)) return false;
+      switch(spec.op){ case ">":return n>spec.n; case ">=":return n>=spec.n; case "<":return n<spec.n; case "<=":return n<=spec.n; default:return n===spec.n; }
+    }
+    const has = String(val).toLowerCase().includes(spec.t);
+    return spec.neg ? !has : has;
+  }
+
+  function enhance(table){
+    const tbody = table.tBodies[0], thead = table.tHead;
+    if(!tbody || !tbody.id || EXCLUDE.has(tbody.id) || !thead || !thead.rows[0] || table.dataset.tblReady) return;
+    table.dataset.tblReady = "1";
+
+    const ths = [...thead.rows[0].cells];
+    const cols = ths.map((th,i)=>({i, th, on: !SKIP_HEAD.test(th.textContent.replace(/\s+/g," ").trim())}));
+    const st = {sort:null, dir:1, filters:{}};
+
+    // meta bar (only visible while a sort/filter is active)
+    const meta = document.createElement("div");
+    meta.className = "tbl-meta"; meta.style.display = "none";
+    const wrap = table.closest(WRAPPERS) || table;
+    wrap.parentNode.insertBefore(meta, wrap);
+
+    // sortable headers
+    cols.forEach(c=>{
+      if(!c.on) return;
+      c.th.classList.add("tbl-sortable");
+      const arrow = document.createElement("span"); arrow.className = "tbl-arrow";
+      c.th.insertBefore(arrow, c.th.firstChild);
+      c.th.addEventListener("click", ()=>{
+        if(st.sort===c.i){ if(st.dir===1) st.dir=-1; else st.sort=null; }
+        else { st.sort=c.i; st.dir=1; }
+        apply();
+      });
+    });
+
+    // filter row
+    const frow = document.createElement("tr"); frow.className = "tbl-filter-row";
+    cols.forEach(c=>{
+      const th = document.createElement("th");
+      if(c.on){
+        const inp = document.createElement("input");
+        inp.type = "text"; inp.placeholder = "Filter…"; inp.className = "tbl-filter-input";
+        inp.title = "text = contains · !text = excludes · >5  <=100  =12 for numbers";
+        inp.setAttribute("list", "tbl-dl-"+tbody.id+"-"+c.i);
+        const dl = document.createElement("datalist"); dl.id = "tbl-dl-"+tbody.id+"-"+c.i;
+        c.input = inp; c.dl = dl;
+        let t; inp.addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(()=>{ st.filters[c.i]=inp.value; apply(); },120); });
+        th.append(inp, dl);
+      }
+      frow.appendChild(th);
+    });
+    thead.appendChild(frow);
+
+    function clearAll(){
+      st.sort = null; st.dir = 1; st.filters = {};
+      cols.forEach(c=>{ if(c.input) c.input.value = ""; });
+      apply();
+    }
+
+    const obs = new MutationObserver(()=>apply());
+
+    function apply(){
+      obs.disconnect();
+      try{
+        tbody.querySelectorAll("tr.tbl-empty").forEach(r=>r.remove());
+        const rows = [...tbody.rows];
+        let max = -1;
+        rows.forEach(r=>{ if(r.dataset.oi!==undefined) max = Math.max(max, +r.dataset.oi); });
+        rows.forEach(r=>{ if(r.dataset.oi===undefined) r.dataset.oi = String(++max); });
+        const byOi = (a,b)=>a.dataset.oi-b.dataset.oi;
+
+        const isGroup  = r=>r.classList.contains("jsc-group-row");
+        const isFixed  = r=>!isGroup(r) && r.cells.length===1 && r.cells[0].colSpan>1;
+        const isPinned = r=>/^new/i.test(r.dataset.rowId||"");
+        const data   = rows.filter(r=>!isGroup(r) && !isFixed(r) && !isPinned(r));
+        const groups = rows.filter(isGroup);
+        const fixed  = rows.filter(isFixed);
+        const pinned = rows.filter(isPinned);
+        const vals = new Map(data.map(r=>[r,[...r.cells].map(cellValue)]));
+
+        // suggestions (distinct values per column, over all rows)
+        cols.forEach(c=>{
+          if(!c.dl) return;
+          const set = new Set();
+          for(const r of data){ const v=String(vals.get(r)[c.i]??"").trim(); if(v && !BLANK.test(v) && v.length<=60) set.add(v); if(set.size>40) break; }
+          c.dl.innerHTML = "";
+          if(set.size<=40) [...set].sort(natural).forEach(v=>{ const o=document.createElement("option"); o.value=v; c.dl.appendChild(o); });
+        });
+
+        // filter
+        const specs = cols.filter(c=>c.on).map(c=>({i:c.i, s:parseFilter(st.filters[c.i])})).filter(x=>x.s);
+        const visible = new Set();
+        data.forEach(r=>{
+          const v = vals.get(r);
+          const ok = specs.every(x=>matches(x.s, v[x.i]??""));
+          r.style.display = ok ? "" : "none";
+          if(ok) visible.add(r);
+        });
+
+        // sort / order
+        let order;
+        if(st.sort!==null){
+          const i = st.sort;
+          const raw = data.map(r=>String(vals.get(r)[i]??"").trim());
+          const nums = raw.map(num);
+          const numeric = raw.every((t,k)=>BLANK.test(t) || nums[k]!==null);
+          const idx = new Map(data.map((r,k)=>[r,k]));
+          const sorted = [...data].sort((a,b)=>{
+            const ka=idx.get(a), kb=idx.get(b);
+            const ba=BLANK.test(raw[ka]), bb=BLANK.test(raw[kb]);
+            if(ba||bb) return ba&&bb ? byOi(a,b) : (ba?1:-1);   // blanks always last
+            const c = numeric ? nums[ka]-nums[kb] : natural(raw[ka], raw[kb]);
+            return c!==0 ? c*st.dir : byOi(a,b);
+          });
+          groups.forEach(g=>g.style.display="none");
+          order = [...fixed.sort(byOi), ...sorted, ...pinned.sort(byOi), ...groups.sort(byOi)];
+        } else {
+          // original order; a group heading stays visible only if it still has visible rows under it
+          const all = [...rows].sort(byOi);
+          let curGroup=null, groupHas=false;
+          const flush=()=>{ if(curGroup) curGroup.style.display = (groupHas||!specs.length) ? "" : "none"; };
+          all.forEach(r=>{
+            if(isGroup(r)){ flush(); curGroup=r; groupHas=false; }
+            else if(visible.has(r)) groupHas=true;
+          });
+          flush();
+          order = all;
+        }
+        tbody.append(...order);
+
+        // nothing matches
+        if(data.length && !visible.size){
+          const tr=document.createElement("tr"); tr.className="tbl-empty";
+          const td=document.createElement("td"); td.colSpan=ths.length; td.className="state-msg";
+          td.textContent="No rows match the current filters."; tr.appendChild(td); tbody.appendChild(tr);
+        }
+
+        // header arrows + meta bar
+        cols.forEach(c=>{ if(c.on) c.th.dataset.sort = st.sort===c.i ? (st.dir===1?"asc":"desc") : ""; });
+        const active = st.sort!==null || specs.length>0;
+        if(active){
+          const sc = st.sort!==null ? cols[st.sort].th.textContent.replace(/[▲▼↕]/g,"").replace(/\s+/g," ").trim() : "";
+          meta.innerHTML = "";
+          const txt = document.createElement("span");
+          txt.textContent = (specs.length ? `Showing ${visible.size} of ${data.length} rows` : `${data.length} rows`) + (sc ? ` · sorted by ${sc} ${st.dir===1?"▲":"▼"}` : "");
+          const btn = document.createElement("button"); btn.type="button"; btn.className="btn btn-secondary btn-sm"; btn.textContent="✕ Clear sort & filters";
+          btn.addEventListener("click", clearAll);
+          meta.append(txt, btn); meta.style.display = "flex";
+        } else meta.style.display = "none";
+      } finally {
+        obs.observe(tbody, {childList:true});
+      }
+    }
+
+    apply();
+  }
+
+  function init(){ document.querySelectorAll("table").forEach(enhance); }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
 </script>
 </body>
 </html>
