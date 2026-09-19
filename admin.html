@@ -342,14 +342,15 @@
         <select class="filter-select" id="category-filter" onchange="filterProducts()"><option value="">All categories</option></select>
       </div>
       <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products that have no image media at all">📷 No Images Only</button>
         <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
         <button class="btn btn-secondary" onclick="exportProductsXlsx()">⬇ Export Products</button>
         <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
       </div>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Image</th><th>Name</th><th>SKU</th><th>Category</th><th>Metal / Stone</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="products-tbody"><tr><td colspan="8" class="state-msg">Loading...</td></tr></tbody>
+      <thead><tr><th>Image</th><th>Media</th><th>Name</th><th>SKU</th><th>Category</th><th>Metal / Stone</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="products-tbody"><tr><td colspan="9" class="state-msg">Loading...</td></tr></tbody>
     </table></div>
   </div>
 
@@ -2703,9 +2704,18 @@ async function loadProducts(){
     renderProductsTable(allProducts);
     populateMasterDropdowns();
   } catch(e){
-    document.getElementById("products-tbody").innerHTML="<tr><td colspan='8' class='state-msg'>Failed to load products.</td></tr>";
+    document.getElementById("products-tbody").innerHTML="<tr><td colspan='9' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
   }
+}
+
+let noImageFilterOn = false;
+
+function toggleNoImageFilter(){
+  noImageFilterOn = !noImageFilterOn;
+  const btn = document.getElementById("no-image-filter-btn");
+  if(btn) btn.classList.toggle("btn-primary", noImageFilterOn);
+  filterProducts();
 }
 
 function filterProducts(){
@@ -2714,13 +2724,81 @@ function filterProducts(){
   renderProductsTable(allProducts.filter(p=>{
     const mt=!term||[p.name,p.sku,p.metal,p.stone].filter(Boolean).join(" ").toLowerCase().includes(term);
     const mc=!cat||String(p.category_id)===cat;
-    return mt&&mc;
+    const mi=!noImageFilterOn||!(p.product_media||[]).some(m=>m.media_type==="image");
+    return mt&&mc&&mi;
   }));
+}
+
+// ── Media validity checking (products table) ──────────────────────────────
+// Cache of url -> Promise<boolean> so the same URL isn't re-tested on every re-render.
+const mediaCheckCache = new Map();
+
+function checkMediaUrl(url, mediaType){
+  if(!url) return Promise.resolve(false);
+  if(mediaCheckCache.has(url)) return mediaCheckCache.get(url);
+  const p = new Promise(resolve=>{
+    let done=false;
+    const finish=(ok)=>{ if(done) return; done=true; resolve(ok); };
+    if(mediaType==="video"){
+      const v=document.createElement("video");
+      v.preload="metadata";
+      v.onloadedmetadata=()=>finish(true);
+      v.onerror=()=>finish(false);
+      v.src=url;
+    } else {
+      const img=new Image();
+      img.onload=()=>finish(true);
+      img.onerror=()=>finish(false);
+      img.src=url;
+    }
+    setTimeout(()=>finish(false), 8000); // treat anything that never resolves as broken
+  });
+  mediaCheckCache.set(url, p);
+  return p;
+}
+
+// Kicks off checks for one product's media and fills in the "Media" cell once counted.
+function updateMediaCountCell(p){
+  const cell = document.getElementById("media-count-"+p.id);
+  if(!cell) return;
+  const pm = p.product_media||[];
+  const images = pm.filter(m=>m.media_type==="image");
+  const videos = pm.filter(m=>m.media_type==="video");
+  if(!images.length && !videos.length){
+    cell.innerHTML = `<span style="color:var(--text-muted)">---</span>`;
+    return;
+  }
+  Promise.all(images.map(m=>checkMediaUrl(m.url,"image"))).then(results=>{
+    const okImages = results.filter(Boolean).length;
+    cell.dataset.images = okImages;
+    renderMediaCountCell(cell, images.length, okImages, videos.length, cell.dataset.videos);
+  });
+  Promise.all(videos.map(m=>checkMediaUrl(m.url,"video"))).then(results=>{
+    const okVideos = results.filter(Boolean).length;
+    cell.dataset.videos = okVideos;
+    renderMediaCountCell(cell, images.length, cell.dataset.images, videos.length, okVideos);
+  });
+  renderMediaCountCell(cell, images.length, cell.dataset.images, videos.length, cell.dataset.videos);
+}
+
+function renderMediaCountCell(cell, totalImages, okImages, totalVideos, okVideos){
+  const parts=[];
+  if(totalImages>0){
+    const val = okImages===undefined ? `…/${totalImages}` : `${okImages}/${totalImages}`;
+    const bad = okImages!==undefined && +okImages<totalImages;
+    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${okImages===undefined?'Checking images...':okImages+' of '+totalImages+' images load'}">🖼 ${val}</span>`);
+  }
+  if(totalVideos>0){
+    const val = okVideos===undefined ? `…/${totalVideos}` : `${okVideos}/${totalVideos}`;
+    const bad = okVideos!==undefined && +okVideos<totalVideos;
+    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${okVideos===undefined?'Checking videos...':okVideos+' of '+totalVideos+' videos load'}">🎬 ${val}</span>`);
+  }
+  cell.innerHTML = parts.length ? parts.join(" &nbsp; ") : `<span style="color:var(--text-muted)">---</span>`;
 }
 
 function renderProductsTable(products){
   const tbody=document.getElementById("products-tbody");
-  if(!products.length){ tbody.innerHTML="<tr><td colspan='8' class='state-msg'>No products found.</td></tr>"; return; }
+  if(!products.length){ tbody.innerHTML="<tr><td colspan='9' class='state-msg'>No products found.</td></tr>"; return; }
   tbody.innerHTML=products.map(p=>{
     const pm=(p.product_media||[]);
     const primary=pm.find(m=>m.is_primary)||pm[0];
@@ -2733,8 +2811,9 @@ function renderProductsTable(products){
     const details = [metalLabel, stoneLabel].filter(Boolean).join(" / ");
     const price=p.price?`${p.currency||"INR"} ${Number(p.price).toLocaleString()}`:"---";
     const badge=p.is_active?`<span class="badge badge-active">Active</span>`:`<span class="badge badge-inactive">Hidden</span>`;
-    return `<tr><td class="product-thumb-cell">${img}</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td><td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr><td class="product-thumb-cell">${img}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td><td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
+  products.forEach(p=>updateMediaCountCell(p));
 }
 
 // ── PRODUCT MODAL STATE ───────────────────────────────────────────────────
