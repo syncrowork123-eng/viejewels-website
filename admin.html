@@ -344,7 +344,7 @@
       <div style="display:flex;gap:8px;">
         <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products with no working image (missing or all broken)">📷 No Images Only</button>
         <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
-        <button class="btn btn-secondary" onclick="exportProductsXlsx()">⬇ Export Products</button>
+        <button class="btn btn-secondary" id="export-products-btn" onclick="exportProductsXlsx()">⬇ Export Products</button>
         <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
       </div>
     </div>
@@ -3877,8 +3877,15 @@ function downloadTemplate(){
   toast("Template downloaded — fill Products, Stone Rows and Jewel Categories sheets.");
 }
 
-function exportProductsXlsx(){
+async function exportProductsXlsx(){
   if(!allProducts.length){ toast("No products to export.","error"); return; }
+
+  // Make sure every product's media has actually been checked (broken vs. working)
+  // before we export, so the media_status column below is accurate rather than blank.
+  const btn = document.getElementById("export-products-btn");
+  if(btn){ btn.disabled = true; btn.dataset.origText = btn.textContent; btn.textContent = "⏳ Checking media..."; }
+  try { await Promise.all(allProducts.map(ensureProductMediaChecked)); }
+  finally { if(btn){ btn.disabled = false; btn.textContent = btn.dataset.origText; } }
 
   const CLOUD = "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/";
 
@@ -3897,6 +3904,19 @@ function exportProductsXlsx(){
   const getVideo   = (p) => (p.product_media||[]).find(m=>m.media_type==="video")?.url || "";
   const getTags    = (p) => (p.product_tags||[]).map(t=>t.tags?.name).filter(Boolean).join(", ");
   const getJewelCats = (p) => (p.product_jewel_cats||[]).map(c=>[c.jewel_type,c.sub_type1,c.sub_type2].filter(Boolean).join(" › ")).join(" | ");
+  const getMediaStatus = (p) => {
+    const st = productMediaStatus.get(p.id);
+    if(!st || (!st.imagesTotal && !st.videosTotal)) return "No media";
+    const parts=[];
+    if(st.imagesTotal>0) parts.push(`${st.imagesOk}/${st.imagesTotal} images`);
+    if(st.videosTotal>0) parts.push(`${st.videosOk}/${st.videosTotal} videos`);
+    return parts.join(", ");
+  };
+
+  // Local copies of the shared header/notes so the bulk-upload template (which
+  // uses the same PRODUCT_SHEET_HEADERS/NOTES constants) isn't affected.
+  const EXPORT_HEADERS = [...PRODUCT_SHEET_HEADERS, "media_status"];
+  const EXPORT_NOTES   = [...PRODUCT_SHEET_NOTES, "Working/total images (and videos), as last checked in the Products tab"];
 
   // ── Sheet 1: Products ────────────────────────────────────────────────
   const productRows = allProducts.map(p => {
@@ -3920,12 +3940,13 @@ function exportProductsXlsx(){
       getImgBySuffix(p,"Model") || (sku?cld("Model"):""),
       getImgBySuffix(p,"Spot")  || (sku?cld("Spot"):""),
       getVideo(p),
-      p.sort_order||0, p.is_active!==false?"true":"false"
+      p.sort_order||0, p.is_active!==false?"true":"false",
+      getMediaStatus(p)
     ];
   });
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet([PRODUCT_SHEET_HEADERS, PRODUCT_SHEET_NOTES, ...productRows]);
-  ws["!cols"] = PRODUCT_SHEET_HEADERS.map(h=>({wch: h.includes("description")||h.includes("url")||h.includes("categories") ? 48 : h.includes("name")||h.includes("tags") ? 28 : 16}));
+  const ws = XLSX.utils.aoa_to_sheet([EXPORT_HEADERS, EXPORT_NOTES, ...productRows]);
+  ws["!cols"] = EXPORT_HEADERS.map(h=>({wch: h.includes("description")||h.includes("url")||h.includes("categories") ? 48 : h.includes("name")||h.includes("tags") ? 28 : h==="media_status" ? 20 : 16}));
   ws["!freeze"] = {xSplit:0, ySplit:2};
   XLSX.utils.book_append_sheet(wb, ws, "Products");
 
