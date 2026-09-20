@@ -2748,10 +2748,26 @@ const mediaCheckCache = new Map();
 // product id -> {imagesTotal, imagesOk, videosTotal, videosOk}, filled in once a product's media has been checked.
 const productMediaStatus = new Map();
 
-function checkMediaUrl(url, mediaType){
-  if(!url) return Promise.resolve(false);
-  if(mediaCheckCache.has(url)) return mediaCheckCache.get(url);
-  const p = new Promise(resolve=>{
+// Browsers only allow ~6 concurrent connections per host. With many products
+// each checking several images at once, most requests just sit queued behind
+// that limit — a fixed short timeout then wrongly marks perfectly good,
+// still-queued images as "broken". Route every check through a small queue so
+// only a handful run at once, and each one gets its full timeout once it
+// actually starts loading.
+const MEDIA_CHECK_CONCURRENCY = 6;
+let activeMediaChecks = 0;
+const mediaCheckQueue = [];
+
+function pumpMediaCheckQueue(){
+  while(activeMediaChecks < MEDIA_CHECK_CONCURRENCY && mediaCheckQueue.length){
+    const job = mediaCheckQueue.shift();
+    activeMediaChecks++;
+    job().finally(()=>{ activeMediaChecks--; pumpMediaCheckQueue(); });
+  }
+}
+
+function runMediaCheckOnce(url, mediaType, timeoutMs){
+  return new Promise(resolve=>{
     let done=false;
     const finish=(ok)=>{ if(done) return; done=true; resolve(ok); };
     if(mediaType==="video"){
@@ -2766,7 +2782,25 @@ function checkMediaUrl(url, mediaType){
       img.onerror=()=>finish(false);
       img.src=url;
     }
-    setTimeout(()=>finish(false), 8000); // treat anything that never resolves as broken
+    setTimeout(()=>finish(false), timeoutMs);
+  });
+}
+
+async function runMediaCheck(url, mediaType){
+  // A real 404/broken link fails fast; a slow-but-fine load can occasionally
+  // still miss the timeout under load, so give it one retry before calling it
+  // broken.
+  let ok = await runMediaCheckOnce(url, mediaType, 15000);
+  if(!ok) ok = await runMediaCheckOnce(url, mediaType, 15000);
+  return ok;
+}
+
+function checkMediaUrl(url, mediaType){
+  if(!url) return Promise.resolve(false);
+  if(mediaCheckCache.has(url)) return mediaCheckCache.get(url);
+  const p = new Promise(resolve=>{
+    mediaCheckQueue.push(()=>runMediaCheck(url, mediaType).then(resolve));
+    pumpMediaCheckQueue();
   });
   mediaCheckCache.set(url, p);
   return p;
