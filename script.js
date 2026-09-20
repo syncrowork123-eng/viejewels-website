@@ -1054,6 +1054,8 @@ function applyFilters() {
   // ── SORT ──────────────────────────────────────────────────────────────
   if (_currentSort === "newest") {
     list = list.slice().sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  } else if (_currentSort === "oldest") {
+    list = list.slice().sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
   } else if (_currentSort === "sku") {
     list = list.slice().sort((a, b) => (a.sku || "").localeCompare(b.sku || ""));
   } else if (_currentSort === "price-asc") {
