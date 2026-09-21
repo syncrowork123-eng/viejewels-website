@@ -114,6 +114,7 @@ const METAL_COLOR_SUFFIXES = {
   "white":          ["-w"],
   "yellow":         ["-y"],
   "rose":           ["-r", "-rose"],
+  "multi-tone":     ["-multi"],
   "model showcase": ["-model"],
   "spotlight view": ["-spot"],
 };
@@ -818,7 +819,7 @@ async function setupCatalogFilterBar() {
   if (metalColorSel) {
     const cur = metalColorSel.value;
     metalColorSel.innerHTML = `<option value="">Metal Color</option>` +
-      ["White", "Yellow", "Rose", "Model Showcase", "Spotlight View"]
+      ["White", "Yellow", "Rose", "Multi-Tone", "Model Showcase", "Spotlight View"]
         .map(c => `<option value="${esc(c)}"${c === cur ? " selected" : ""}>${esc(c)}</option>`).join("");
     _selectedMetalColor = metalColorSel.value || null;
     metalColorSel.addEventListener("change", () => {
@@ -1093,22 +1094,23 @@ async function renderSizeSelector(product) {
   _selectedSizeVariant = null;
 
   // The interactive, price-aware Select Size picker (admin-selected sizes
-  // with their own metal/stone details) only ever applies to Rings and
-  // Bangles. Every other jewelry type — and Rings/Bangles that don't have
-  // any admin-selected sizes — falls through below to show the plain
-  // typed "Size" detail instead, so the section still displays *something*
-  // whenever there's a size to show, rather than going blank.
-  const firstJc = (product.product_jewel_cats || [])[0];
-  const sizeType = sizeTypeFromJewelCat(firstJc);
-
-  // Within Rings/Bangles, only sizes that were actually given details and
-  // selected in admin (product_size_variants — each carries its own metal
-  // net weights + stone rows, so picking one changes the computed price)
-  // are eligible for the interactive picker. No fallback to a generic,
-  // price-less size chart — that was removed entirely.
-  const extraVariants = sizeType
-    ? (product.product_size_variants || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-    : [];
+  // with their own metal/stone details) shows whenever the admin has
+  // actually entered size variants for this product (product_size_variants
+  // — each carries its own metal net weights + stone rows, so picking one
+  // changes the computed price), regardless of which jewel category the
+  // product is filed under.
+  //
+  // Previously this was gated on sizeTypeFromJewelCat(firstJc) — i.e. only
+  // shown for products whose FIRST assigned jewel category text-matched
+  // "ring"/"band"/"bangle"/"bracelet". That silently dropped size variants
+  // for: (a) any product with multiple jewel categories where the ring/
+  // bangle one wasn't listed first, and (b) any jewel_type spelled outside
+  // those exact keywords (e.g. "Toe Ring" matches, but a differently-named
+  // taxonomy entry might not). If the admin bothered to add size variants,
+  // trust that and show them — there's nothing to gate on.
+  const extraVariants = (product.product_size_variants || [])
+    .slice()
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
   if (extraVariants.length) {
     // The product's own default size/metal/stone details (entered on the
@@ -1936,12 +1938,28 @@ async function runProductPricing(rawProduct) {
     return;
   }
 
+  // The Metal Type/Quality row and the Metal Color swatches live in the
+  // same card (data-metal-quality-wrap) but are independent: Type/Quality
+  // drives pricing (needs net-weight data), Color only picks which tagged
+  // product photo to show. Previously, any product missing net weights
+  // (net_weight_18k/14k/10k/silver all zero — a data-entry gap, not
+  // necessarily "this product has no colors") had its ENTIRE card hidden,
+  // silently taking the color picker down with it. Now only the Type/
+  // Quality row is hidden in that case; the card itself, and the Color
+  // field within it, stay visible as long as a color selector with real
+  // options exists.
+  const metalCardRow = wrap ? wrap.querySelector(".pd-card-row") : null;
+  const metalColorSel = document.querySelector("[data-filter-metal-color]");
+  const hasColorOptions = !!metalColorSel && metalColorSel.options.length > 1;
+
   if (!available.length) {
-    wrap?.style.setProperty("display", "none");
+    if (metalCardRow) metalCardRow.style.display = "none";
+    wrap?.style.setProperty("display", hasColorOptions ? "" : "none");
     renderProductPricingForSelection(product, available);
     return;
   }
 
+  if (metalCardRow) metalCardRow.style.removeProperty("display");
   wrap?.style.removeProperty("display");
 
   // Derive the Metal Type options from available qualities
