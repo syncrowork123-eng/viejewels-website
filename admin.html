@@ -2806,8 +2806,21 @@ function checkMediaUrl(url, mediaType){
   return p;
 }
 
-// Resolves with {imagesTotal, imagesOk, videosTotal, videosOk} for one product,
-// checking each media URL (cached, so repeat calls are free) and caching the result.
+// Best-effort human-readable label for one product_media row, used when
+// listing which specific image/video is missing (export, tooltips): prefers
+// the alt text, falling back to the filename at the end of the URL.
+function mediaRowLabel(m){
+  if(m.alt_text) return m.alt_text;
+  const url = m.url||"";
+  const clean = url.split("?")[0].split("#")[0];
+  const file = clean.split("/").pop();
+  return file || url || "media";
+}
+
+// Resolves with {imagesTotal, imagesOk, videosTotal, videosOk, brokenImages,
+// brokenVideos} for one product, checking each media URL (cached, so repeat
+// calls are free) and caching the result. brokenImages/brokenVideos are
+// human-readable labels (see mediaRowLabel) for every row that failed to load.
 function ensureProductMediaChecked(p){
   const cached = productMediaStatus.get(p.id);
   if(cached) return Promise.resolve(cached);
@@ -2820,7 +2833,9 @@ function ensureProductMediaChecked(p){
   ]).then(([imgResults, vidResults])=>{
     const status = {
       imagesTotal: images.length, imagesOk: imgResults.filter(Boolean).length,
-      videosTotal: videos.length, videosOk: vidResults.filter(Boolean).length
+      videosTotal: videos.length, videosOk: vidResults.filter(Boolean).length,
+      brokenImages: images.filter((m,i)=>!imgResults[i]).map(mediaRowLabel),
+      brokenVideos: videos.filter((m,i)=>!vidResults[i]).map(mediaRowLabel)
     };
     productMediaStatus.set(p.id, status);
     return status;
@@ -2836,19 +2851,25 @@ function updateMediaCountCell(p){
     // Numeric sort key so the generic table-sort script orders this column by
     // working-media count instead of alphabetizing the "🖼 x/y" text.
     cell.dataset.sort = String(status.imagesOk + status.videosOk);
+    // Results stream in one product at a time; re-sort (debounced) each time
+    // one lands so a column sorted early doesn't stay stuck using values from
+    // before the check finished.
+    scheduleTableResort("products-tbody");
   });
 }
 
 function renderMediaCountCell(cell, status){
-  const { imagesTotal, imagesOk, videosTotal, videosOk } = status;
+  const { imagesTotal, imagesOk, videosTotal, videosOk, brokenImages, brokenVideos } = status;
   const parts=[];
   if(imagesTotal>0){
     const bad = imagesOk<imagesTotal;
-    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${imagesOk} of ${imagesTotal} images load">🖼 ${imagesOk}/${imagesTotal}</span>`);
+    const title = bad ? `Broken: ${(brokenImages||[]).join(", ")}` : `${imagesOk} of ${imagesTotal} images load`;
+    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${esc(title)}">🖼 ${imagesOk}/${imagesTotal}</span>`);
   }
   if(videosTotal>0){
     const bad = videosOk<videosTotal;
-    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${videosOk} of ${videosTotal} videos load">🎬 ${videosOk}/${videosTotal}</span>`);
+    const title = bad ? `Broken: ${(brokenVideos||[]).join(", ")}` : `${videosOk} of ${videosTotal} videos load`;
+    parts.push(`<span style="${bad?'color:var(--danger);font-weight:600':''}" title="${esc(title)}">🎬 ${videosOk}/${videosTotal}</span>`);
   }
   cell.innerHTML = parts.length ? parts.join(" &nbsp; ") : `<span style="color:var(--text-muted)">---</span>`;
 }
@@ -2862,6 +2883,11 @@ function nudgeTableResort(tbodyId){
   const marker = document.createComment("resort");
   tbody.appendChild(marker);
   tbody.removeChild(marker);
+}
+const resortDebounceTimers = {};
+function scheduleTableResort(tbodyId){
+  clearTimeout(resortDebounceTimers[tbodyId]);
+  resortDebounceTimers[tbodyId] = setTimeout(()=>nudgeTableResort(tbodyId), 200);
 }
 
 function renderProductsTable(products){
@@ -2879,9 +2905,13 @@ function renderProductsTable(products){
     const details = [metalLabel, stoneLabel].filter(Boolean).join(" / ");
     const price=p.price?`${p.currency||"INR"} ${Number(p.price).toLocaleString()}`:"---";
     const badge=p.is_active?`<span class="badge badge-active">Active</span>`:`<span class="badge badge-inactive">Hidden</span>`;
-    return `<tr><td class="product-thumb-cell">${img}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td><td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    // data-sort="-1" so the Media column parses as numeric from the very first
+    // render (unchecked products briefly sort as "less than zero" until their
+    // real count lands) instead of flipping between numeric and alphabetic
+    // sort depending on whether checks have finished yet.
+    return `<tr><td class="product-thumb-cell">${img}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}" data-sort="-1">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td><td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
-  Promise.all(products.map(p=>updateMediaCountCell(p))).then(()=>nudgeTableResort("products-tbody"));
+  products.forEach(p=>updateMediaCountCell(p));
 }
 
 // ── PRODUCT MODAL STATE ───────────────────────────────────────────────────
@@ -3946,11 +3976,23 @@ async function exportProductsXlsx(){
     if(st.videosTotal>0) parts.push(`${st.videosOk}/${st.videosTotal} videos`);
     return parts.join(", ");
   };
+  // Names the specific image/video file(s) that failed to load, so a "4/5
+  // images" row doesn't just say something's missing — it says which one.
+  const getMissingMedia = (p) => {
+    const st = productMediaStatus.get(p.id);
+    if(!st) return "";
+    if(!st.imagesTotal && !st.videosTotal) return "No media uploaded";
+    const missing = [...(st.brokenImages||[]), ...(st.brokenVideos||[])];
+    return missing.join(", ");
+  };
 
   // Local copies of the shared header/notes so the bulk-upload template (which
   // uses the same PRODUCT_SHEET_HEADERS/NOTES constants) isn't affected.
-  const EXPORT_HEADERS = [...PRODUCT_SHEET_HEADERS, "media_status"];
-  const EXPORT_NOTES   = [...PRODUCT_SHEET_NOTES, "Working/total images (and videos), as last checked in the Products tab"];
+  const EXPORT_HEADERS = [...PRODUCT_SHEET_HEADERS, "media_status", "missing_media"];
+  const EXPORT_NOTES   = [...PRODUCT_SHEET_NOTES,
+    "Working/total images (and videos), as last checked in the Products tab",
+    "Filename/label of each image or video that failed to load (blank = everything loads)"
+  ];
 
   // ── Sheet 1: Products ────────────────────────────────────────────────
   const productRows = allProducts.map(p => {
@@ -3975,12 +4017,12 @@ async function exportProductsXlsx(){
       getImgBySuffix(p,"Spot")  || (sku?cld("Spot"):""),
       getVideo(p),
       p.sort_order||0, p.is_active!==false?"true":"false",
-      getMediaStatus(p)
+      getMediaStatus(p), getMissingMedia(p)
     ];
   });
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([EXPORT_HEADERS, EXPORT_NOTES, ...productRows]);
-  ws["!cols"] = EXPORT_HEADERS.map(h=>({wch: h.includes("description")||h.includes("url")||h.includes("categories") ? 48 : h.includes("name")||h.includes("tags") ? 28 : h==="media_status" ? 20 : 16}));
+  ws["!cols"] = EXPORT_HEADERS.map(h=>({wch: h.includes("description")||h.includes("url")||h.includes("categories")||h==="missing_media" ? 48 : h.includes("name")||h.includes("tags") ? 28 : h==="media_status" ? 20 : 16}));
   ws["!freeze"] = {xSplit:0, ySplit:2};
   XLSX.utils.book_append_sheet(wb, ws, "Products");
 
