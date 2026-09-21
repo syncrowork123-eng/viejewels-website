@@ -410,7 +410,7 @@
                 <button type="button" class="pd-swatch" data-color="Rose">
                   <span class="pd-swatch-dot pd-swatch-rose"></span><span>Rose</span>
                 </button>
-                <button type="button" class="pd-swatch" data-color="">
+                <button type="button" class="pd-swatch" data-color="Multi-Tone">
                   <span class="pd-swatch-dot pd-swatch-multi"></span><span>Multi-Tone</span>
                 </button>
               </div>
@@ -599,10 +599,13 @@
 
       // ── Show/hide Multi-Tone swatch based on available product images ──
       // A multi-tone image is one whose URL base ends in "-multi" (case-insensitive),
-      // matching the same suffix convention used by METAL_COLOR_SUFFIXES in script.js
-      // (key "model showcase" / "spotlight view" are separate non-color keys there;
-      //  multi-tone uses the empty `data-color=""` swatch here).
-      const multiSwatch = wrap.querySelector('.pd-swatch[data-color=""]');
+      // matching the same suffix convention used by METAL_COLOR_SUFFIXES in script.js.
+      // "Multi-Tone" is now a real option value in the hidden select (script.js adds
+      // it alongside White/Yellow/Rose/Model Showcase/Spotlight View) — it used to be
+      // represented by the empty-string placeholder value, which made "Multi-Tone
+      // selected" indistinguishable from "nothing selected" and silently broke both
+      // the image swap and the Add-to-Enquiry validation for multi-tone products.
+      const multiSwatch = wrap.querySelector('.pd-swatch[data-color="Multi-Tone"]');
       if (multiSwatch) {
         const media = (product?.product_media || []);
         const hasMulti = media.some(m => {
@@ -623,8 +626,14 @@
       };
       wrap.querySelectorAll('.pd-swatch').forEach(btn => {
         btn.addEventListener('click', () => {
-          if (hiddenSel.value === (btn.dataset.color || '')) return;
-          hiddenSel.value = btn.dataset.color || '';
+          if (btn.style.display === 'none') return; // e.g. Multi-Tone hidden for this product
+          const val = btn.dataset.color || '';
+          // Guard against selecting a color that isn't actually one of the hidden
+          // select's options — previously an unmatched value would still get
+          // assigned, leaving hiddenSel.value in a state no option corresponds to.
+          if (val && ![...hiddenSel.options].some(o => o.value === val)) return;
+          if (hiddenSel.value === val) return;
+          hiddenSel.value = val;
           hiddenSel.dispatchEvent(new Event('change'));
           sync();
         });
