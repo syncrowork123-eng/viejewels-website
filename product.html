@@ -968,7 +968,13 @@
         .map((p) => {
           const media = (p.product_media || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
           const primary = media.find((m) => m.is_primary) || media[0];
-          const imgUrl = primary ? cldImg(primary.url, 500) : PLACEHOLDER_IMG;
+          // Matching Sets cards show other real products in the catalog —
+          // their images are already requested at w_700 as regular
+          // product-card tiles (see productCardHtml in script.js). Reusing
+          // the same width here lets Cloudinary serve that already-generated
+          // derived asset instead of minting a brand-new w_500 variant,
+          // which costs a transformation credit the first time anyone views it.
+          const imgUrl = primary ? cldImg(primary.url, 700) : PLACEHOLDER_IMG;
           const priceText = fmtPrice(p);
           const priceLine = priceText === 'Price on request' ? '' : `<div class="pd-set-card-price">${esc(priceText)}</div>`;
           return `<a class="pd-set-card" href="product.html?id=${encodeURIComponent(p.id)}">
