@@ -342,6 +342,10 @@
         <select class="filter-select" id="category-filter" onchange="filterProducts()"><option value="">All categories</option></select>
       </div>
       <div style="display:flex;gap:8px;">
+        <select class="filter-select" id="media-provider-select" onchange="setActiveMediaProvider(this.value)" title="Which host new auto-generated SKU images point to">
+          <option value="cloudinary">Cloudinary</option>
+          <option value="imagekit">ImageKit</option>
+        </select>
         <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products with no working image (missing or all broken)">📷 No Images Only</button>
         <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
         <button class="btn btn-secondary" id="export-products-btn" onclick="exportProductsXlsx()">⬇ Export Products</button>
@@ -2190,6 +2194,7 @@ document.querySelectorAll(".sub-tab-btn").forEach(btn=>{
 });
 
 async function init(){
+  sv("media-provider-select", activeMediaProvider);
   await Promise.all([loadCategories(),loadMasters(),loadJewelCats(),loadRingSizes(),loadBangleSizes(),loadSizeBasis(),loadSiteSettings()]);
   await Promise.all([loadProducts(), loadEnquiries()]);
 }
@@ -3951,7 +3956,7 @@ async function exportProductsXlsx(){
   try { await Promise.all(allProducts.map(ensureProductMediaChecked)); }
   finally { if(btn){ btn.disabled = false; btn.textContent = btn.dataset.origText; } }
 
-  const CLOUD = "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/";
+  const CLOUD = CLOUD_BASE();
 
   const getPrimaryImg = (p) => {
     const media = (p.product_media||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
@@ -4231,7 +4236,16 @@ function resolveJewelCatId(jewel_type,sub1,sub2){
   );
 }
 
-const CLOUD_BASE = "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/";
+const CLOUD_PROVIDERS = {
+  cloudinary: { label: "Cloudinary", base: "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/" },
+  imagekit:   { label: "ImageKit",   base: "https://ik.imagekit.io/fr43kcknv/viejewels/products/" }
+};
+let activeMediaProvider = localStorage.getItem("vj_media_provider") || "cloudinary";
+function setActiveMediaProvider(p){
+  activeMediaProvider = p;
+  try{ localStorage.setItem("vj_media_provider", p); }catch(e){}
+}
+function CLOUD_BASE(){ return CLOUD_PROVIDERS[activeMediaProvider].base; }
 const IMG_SUFFIXES = ["W","Y","R","Model","Spot"];
 
 // .../upload/v1789787133/... -> .../upload/...
@@ -4251,7 +4265,7 @@ function mediaRowSuffix(r){
   return hit || stdSuffixOfUrl(r.url);
 }
 function stdImageUrl(sku, suffix){
-  return CLOUD_BASE + encodeURIComponent(String(sku).trim()) + "-" + suffix + ".jpg";
+  return CLOUD_BASE() + encodeURIComponent(String(sku).trim()) + "-" + suffix + ".jpg";
 }
 // Standard rows (W, Y, R, Model, Spot) that `rows` doesn't have yet for this SKU.
 // No existence check on purpose: missing files show as broken so they can be fixed later.
