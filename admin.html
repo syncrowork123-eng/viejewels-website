@@ -2131,6 +2131,17 @@ const SUPABASE_URL = "https://efiajmmxlrvyppdwwfug.supabase.co";
 const SUPABASE_KEY = "sb_publishable_-VEloc-EI4CfRx4K9_si3g_E7QDIpfk";
 const ADMIN_PASSWORD = "viejewels2024";
 
+const CLOUD_PROVIDERS = {
+  cloudinary: { label: "Cloudinary", base: "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/" },
+  imagekit:   { label: "ImageKit",   base: "https://ik.imagekit.io/fr43kcknv/viejewels/products/" }
+};
+let activeMediaProvider = localStorage.getItem("vj_media_provider") || "cloudinary";
+function setActiveMediaProvider(p){
+  activeMediaProvider = p;
+  try{ localStorage.setItem("vj_media_provider", p); }catch(e){}
+}
+function CLOUD_BASE(){ return CLOUD_PROVIDERS[activeMediaProvider].base; }
+
 let allProducts=[], allCategories=[], allMetals=[], allStones=[], allDiamonds=[];
 let allLabour=[], allMargins=[], allSizes=[], allTags=[], allCurrencies=[], allSiteSettings=[], allEnquiries=[];
 let editingProductId=null, editingCategoryId=null, currentMasterType=null, editingMasterId=null;
@@ -4236,16 +4247,6 @@ function resolveJewelCatId(jewel_type,sub1,sub2){
   );
 }
 
-const CLOUD_PROVIDERS = {
-  cloudinary: { label: "Cloudinary", base: "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/" },
-  imagekit:   { label: "ImageKit",   base: "https://ik.imagekit.io/fr43kcknv/viejewels/products/" }
-};
-let activeMediaProvider = localStorage.getItem("vj_media_provider") || "cloudinary";
-function setActiveMediaProvider(p){
-  activeMediaProvider = p;
-  try{ localStorage.setItem("vj_media_provider", p); }catch(e){}
-}
-function CLOUD_BASE(){ return CLOUD_PROVIDERS[activeMediaProvider].base; }
 const IMG_SUFFIXES = ["W","Y","R","Model","Spot"];
 
 // .../upload/v1789787133/... -> .../upload/...
