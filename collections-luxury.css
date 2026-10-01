@@ -408,20 +408,21 @@ body.vj-collections .product-card:nth-child(6) { animation-delay: 0.22s; }
 }
 
 body.vj-collections .product-card-media {
-  /* Do not hardcode aspect-ratio here. A fixed ratio only fills the box
-     with zero gaps if every single image is that exact ratio — the live
-     grid shows that isn't the case yet (bars still show top/bottom on
-     every tile with a fixed 1920:1400 box, because current images don't
-     actually match it). Instead, let the box's height come from the
-     image itself so it always fills edge-to-edge, at the largest size
-     the 3-column grid allows, with nothing cropped and no gaps, no
-     matter what size any given source photo actually is.
-     IMPORTANT: styles.css sets an unscoped `.product-card-media { aspect-ratio: 1 / 1; }`.
-     Simply not mentioning aspect-ratio here does NOT cancel that — the
-     cascade resolves per property, so without this explicit override
-     the 1:1 ratio from styles.css silently wins and forces a square
-     box no matter what else is set below. This is the actual fix. */
+  /* Box height comes from the image itself (no fixed aspect ratio), so the
+     photo fills edge-to-edge with nothing cropped.
+     styles.css sets an unscoped `.product-card-media { aspect-ratio: 1 / 1; }`,
+     so aspect-ratio must be explicitly reset here.
+
+     FIX (images missing in gallery): styles.css most likely also positions
+     the <img> absolutely inside that square box. An absolutely-positioned
+     image adds NO height to its parent, so once the 1:1 ratio is removed the
+     box collapses to 0px and overflow:hidden clips the image completely.
+     The img rule below now forces position:static so it sizes the box.
+     min-height is a safety net: even if something else still collapses the
+     box (or the lazy image hasn't loaded yet), the tile keeps a visible area. */
   aspect-ratio: auto;
+  min-height: 240px;
+  height: auto;
   background: #ffffff;
   position: relative;
   display: flex;
@@ -430,9 +431,22 @@ body.vj-collections .product-card-media {
   overflow: hidden;
 }
 body.vj-collections .product-card-media img {
+  /* Undo any absolute/fixed positioning inherited from styles.css */
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none;
+  max-width: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
   width: 100% !important;
   height: auto !important;
-  display: block;
+  display: block !important;
   object-fit: contain !important;
   transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -443,11 +457,9 @@ body.vj-collections .product-card-body {
      read as one tile with two parts, not two separate floating pieces.
      No divider line needed — the tone shift alone does the job.
      Padding and type sizes below are intentionally tight so this panel
-     stays as small as it can while remaining readable — the photo
-     above it (already at its max intrinsic size) reads as the
-     dominant element of the tile as a result. min-height keeps every
-     panel the same floor height across the row, so tiles line up even
-     when a product is missing an optional field (sku, description). */
+     stays as small as it can while remaining readable. min-height keeps
+     every panel the same floor height across the row, so tiles line up
+     even when a product is missing an optional field (sku, description). */
   background: var(--vj-hair-soft);
   border-top: none;
   padding: 12px 14px 14px;
@@ -490,17 +502,13 @@ body.vj-collections .product-card-desc {
   /* Compact tiles read better with one line of description, not two. */
   -webkit-line-clamp: 1;
   /* The base stylesheet makes this flex:1 so it grows to fill leftover
-     card height (and pairs with price's margin-top:auto below) — that's
-     what was pushing price away from the description. Killing the grow
-     keeps the text block tight regardless of how tall the row is. */
+     card height — killing the grow keeps the text block tight. */
   flex: none;
   margin-bottom: 6px;
 }
 body.vj-collections .product-card-price {
-  /* No border-top / padding-top / margin-top:auto: those three together
-     drew the divider line and pushed price to the bottom of the card's
-     available height. Zeroing them out sits price directly under the
-     description instead. */
+  /* No border-top / padding-top / margin-top:auto: zeroing them sits the
+     price directly under the description. */
   border-top: none;
   padding-top: 0;
   margin-top: 0;
@@ -557,6 +565,6 @@ body.vj-collections .sort-btn:hover {
   background: var(--vj-hair-soft) !important;
 }
 
-/* .product-card itself now owns border-radius + overflow:hidden (see
+/* .product-card itself owns border-radius + overflow:hidden (see
    PRODUCT GRID section above) since the image and text zones are one
    bordered tile — no separate rounding needed on the media box. */
