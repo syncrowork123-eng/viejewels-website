@@ -2139,6 +2139,19 @@ let activeMediaProvider = localStorage.getItem("vj_media_provider") || "cloudina
 function setActiveMediaProvider(p){
   activeMediaProvider = p;
   try{ localStorage.setItem("vj_media_provider", p); }catch(e){}
+
+  // If the product editor is open, re-point its images to the chosen host
+  if(typeof productMediaRows !== "undefined" && productMediaRows.length){
+    const to = CLOUD_PROVIDERS[p].base;
+    productMediaRows.forEach(r=>{
+      for(const [k, prov] of Object.entries(CLOUD_PROVIDERS)){
+        if(k !== p && r.url && r.url.startsWith(prov.base)){
+          r.url = to + r.url.slice(prov.base.length);
+        }
+      }
+    });
+    renderProductMedia();
+  }
 }
 function CLOUD_BASE(){ return CLOUD_PROVIDERS[activeMediaProvider].base; }
 
@@ -3235,10 +3248,10 @@ function renderProductMedia(){
 
 // If an image URL ends in -W.jpg/.jpeg/.png/.webp, also returns its -Y, -R, -Model and -Spot siblings
 function expandImageVariants(url){
-  const m = url.match(/^(.*)-W(\.(?:jpe?g|png|webp))$/i);
+  const m = url.match(/^(.*)-W(\.(?:jpe?g|png|webp))(?:\?.*)?$/i);
   if(!m) return [{url, suffix:null}];
   const [, base, ext] = m;
-  return [{url, suffix:"W"}, ...["Y","R","Model","Spot"].map(s=>({url:`${base}-${s}${ext}`, suffix:s}))];
+  return [{url: base + "-W" + ext, suffix:"W"}, ...["Y","R","Model","Spot"].map(s=>({url:`${base}-${s}${ext}`, suffix:s}))];
 }
 
 function addProductMedia(){
@@ -3276,11 +3289,24 @@ function addProductMedia(){
   else if(replaced===1) toast("Image URL updated.");
 }
 
-// Edit a media row's URL in place (used to fix broken images)
+// Edit a media row's URL in place (used to fix broken images).
+// If the new URL ends in -W, the Y / R / Model / Spot siblings are filled in too.
 function updateProductMediaUrl(i,val){
   const r=productMediaRows[i]; if(!r) return;
-  r.url = stripCloudVersion(String(val||"").trim());
+  const url = stripCloudVersion(String(val||"").trim());
+  r.url = url;
   r._auto = false;
+  if(r.media_type !== "video"){
+    expandImageVariants(url).forEach(it=>{
+      if(!it.suffix || it.url === url) return;
+      const existing = productMediaRows.find(x=>x!==r && mediaRowSuffix(x)===it.suffix);
+      if(existing){
+        if(existing._auto) existing.url = it.url;   // only replace untouched auto rows
+      } else {
+        productMediaRows.push({url:it.url, media_type:"image", alt_text:it.suffix, is_primary:false, _auto:false});
+      }
+    });
+  }
   renderProductMedia();
 }
 
@@ -4249,8 +4275,14 @@ function resolveJewelCatId(jewel_type,sub1,sub2){
 
 const IMG_SUFFIXES = ["W","Y","R","Model","Spot"];
 
-// .../upload/v1789787133/... -> .../upload/...
-function stripCloudVersion(u){ return String(u||"").replace(/\/upload\/v\d+\//, "/upload/"); }
+// Cloudinary: .../upload/v1789787133/... -> .../upload/...
+// ImageKit:   ...-W.jpg?updatedAt=123    -> ...-W.jpg
+function stripCloudVersion(u){
+  let s = String(u||"").trim();
+  s = s.replace(/\/upload\/v\d+\//, "/upload/");
+  if(s.includes("ik.imagekit.io")) s = s.split("?")[0];
+  return s;
+}
 
 // Which standard slot (W/Y/R/Model/Spot) a URL belongs to, based on the file name
 function stdSuffixOfUrl(url){
