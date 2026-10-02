@@ -30,7 +30,7 @@ function cldImg(url, width) {
   if (url.includes("ik.imagekit.io")) {
     if (url.includes("tr=") || url.includes("/tr:")) return url; // already transformed
     const sep = url.includes("?") ? "&" : "?";
-    return `${url}${sep}tr=w-${width},q-90,c-at_max`;
+    return `${url}${sep}tr=w-${width},q-90,c-at_max,f-auto`;
   }
 
   // Cloudinary (legacy)
