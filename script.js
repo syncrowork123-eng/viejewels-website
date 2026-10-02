@@ -25,6 +25,15 @@ const PLACEHOLDER_IMG = "https://res.cloudinary.com/demo/image/upload/w_500,h_50
 // are returned untouched.
 function cldImg(url, width) {
   if (!url || typeof url !== "string") return url;
+
+  // ImageKit: resize via ?tr= (ImageKit auto-optimizes the format by default)
+  if (url.includes("ik.imagekit.io")) {
+    if (url.includes("tr=") || url.includes("/tr:")) return url; // already transformed
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}tr=w-${width},q-90,c-at_max`;
+  }
+
+  // Cloudinary (legacy)
   if (!url.includes("res.cloudinary.com") || !url.includes("/upload/")) return url;
   // Already run through this helper (or otherwise carries f_auto) — don't double-wrap
   if (url.includes("f_auto")) return url;
@@ -334,8 +343,10 @@ async function renderCategoryGrid() {
 
 // ── PRODUCT GRID ────────────────────────────────────────────────────────
 function productCardHtml(p) {
+  const orig = primaryImage(p);
+  const optimized = cldImg(orig, 700);
   return `<a class="product-card" href="product.html?id=${encodeURIComponent(p.id)}">
-    <div class="product-card-media"><img src="${esc(cldImg(primaryImage(p), 700))}" alt="${esc(p.name)}" loading="lazy" /></div>
+    <div class="product-card-media"><img src="${esc(optimized)}" data-orig="${esc(orig)}" alt="${esc(p.name)}" loading="lazy" onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src=this.dataset.orig;}else{this.onerror=null;this.src='${PLACEHOLDER_IMG}';}" /></div>
     <div class="product-card-body">
       <h3 class="product-card-name">${esc(p.name || "Untitled")}</h3>
       ${p.sku ? `<p class="product-card-sku">${esc(p.sku)}</p>` : ""}
