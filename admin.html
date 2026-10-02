@@ -922,7 +922,7 @@
       2. Fill in one product per row. Required: <code>name</code>. Slug is auto-generated from name if left blank.<br>
       3. For <code>jewel_type / jewel_sub1 / jewel_sub2</code> — use exact values from Jewelry Categories master.<br>
       4. For <code>stone_name</code>, <code>metal_type</code>, <code>diamond_quality</code>, <code>labour_category</code> — use exact names from Masters so IDs are resolved automatically.<br>
-      5. Images are automatic: every product gets <code>SKU-W.jpg</code>, <code>-Y</code>, <code>-R</code>, <code>-Model</code>, <code>-Spot</code> from the SKU. Leave the image columns blank; files not yet on Cloudinary show as broken in the product editor until fixed.<br>
+      5. Images are automatic: every product gets <code>SKU-W</code>, <code>-Y</code>, <code>-R</code>, <code>-Model</code>, <code>-Spot</code> from the SKU, in any format (jpg, jpeg, png, webp, bmp) — the format that actually exists on the host is detected automatically. Leave the image columns blank; files not yet uploaded show as broken in the product editor until fixed.<br>
       6. Save as <code>.xlsx</code>, drag onto zone below, preview, then click <strong>Import All</strong>.</p>
     </div>
     <div style="margin-bottom:20px"><button class="btn btn-secondary" onclick="downloadTemplate()">Download Template (.xlsx)</button></div>
@@ -3214,6 +3214,7 @@ function openProductModal(id=null){
   renderStoneDetailRows();
   renderSetChips();
   renderProductMedia();
+  smartResolveAutoRows();
   document.querySelectorAll(".tag-chip").forEach(chip=>chip.classList.toggle("selected",selectedTags.includes(parseInt(chip.dataset.tagId))));
   document.getElementById("product-modal").classList.add("open");
 }
@@ -3261,9 +3262,9 @@ function renderProductMedia(){
   }).join("");
 }
 
-// If an image URL ends in -W.jpg/.jpeg/.png/.webp, also returns its -Y, -R, -Model and -Spot siblings
+// If an image URL ends in -W.<ext> (jpg, jpeg, png, webp, bmp, gif...), also returns its -Y, -R, -Model and -Spot siblings
 function expandImageVariants(url){
-  const m = url.match(/^(.*)-W(\.(?:jpe?g|png|webp))(?:\?.*)?$/i);
+  const m = url.match(/^(.*)-W(\.(?:jpe?g|png|webp|bmp|gif|avif|tiff?))(?:\?.*)?$/i);
   if(!m) return [{url, suffix:null}];
   const [, base, ext] = m;
   return [{url: base + "-W" + ext, suffix:"W"}, ...["Y","R","Model","Spot"].map(s=>({url:`${base}-${s}${ext}`, suffix:s}))];
@@ -3284,7 +3285,7 @@ function addProductMedia(){
     if(existing){
       // Slot already there (e.g. a broken auto image): the pasted URL always fixes it;
       // derived siblings only replace untouched auto rows, never manual fixes.
-      if((isPasted || existing._auto) && existing.url!==it.url){ existing.url=it.url; existing._auto=false; replaced++; }
+      if((isPasted || existing._auto) && existing.url!==it.url){ existing.url=it.url; existing._auto=false; existing._probe=!isPasted; replaced++; }
       return;
     }
     if(productMediaRows.some(m=>m.url===it.url)) return; // skip duplicates
@@ -3293,13 +3294,15 @@ function addProductMedia(){
       url: it.url,
       media_type,
       alt_text: isPasted ? (alt_text || suffix || "") : (suffix || ""),
-      is_primary: isFirstImage
+      is_primary: isFirstImage,
+      _probe: !isPasted && media_type==="image"
     });
     added++;
   });
 
   sv("f-media-url",""); sv("f-media-alt",""); sv("f-media-type","image");
   renderProductMedia();
+  smartResolveAutoRows();
   if(added+replaced>1) toast(added+" added, "+replaced+" replaced.");
   else if(replaced===1) toast("Image URL updated.");
 }
@@ -3330,6 +3333,7 @@ function syncStdImagesFromSku(){
   productMediaRows = productMediaRows.filter(r=>!r._auto);
   productMediaRows = mergeStdImages(productMediaRows, gv("f-sku"));
   renderProductMedia();
+  smartResolveAutoRows();
 }
 
 function mediaImgBroken(el){
@@ -3370,7 +3374,9 @@ async function saveProduct(){
   if(!sku){ toast("SKU is required.","error"); return; }
   productMediaRows = mergeStdImages(productMediaRows, sku);
   const btn=document.getElementById("save-product-btn");
-  btn.disabled=true; btn.textContent="Saving...";
+  btn.disabled=true; btn.textContent="Checking images...";
+  await smartResolveAutoRows();
+  btn.textContent="Saving...";
 
   // Resolve final size: dropdown takes priority, fallback to custom text
   const sizeVal = gv("f-size") || gv("f-size-custom") || null;
@@ -4017,10 +4023,7 @@ async function exportProductsXlsx(){
   };
   const getImgBySuffix = (p, suffix) => {
     const media = (p.product_media||[]).filter(m=>m.media_type!=="video");
-    return media.find(m=>
-      (m.alt_text||"").toLowerCase().includes(suffix.toLowerCase()) ||
-      (m.url||"").toLowerCase().includes("-"+suffix.toLowerCase()+".jpg")
-    )?.url || "";
+    return media.find(m=>mediaRowSuffix(m)===suffix)?.url || "";
   };
   const getVideo   = (p) => (p.product_media||[]).find(m=>m.media_type==="video")?.url || "";
   const getTags    = (p) => (p.product_tags||[]).map(t=>t.tags?.name).filter(Boolean).join(", ");
@@ -4301,7 +4304,7 @@ function stripCloudVersion(u){
 
 // Which standard slot (W/Y/R/Model/Spot) a URL belongs to, based on the file name
 function stdSuffixOfUrl(url){
-  const m = String(url||"").match(/-(W|Y|R|Model|Spot)\.(?:jpe?g|png|webp)(?:\?.*)?$/i);
+  const m = String(url||"").match(/-(W|Y|R|Model|Spot)\.(?:jpe?g|png|webp|bmp|gif|avif|tiff?)(?:\?.*)?$/i);
   if(!m) return null;
   return IMG_SUFFIXES.find(s=>s.toLowerCase()===m[1].toLowerCase()) || null;
 }
@@ -4312,6 +4315,67 @@ function mediaRowSuffix(r){
   const hit = IMG_SUFFIXES.find(s=>s.toLowerCase()===a);
   return hit || stdSuffixOfUrl(r.url);
 }
+// ── FORMAT-AWARE IMAGE LOOKUP ────────────────────────────────────────────
+// SKU images may be uploaded as jpg, jpeg, png, webp, bmp... For each generated
+// image URL we try the URL as-is first, then the same file name with each of
+// these extensions, and keep the first one that actually loads. If none load,
+// the default URL stays and shows as broken so you can see what's missing.
+const STD_IMG_EXTS = ["jpg","jpeg","png","webp","bmp","gif","JPG","JPEG","PNG","BMP"];
+const _resolveFound = new Map();   // only successful lookups are cached
+
+function probeImage(url, ms=8000){
+  return new Promise(resolve=>{
+    const img = new Image();
+    let done = false;
+    const fin = ok => { if(done) return; done = true; img.onload = img.onerror = null; resolve(ok); };
+    img.onload = ()=>fin(true);
+    img.onerror = ()=>fin(false);
+    setTimeout(()=>fin(false), ms);
+    img.src = url;
+  });
+}
+
+async function resolveImageUrl(url){
+  url = String(url||"");
+  if(!url) return null;
+  if(_resolveFound.has(url)) return _resolveFound.get(url);
+  const m = url.match(/^(.*)\.([A-Za-z0-9]+)(\?.*)?$/);
+  const candidates = [url];
+  if(m){
+    const base = m[1], q = m[3]||"";
+    STD_IMG_EXTS.forEach(e=>{ const u = base+"."+e+q; if(!candidates.includes(u)) candidates.push(u); });
+  }
+  for(const u of candidates){
+    if(await probeImage(u)){ _resolveFound.set(url, u); return u; }
+  }
+  return null;
+}
+
+// Fixes the file extension of every auto-generated / just-derived image row
+// in the open product editor. Returns {found, missing}.
+let _smartToken = 0;
+async function smartResolveAutoRows(){
+  const token = ++_smartToken;
+  const targets = productMediaRows.filter(r=>(r._auto || r._probe) && r.media_type!=="video" && r.url);
+  if(!targets.length) return {found:0, missing:0};
+  const results = await Promise.all(targets.map(async r=>({r, url: await resolveImageUrl(r.url)})));
+  if(token !== _smartToken) return {found:0, missing:0, stale:true};
+  let found = 0, missing = 0;
+  results.forEach(({r, url})=>{
+    r._probe = false;
+    if(url){ found++; r.url = url; } else missing++;
+  });
+  renderProductMedia();
+  return {found, missing};
+}
+
+// Same as missingStdImages(), but each URL is pointed at the extension that really exists
+async function missingStdImagesSmart(rows, sku){
+  const missing = missingStdImages(rows, sku);
+  await Promise.all(missing.map(async r=>{ const u = await resolveImageUrl(r.url); if(u) r.url = u; }));
+  return missing;
+}
+
 // Which host (cloudinary / imagekit) a set of media rows already points to, or null
 function detectMediaHost(rows){
   for(const r of (rows||[])){
@@ -4326,7 +4390,7 @@ function detectMediaHost(rows){
 // (W, Y, R, Model, Spot) from its SKU on the chosen host. Other images and
 // videos are left untouched. Files not yet uploaded to that host show as
 // broken until fixed. Nothing is stored until you click Save Product.
-function applyProductMediaHost(p){
+async function applyProductMediaHost(p){
   if(!CLOUD_PROVIDERS[p]) return;
   const sku = gv("f-sku");
   if(!sku){
@@ -4355,7 +4419,10 @@ function applyProductMediaHost(p){
     (imgs.find(r=>mediaRowSuffix(r)==="W") || imgs[0]).is_primary = true;
   }
   renderProductMedia();
-  toast(CLOUD_PROVIDERS[p].label+": "+replaced+" image(s) re-linked"+(added?", "+added+" added":"")+". Click Save Product to keep.");
+  toast("Checking "+CLOUD_PROVIDERS[p].label+" for images (jpg, png, bmp...)…");
+  const res = await smartResolveAutoRows();
+  if(res.stale) return;
+  toast(CLOUD_PROVIDERS[p].label+": "+res.found+" image(s) found"+(res.missing?", "+res.missing+" not found (shown as broken)":"")+". Click Save Product to keep.", res.missing?"error":"success");
 }
 
 function stdImageUrl(sku, suffix){
@@ -4389,7 +4456,7 @@ async function applyStdImagesToAllProducts(){
   for(let i=0;i<withSku.length;i++){
     const p=withSku[i];
     const rows=p.product_media||[];
-    const missing=missingStdImages(rows,p.sku);
+    const missing=await missingStdImagesSmart(rows,p.sku);
     if(!missing.length) continue;
     const hasPrimary=rows.some(r=>r.media_type!=="video"&&r.is_primary);
     let order=rows.reduce((m,r)=>Math.max(m,r.sort_order||0),-1)+1;
@@ -4545,7 +4612,7 @@ async function importProducts(){
       if(sku){
         try{
           const have = await sb("product_media?product_id=eq."+pid+"&select=url,alt_text,media_type,is_primary,sort_order") || [];
-          const missing = missingStdImages(have, sku);
+          const missing = await missingStdImagesSmart(have, sku);
           if(missing.length){
             const hasPrimary = have.some(r=>r.media_type!=="video"&&r.is_primary);
             let order = have.reduce((m,r)=>Math.max(m,r.sort_order||0),-1)+1;
