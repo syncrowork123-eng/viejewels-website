@@ -1775,6 +1775,13 @@ document.getElementById('pe-iframe').addEventListener('load', () => {
       <!-- PHOTOS & VIDEO -->
       <div class="divider"></div>
       <p class="section-label">Photos &amp; Video <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— paste a hosted image/video URL (e.g. from Cloudinary) and add it</span></p>
+      <div class="form-group" style="margin-bottom:12px;max-width:380px">
+        <label>Image Host <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— choose where this product's images are stored; all 5 SKU images (W, Y, R, Model, Spot) are linked automatically</span></label>
+        <select id="f-media-host" class="filter-select" style="width:100%" onchange="applyProductMediaHost(this.value)">
+          <option value="cloudinary">Cloudinary</option>
+          <option value="imagekit">ImageKit</option>
+        </select>
+      </div>
       <div class="media-list" id="f-media-list"></div>
       <div class="media-add-row">
         <div class="form-group"><label>Image / Video URL</label><input type="text" id="f-media-url" placeholder="https://res.cloudinary.com/.../photo.jpg" /></div>
@@ -2139,6 +2146,8 @@ let activeMediaProvider = localStorage.getItem("vj_media_provider") || "cloudina
 function setActiveMediaProvider(p){
   activeMediaProvider = p;
   try{ localStorage.setItem("vj_media_provider", p); }catch(e){}
+  const hostSel = document.getElementById("f-media-host");
+  if(hostSel) hostSel.value = p;
 
   // If the product editor is open, re-point its images to the chosen host
   if(typeof productMediaRows !== "undefined" && productMediaRows.length){
@@ -3184,6 +3193,10 @@ function openProductModal(id=null){
     // Photos / video
     productMediaRows=(p.product_media||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))
       .map(m=>({url:m.url||'',media_type:m.media_type||'image',is_primary:!!m.is_primary,alt_text:m.alt_text||''}));
+    // Use the host this product's images already point to, so any missing standard
+    // images are generated on the same host instead of mixing Cloudinary and ImageKit
+    const detectedHost = detectMediaHost(productMediaRows);
+    if(detectedHost) activeMediaProvider = detectedHost;
     // Always show the 5 standard SKU images (W, Y, R, Model, Spot) — missing files appear as broken until fixed
     productMediaRows = mergeStdImages(productMediaRows, p.sku);
   } else {
@@ -3195,6 +3208,8 @@ function openProductModal(id=null){
   }
 
   sv("f-media-url",""); sv("f-media-alt",""); sv("f-media-type","image");
+  sv("f-media-host", activeMediaProvider);
+  sv("media-provider-select", activeMediaProvider);
   renderProductJewelCats();
   renderStoneDetailRows();
   renderSetChips();
@@ -4297,6 +4312,52 @@ function mediaRowSuffix(r){
   const hit = IMG_SUFFIXES.find(s=>s.toLowerCase()===a);
   return hit || stdSuffixOfUrl(r.url);
 }
+// Which host (cloudinary / imagekit) a set of media rows already points to, or null
+function detectMediaHost(rows){
+  for(const r of (rows||[])){
+    for(const [key, prov] of Object.entries(CLOUD_PROVIDERS)){
+      if(r.url && String(r.url).startsWith(prov.base)) return key;
+    }
+  }
+  return null;
+}
+
+// Product modal dropdown: rebuild this product's 5 standard images
+// (W, Y, R, Model, Spot) from its SKU on the chosen host. Other images and
+// videos are left untouched. Files not yet uploaded to that host show as
+// broken until fixed. Nothing is stored until you click Save Product.
+function applyProductMediaHost(p){
+  if(!CLOUD_PROVIDERS[p]) return;
+  const sku = gv("f-sku");
+  if(!sku){
+    toast("Enter the SKU first.","error");
+    sv("f-media-host", activeMediaProvider);
+    return;
+  }
+  activeMediaProvider = p;
+  try{ localStorage.setItem("vj_media_provider", p); }catch(e){}
+  sv("media-provider-select", p);
+
+  let replaced = 0, added = 0;
+  IMG_SUFFIXES.forEach(s=>{
+    const url = stdImageUrl(sku, s);
+    const row = productMediaRows.find(r=>mediaRowSuffix(r)===s);
+    if(row){
+      if(row.url !== url){ row.url = url; replaced++; }
+      row._auto = true;
+    } else {
+      productMediaRows.push({url, media_type:"image", alt_text:s, is_primary:false, _auto:true});
+      added++;
+    }
+  });
+  const imgs = productMediaRows.filter(r=>r.media_type!=="video");
+  if(imgs.length && !imgs.some(r=>r.is_primary)){
+    (imgs.find(r=>mediaRowSuffix(r)==="W") || imgs[0]).is_primary = true;
+  }
+  renderProductMedia();
+  toast(CLOUD_PROVIDERS[p].label+": "+replaced+" image(s) re-linked"+(added?", "+added+" added":"")+". Click Save Product to keep.");
+}
+
 function stdImageUrl(sku, suffix){
   return CLOUD_BASE() + encodeURIComponent(String(sku).trim()) + "-" + suffix + ".jpg";
 }
