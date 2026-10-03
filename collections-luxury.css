@@ -661,3 +661,50 @@ body.vj-collections .load-more-btn span {
   opacity: 0.7;
 }
 body.vj-collections .load-more-btn:hover { background: var(--vj-ink); color: #fff; }
+
+
+/* ---------------------------------------------------------------
+   BACK TO TOP ARROW
+--------------------------------------------------------------- */
+body.vj-collections .back-to-top {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 90;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--vj-surface);
+  color: var(--vj-ink);
+  border: 1px solid var(--vj-hair-strong);
+  border-radius: 50% !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s, background 0.2s, color 0.2s;
+}
+body.vj-collections .back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+body.vj-collections .back-to-top:hover {
+  background: var(--vj-ink);
+  color: #fff;
+  border-color: var(--vj-ink);
+}
+body.vj-collections .back-to-top svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+@media (max-width: 560px) {
+  body.vj-collections .back-to-top { right: 16px; bottom: 16px; width: 42px; height: 42px; }
+}
