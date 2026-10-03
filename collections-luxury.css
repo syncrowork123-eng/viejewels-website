@@ -568,3 +568,96 @@ body.vj-collections .sort-btn:hover {
 /* .product-card itself owns border-radius + overflow:hidden (see
    PRODUCT GRID section above) since the image and text zones are one
    bordered tile — no separate rounding needed on the media box. */
+
+
+/* ---------------------------------------------------------------
+   PAGINATION — page size, page numbers, Load more
+--------------------------------------------------------------- */
+body.vj-collections .page-size-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+body.vj-collections .page-size-select {
+  border: none;
+  border-bottom: 1px solid var(--vj-hair-strong);
+  background-color: transparent;
+  font-family: var(--vj-sans);
+  font-size: 12px;
+  color: var(--vj-ink);
+  padding: 4px 4px 4px 2px;
+  cursor: pointer;
+  outline: none;
+}
+body.vj-collections .page-size-select:focus { border-bottom-color: var(--vj-ink); }
+
+body.vj-collections .catalog-pager {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin-top: 44px;
+}
+body.vj-collections .catalog-pager:empty { display: none; }
+body.vj-collections .pager-status {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vj-ink-faint);
+}
+body.vj-collections .pager-pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+body.vj-collections .pager-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vj-ink-faint);
+  margin: 0 6px;
+}
+body.vj-collections .pager-gap { color: var(--vj-ink-faint); padding: 0 2px; }
+body.vj-collections .pager-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--vj-hair-strong);
+  background: transparent;
+  color: var(--vj-ink-soft);
+  font-family: var(--vj-sans);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 999px !important;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+body.vj-collections .pager-btn:hover { border-color: var(--vj-ink); color: var(--vj-ink); }
+body.vj-collections .pager-btn.active {
+  background: var(--vj-ink);
+  border-color: var(--vj-ink);
+  color: #fff;
+}
+body.vj-collections .load-more-btn {
+  padding: 14px 40px;
+  border: 1px solid var(--vj-ink);
+  background: transparent;
+  color: var(--vj-ink);
+  font-family: var(--vj-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 999px !important;
+  transition: background 0.25s, color 0.25s;
+}
+body.vj-collections .load-more-btn span {
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  opacity: 0.7;
+}
+body.vj-collections .load-more-btn:hover { background: var(--vj-ink); color: #fff; }
