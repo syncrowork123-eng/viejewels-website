@@ -345,7 +345,7 @@ async function renderCategoryGrid() {
 function productCardHtml(p) {
   const orig = primaryImage(p);
   const optimized = cldImg(orig, 700);
-  return `<a class="product-card" href="product.html?id=${encodeURIComponent(p.id)}">
+  return `<a class="product-card" data-pid="${esc(p.id)}" href="product.html?id=${encodeURIComponent(p.id)}">
     <div class="product-card-media"><img src="${esc(optimized)}" data-orig="${esc(orig)}" alt="${esc(p.name)}" loading="lazy" onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src=this.dataset.orig;}else{this.onerror=null;this.src='${PLACEHOLDER_IMG}';}" /></div>
     <div class="product-card-body">
       <h3 class="product-card-name">${esc(p.name || "Untitled")}</h3>
@@ -428,6 +428,9 @@ function parseMetal(p) {
 async function renderProductGrid() {
   const el = document.querySelector("[data-product-grid]");
   if (!el) return;
+  // The grid is filled in after products load, so the browser's own scroll
+  // restoration fires too early (page still short). We restore it ourselves.
+  if (_isPaged()) { try { history.scrollRestoration = "manual"; } catch (e) {} }
   await loadPricingMasters(); // needed for live price computation on tiles
   const products = await getAllProducts();
   _allProductsCache = products;
@@ -435,6 +438,8 @@ async function renderProductGrid() {
   _currentCategorySlug = params.get("category");
   _currentJewelCat = params.get("jewelcat");
   if (_currentJewelCat) _checkedJewelCats.add(_currentJewelCat);
+  const _restoredState = _isPaged() ? loadCollectionsState() : null;
+  applyRestoredFilters(_restoredState);
 
   // Build jewel category sidebar tree (only on pages that have the sidebar)
   const sidebarEl = document.querySelector("[data-jewelcat-filters]");
@@ -687,6 +692,8 @@ async function renderProductGrid() {
       applyFilters();
     });
   });
+
+  finishCollectionsRestore(_restoredState);
 }
 
 // ── SHARED TOP FILTER BAR ────────────────────────────────────────────────
@@ -949,6 +956,7 @@ function updateProductsHeading() {
 }
 
 function applyFilters() {
+  if (_suppressApply) return;
   updateProductsHeading();
   const products = _allProductsCache || [];
   const term = (document.querySelector("[data-product-search]")?.value || "").toLowerCase().trim();
@@ -1078,6 +1086,165 @@ function applyFilters() {
   }
 
   applyProductList(list);
+}
+
+// ── REMEMBER PAGE STATE ACROSS REFRESH ───────────────────────────────────
+// On refresh (or Back), the collections page returns to the same filters,
+// sort, search, loaded pages and scroll position. Stored per tab in
+// sessionStorage; a normal visit (clicking a link) always starts fresh.
+const _STATE_KEY = "vj_collections_state";
+let _suppressApply = false;
+let _stateReady = false;
+let _stateSaveWired = false;
+
+function _navigationType() {
+  try {
+    const nav = performance.getEntriesByType("navigation")[0];
+    return nav ? nav.type : "navigate";
+  } catch (e) { return "navigate"; }
+}
+
+function collectCollectionsState() {
+  const val = (sel) => document.querySelector(sel)?.value ?? "";
+  let anchor = null;
+  for (const c of document.querySelectorAll("[data-product-grid] .product-card")) {
+    const r = c.getBoundingClientRect();
+    if (r.bottom > 0 && r.top < window.innerHeight) { anchor = { pid: c.dataset.pid, offset: r.top }; break; }
+  }
+  return {
+    v: 1,
+    search: location.search,
+    cats: [..._checkedJewelCats],
+    subs: [..._checkedJewelSubCats],
+    subs2: [..._checkedJewelSubCats2],
+    tags: [..._selectedTags],
+    sort: _currentSort,
+    q: val("[data-product-search]"),
+    ranges: {
+      priceMin: val("[data-price-min]"), priceMax: val("[data-price-max]"),
+      weightMin: val("[data-weight-min]"), weightMax: val("[data-weight-max]"),
+      diamondMin: val("[data-diamond-min]"), diamondMax: val("[data-diamond-max]"),
+    },
+    selects: {
+      metalType: val("[data-filter-metal-type]"),
+      metalQuality: val("[data-filter-metal-quality]"),
+      metalColor: val("[data-filter-metal-color]"),
+      stoneType: val("[data-filter-stone-type]"),
+      diamondColor: val("[data-filter-diamond-color]"),
+      diamondQuality: val("[data-filter-diamond-quality]"),
+      currency: val("[data-filter-currency]"),
+    },
+    pageStart: _pageStart,
+    pageEnd: _pageEnd,
+    y: window.scrollY,
+    anchor,
+  };
+}
+
+function saveCollectionsState() {
+  if (!_stateReady) return; // never overwrite a good state while the page is still loading
+  try { sessionStorage.setItem(_STATE_KEY, JSON.stringify(collectCollectionsState())); } catch (e) {}
+}
+
+function loadCollectionsState() {
+  const type = _navigationType();
+  if (type !== "reload" && type !== "back_forward") return null;
+  try {
+    const st = JSON.parse(sessionStorage.getItem(_STATE_KEY) || "null");
+    return st && st.v === 1 && st.search === location.search ? st : null;
+  } catch (e) { return null; }
+}
+
+// Step 1 (before the sidebar is built): put filters / sort / search back
+function applyRestoredFilters(st) {
+  if (!st) return;
+  _suppressApply = true;
+  try {
+    (st.cats || []).forEach((c) => _checkedJewelCats.add(c));
+    (st.subs || []).forEach((c) => _checkedJewelSubCats.add(c));
+    (st.subs2 || []).forEach((c) => _checkedJewelSubCats2.add(c));
+    (st.tags || []).forEach((t) => _selectedTags.add(t));
+
+    if (st.sort) {
+      _currentSort = st.sort;
+      document.querySelectorAll("[data-sort]").forEach((b) => b.classList.toggle("active", b.dataset.sort === _currentSort));
+    }
+    const setVal = (sel, v) => { const el = document.querySelector(sel); if (el) el.value = v ?? ""; };
+    setVal("[data-product-search]", st.q);
+    const r = st.ranges || {};
+    setVal("[data-price-min]", r.priceMin); setVal("[data-price-max]", r.priceMax);
+    setVal("[data-weight-min]", r.weightMin); setVal("[data-weight-max]", r.weightMax);
+    setVal("[data-diamond-min]", r.diamondMin); setVal("[data-diamond-max]", r.diamondMax);
+
+    // Top-bar dropdowns, in dependency order (type → quality, color → quality).
+    // Firing "change" runs the page's own handlers so prices / images follow.
+    const sels = st.selects || {};
+    [
+      ["[data-filter-metal-type]", sels.metalType],
+      ["[data-filter-metal-quality]", sels.metalQuality],
+      ["[data-filter-metal-color]", sels.metalColor],
+      ["[data-filter-stone-type]", sels.stoneType],
+      ["[data-filter-diamond-color]", sels.diamondColor],
+      ["[data-filter-diamond-quality]", sels.diamondQuality],
+      ["[data-filter-currency]", sels.currency],
+    ].forEach(([sel, v]) => {
+      const el = document.querySelector(sel);
+      if (!el || v == null || el.value === v) return;
+      el.value = v;
+      el.dispatchEvent(new Event("change"));
+    });
+  } finally {
+    _suppressApply = false;
+  }
+}
+
+// Step 2 (after the first render): put loaded pages and scroll position back
+function finishCollectionsRestore(st) {
+  if (!_isPaged()) return;
+  if (st) {
+    _pageStart = st.pageStart || 1;
+    _pageEnd = st.pageEnd || _pageStart;
+    renderProductPage();
+    restoreCollectionsScroll(st);
+  }
+  _stateReady = true;
+  if (_stateSaveWired) return;
+  _stateSaveWired = true;
+  window.addEventListener("pagehide", saveCollectionsState);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveCollectionsState(); });
+  let t = null;
+  window.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(saveCollectionsState, 200); }, { passive: true });
+}
+
+// Product photos load in after the cards exist, which shifts the layout.
+// Re-align to the remembered card as each image loads, until the visitor
+// scrolls themselves (or 4 seconds pass).
+function restoreCollectionsScroll(st) {
+  const place = () => {
+    const pid = st.anchor && st.anchor.pid;
+    if (pid) {
+      const el = document.querySelector(`[data-product-grid] [data-pid="${CSS.escape(String(pid))}"]`);
+      if (el) {
+        window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - st.anchor.offset);
+        return;
+      }
+    }
+    window.scrollTo(0, st.y || 0);
+  };
+  place();
+
+  const grid = document.querySelector("[data-product-grid]");
+  let active = true;
+  const onLoad = () => { if (active) place(); };
+  const events = ["wheel", "touchstart", "keydown", "mousedown"];
+  const stop = () => {
+    active = false;
+    if (grid) grid.removeEventListener("load", onLoad, true);
+    events.forEach((ev) => window.removeEventListener(ev, stop));
+  };
+  if (grid) grid.addEventListener("load", onLoad, true); // "load" doesn't bubble, so capture
+  events.forEach((ev) => window.addEventListener(ev, stop, { passive: true }));
+  setTimeout(stop, 4000);
 }
 
 // ── PAGINATION (collections page) ───────────────────────────────────────
