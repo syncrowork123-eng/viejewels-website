@@ -135,6 +135,15 @@
                 <button class="sort-btn" data-sort="price-asc" type="button">Price &uarr;</button>
                 <button class="sort-btn" data-sort="price-desc" type="button">Price &darr;</button>
               </div>
+              <div class="page-size-group">
+                <span class="sort-label">Show</span>
+                <select class="page-size-select" data-page-size aria-label="Products per page">
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -146,6 +155,8 @@
         <div class="product-grid" data-product-grid>
           <p style="padding:48px;color:var(--text-light);font-size:13px">Loading products&hellip;</p>
         </div>
+
+        <div class="catalog-pager" data-pagination></div>
       </div>
     </section>
   </main>
