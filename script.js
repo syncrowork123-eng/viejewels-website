@@ -2322,6 +2322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderCartPage();
   initHeroCarousel();
   initHeaderScrollState();
+  initBackToTop();
 });
 
 // Blocks the browser's "Save Image As" / "Copy Image" right-click menu on
@@ -2381,6 +2382,20 @@ function initHeroCarousel() {
 
   playVideo(slides[current]);
   start();
+}
+
+// ── BACK TO TOP ARROW (collections page) ─────────────────────────────────
+// Appears after scrolling down; clicking it scrolls smoothly back to the top.
+function initBackToTop() {
+  const btn = document.querySelector("[data-back-to-top]");
+  if (!btn) return;
+  const update = () => btn.classList.toggle("visible", window.scrollY > 400);
+  window.addEventListener("scroll", update, { passive: true });
+  update();
+  btn.addEventListener("click", () => {
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  });
 }
 
 // ── OVERLAY HEADER: transparent over hero, solid after scrolling past it ──
