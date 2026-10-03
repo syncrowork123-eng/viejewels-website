@@ -670,6 +670,7 @@ async function renderProductGrid() {
     });
   }
 
+  initPagination();
   applyFilters();
 
   const search = document.querySelector("[data-product-search]");
@@ -1079,15 +1080,153 @@ function applyFilters() {
   applyProductList(list);
 }
 
+// ── PAGINATION (collections page) ───────────────────────────────────────
+// Page size (25 / 50 / 100 / All), clickable page numbers, and a "Load more"
+// button that appends the next set. Only active on pages that have a
+// [data-page-size] selector; other pages (e.g. the home page) are unchanged.
+let _filteredList = [];
+let _pageSize = 25;
+try {
+  const savedSize = localStorage.getItem("vj_page_size");
+  if (savedSize === "all") _pageSize = "all";
+  else if (["25", "50", "100"].includes(savedSize)) _pageSize = parseInt(savedSize, 10);
+} catch (e) {}
+let _pageStart = 1; // first page currently shown
+let _pageEnd = 1;   // last page currently shown (Load more increases this)
+
+const _isPaged = () => !!document.querySelector("[data-page-size]");
+const _effectivePageSize = (total) => (_pageSize === "all" ? Math.max(total, 1) : _pageSize);
+const _totalPages = (total) => Math.max(1, Math.ceil(total / _effectivePageSize(total)));
+
+function _pageList(pages) {
+  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
+  const set = new Set([1, pages]);
+  for (let p = _pageStart - 1; p <= _pageEnd + 1; p++) if (p >= 1 && p <= pages) set.add(p);
+  const arr = [...set].sort((a, b) => a - b);
+  const out = [];
+  arr.forEach((p, i) => {
+    if (i && p - arr[i - 1] > 1) out.push("…");
+    out.push(p);
+  });
+  return out;
+}
+
+function renderPager() {
+  const box = document.querySelector("[data-pagination]");
+  if (!box) return;
+  const total = _filteredList.length;
+  if (!total || !_isPaged()) { box.innerHTML = ""; return; }
+  const size = _effectivePageSize(total);
+  const pages = _totalPages(total);
+  const from = (_pageStart - 1) * size;
+  const to = Math.min(_pageEnd * size, total);
+
+  let html = `<p class="pager-status">Showing ${from + 1}–${to} of ${total} ${total === 1 ? "style" : "styles"}</p>`;
+  if (pages > 1) {
+    html += `<nav class="pager-pages" aria-label="Pages"><span class="pager-label">Page</span>` +
+      _pageList(pages).map((p) =>
+        p === "…"
+          ? `<span class="pager-gap">…</span>`
+          : `<button type="button" class="pager-btn${p >= _pageStart && p <= _pageEnd ? " active" : ""}" data-page="${p}"${p >= _pageStart && p <= _pageEnd ? ' aria-current="page"' : ""}>${p}</button>`
+      ).join("") +
+      `<span class="pager-label">of ${pages}</span></nav>`;
+    if (_pageEnd < pages) {
+      const next = Math.min(size, total - _pageEnd * size);
+      html += `<button type="button" class="load-more-btn" data-load-more>Load more <span>(${next} more)</span></button>`;
+    }
+  }
+  box.innerHTML = html;
+}
+
+function _updateCountText() {
+  const countEl = document.querySelector("[data-product-count]");
+  if (!countEl) return;
+  const total = _filteredList.length;
+  const size = _effectivePageSize(total);
+  const from = (_pageStart - 1) * size;
+  const to = Math.min(_pageEnd * size, total);
+  countEl.textContent = to - from < total
+    ? `${from + 1}–${to} of ${total} styles`
+    : total + (total === 1 ? " style" : " styles");
+}
+
+// Re-draws the grid for the current page range (used on first load and page jumps)
+function renderProductPage() {
+  const el = document.querySelector("[data-product-grid]");
+  if (!el) return;
+  const total = _filteredList.length;
+  const size = _effectivePageSize(total);
+  const pages = _totalPages(total);
+  _pageStart = Math.min(Math.max(1, _pageStart), pages);
+  _pageEnd = Math.min(Math.max(_pageStart, _pageEnd), pages);
+  const from = (_pageStart - 1) * size;
+  const to = Math.min(_pageEnd * size, total);
+  el.innerHTML = _filteredList.slice(from, to).map(productCardHtml).join("");
+  _updateCountText();
+  renderPager();
+}
+
+// "Load more": appends the next set under what's already shown
+function loadMoreProducts() {
+  const el = document.querySelector("[data-product-grid]");
+  const total = _filteredList.length;
+  const size = _effectivePageSize(total);
+  const pages = _totalPages(total);
+  if (!el || _pageEnd >= pages) return;
+  const from = _pageEnd * size;
+  _pageEnd++;
+  const to = Math.min(_pageEnd * size, total);
+  el.insertAdjacentHTML("beforeend", _filteredList.slice(from, to).map(productCardHtml).join(""));
+  _updateCountText();
+  renderPager();
+}
+
+function goToProductPage(p) {
+  _pageStart = _pageEnd = p;
+  renderProductPage();
+  const el = document.querySelector("[data-product-grid]");
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function initPagination() {
+  const sizeSel = document.querySelector("[data-page-size]");
+  if (sizeSel) {
+    sizeSel.value = String(_pageSize);
+    sizeSel.addEventListener("change", () => {
+      _pageSize = sizeSel.value === "all" ? "all" : parseInt(sizeSel.value, 10);
+      try { localStorage.setItem("vj_page_size", String(_pageSize)); } catch (e) {}
+      _pageStart = _pageEnd = 1;
+      renderProductPage();
+    });
+  }
+  const box = document.querySelector("[data-pagination]");
+  if (box) {
+    box.addEventListener("click", (e) => {
+      const pageBtn = e.target.closest("[data-page]");
+      if (pageBtn) { goToProductPage(parseInt(pageBtn.dataset.page, 10)); return; }
+      if (e.target.closest("[data-load-more]")) loadMoreProducts();
+    });
+  }
+}
+
 function applyProductList(list) {
   const el = document.querySelector("[data-product-grid]");
   const countEl = document.querySelector("[data-product-count]");
-  if (countEl) countEl.textContent = list.length + (list.length === 1 ? " style" : " styles");
+  _filteredList = list;
   if (!list.length) {
+    if (countEl) countEl.textContent = "0 styles";
     el.innerHTML = "<p>No products found.</p>";
+    renderPager();
     return;
   }
-  el.innerHTML = list.map(productCardHtml).join("");
+  if (!_isPaged()) {
+    if (countEl) countEl.textContent = list.length + (list.length === 1 ? " style" : " styles");
+    el.innerHTML = list.map(productCardHtml).join("");
+    return;
+  }
+  // Filters / sort / search changed → start again from page 1
+  _pageStart = _pageEnd = 1;
+  renderProductPage();
 }
 
 // ── SIZE SELECTOR ───────────────────────────────────────────────────────
