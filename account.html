@@ -285,6 +285,128 @@
     }
     .ac-empty a { text-decoration: underline; color: var(--text); }
 
+    /* ── ORDER TRACKING (member area) ─────────────────────────────── */
+    .ac-orders-section { margin-bottom: 44px; }
+
+    .ac-order-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .ac-order-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 20px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .ac-order-ref {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--text);
+    }
+    .ac-order-placed {
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* progress stepper */
+    .ac-steps { display: flex; padding: 24px 16px 6px; }
+    .ac-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      font-size: 9.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+    .ac-step::before {
+      content: "";
+      display: block;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: var(--border);
+      margin: 0 auto 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .ac-step::after {
+      content: "";
+      position: absolute;
+      top: 5px; left: -50%;
+      width: 100%; height: 2px;
+      background: var(--border);
+    }
+    .ac-step:first-child::after { display: none; }
+    .ac-step.done { color: var(--text-muted); }
+    .ac-step.done::before, .ac-step.done::after { background: var(--text); }
+    .ac-step.current { color: var(--text); font-weight: 600; }
+    .ac-step.current::before { background: var(--accent); box-shadow: 0 0 0 4px rgba(154, 123, 58, 0.2); }
+
+    .ac-order-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 18px 24px;
+      padding: 20px;
+    }
+    .ac-kv-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 5px;
+    }
+    .ac-kv-value { font-size: 13.5px; color: var(--text); line-height: 1.6; }
+    .ac-kv-value a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+    .ac-order-block { padding: 0 20px 20px; }
+    .ac-order-note {
+      background: var(--surface2);
+      border-left: 2px solid var(--accent);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+    .ac-order-docs a {
+      display: inline-block;
+      margin: 0 8px 6px 0;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      transition: border-color var(--transition);
+    }
+    .ac-order-docs a:hover { border-color: var(--text); }
+
+    .ac-timeline { list-style: none; border-left: 1px solid var(--border); margin-left: 5px; }
+    .ac-timeline li { position: relative; padding: 0 0 14px 18px; font-size: 13px; color: var(--text-muted); }
+    .ac-timeline li::before {
+      content: "";
+      position: absolute;
+      left: -4px; top: 6px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text);
+    }
+    .ac-timeline li b { color: var(--text); font-weight: 600; }
+    .ac-timeline li p { margin-top: 2px; line-height: 1.6; }
+    .ac-timeline li span { display: block; margin-top: 2px; font-size: 11px; color: var(--text-light); }
+
     @media (max-width: 860px) {
       .ac-dashboard.show { grid-template-columns: 1fr; }
       .ac-row {
@@ -295,6 +417,7 @@
       .ac-row-media { grid-area: media; width: 56px; height: 56px; }
       .ac-row-info { grid-area: info; }
       .ac-row-price { grid-area: price; text-align: left; }
+      .ac-step { font-size: 8px; letter-spacing: 0; }
     }
   </style>
 </head>
@@ -325,7 +448,7 @@
     <section class="page-hero">
       <p class="eyebrow">My Account</p>
       <h1 id="ac-hero-title">Your Account</h1>
-      <p id="ac-hero-sub">Sign in to view your profile and enquiry history.</p>
+      <p id="ac-hero-sub">Sign in to view your profile, orders and enquiry history.</p>
     </section>
 
     <div class="ac-page">
@@ -337,7 +460,7 @@
         <p class="eyebrow">Welcome</p>
         <h2>Sign in to your account</h2>
         <p>
-          Access your profile details and track the status of your enquiries.
+          Access your profile details, track your orders and view the status of your enquiries.
           New to Vie Jewels? You can create an account in the same step.
         </p>
         <a class="primary-btn" href="register.html?redirect=account.html">Sign In / Create Account</a>
@@ -416,6 +539,13 @@
         </aside>
 
         <div class="ac-history">
+
+          <!-- ORDER TRACKING — only shown once the admin has added an order for this email -->
+          <div class="ac-orders-section" id="ac-orders-section" style="display:none">
+            <p class="ac-history-heading">Your Orders</p>
+            <div id="ac-order-list"></div>
+          </div>
+
           <p class="ac-history-heading">Your Enquiries</p>
           <div id="ac-enquiry-list">
             <p class="ac-loading">Loading your enquiries&hellip;</p>
@@ -447,14 +577,14 @@
        and crGetSession() in register.html — same "vj_auth" localStorage
        key throughout the site.
 
+       ORDER TRACKING: orders live in the member_orders table (see
+       member-setup.sql). The signed-in user's access token is sent with
+       the request, and a Row Level Security policy only returns rows
+       whose member_email matches that user's verified login email.
+
        NOTE: reading /rest/v1/enquiries here assumes a Row Level Security
        SELECT policy exists allowing a user to read rows where
-       user_id = auth.uid(). The existing checkout flow only INSERTs
-       enquiries — if no SELECT policy has been added yet, this fetch
-       will return an empty array (or a permissions error) even for
-       users who do have enquiries on file. Worth confirming/adding that
-       policy in Supabase (Database → Policies → enquiries) if the
-       history list stays empty for an account you know has enquiries.
+       user_id = auth.uid().
     ──────────────────────────────────────────────────────────────────── */
 
     function acGetSession() {
@@ -708,6 +838,13 @@
         return "";
       }
     }
+    function acFmtDateTime(iso) {
+      try {
+        return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+      } catch {
+        return "";
+      }
+    }
 
     function acStatusClass(status) {
       const s = (status || "").toLowerCase();
@@ -801,6 +938,87 @@
       }
     }
 
+    /* ── ORDER TRACKING ──────────────────────────────────────────────── */
+    const AC_ORDER_STEPS = ["Order Received", "In Design", "In Production", "Quality Check", "Shipped", "Delivered"];
+
+    function acSafeUrl(u) {
+      const s = String(u || "").trim();
+      return /^https?:\/\//i.test(s) ? s : "";
+    }
+
+    function acOrderCardHtml(o) {
+      const fmtAmt = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const cancelled = o.status === "Cancelled";
+      const delivered = o.status === "Delivered";
+      const idx = AC_ORDER_STEPS.indexOf(o.status);
+
+      const badgeCls = cancelled ? "ac-status-cancelled" : delivered ? "ac-status-completed" : "ac-status-progress";
+
+      const stepper = cancelled ? "" : `<div class="ac-steps">${AC_ORDER_STEPS.map((s, i) =>
+        `<div class="ac-step ${(i < idx || delivered) ? "done" : ""} ${(i === idx && !delivered) ? "current" : ""}">${esc(s)}</div>`
+      ).join("")}</div>`;
+
+      const items = (Array.isArray(o.items) ? o.items : []);
+      const itemsHtml = items.length
+        ? items.map((i) => `${esc(i.name || "Item")}${i.sku ? ` <span style="color:var(--text-light)">(${esc(i.sku)})</span>` : ""} &times; ${Math.max(1, parseInt(i.qty, 10) || 1)}`).join("<br />")
+        : "—";
+
+      const trackUrl = acSafeUrl(o.tracking_url);
+      const trackingHtml = (o.carrier || o.tracking_number || trackUrl)
+        ? `${esc(o.carrier || "")}${o.tracking_number ? `<br /><strong>${esc(o.tracking_number)}</strong>` : ""}${trackUrl ? `<br /><a href="${esc(trackUrl)}" target="_blank" rel="noopener">Track shipment &#8599;</a>` : ""}`
+        : "Not shipped yet";
+
+      const totalHtml = o.total_amount != null
+        ? esc((o.currency || "") + " " + fmtAmt(o.total_amount))
+        : "—";
+
+      const docs = (Array.isArray(o.documents) ? o.documents : []).filter((d) => acSafeUrl(d.url));
+      const updates = (o.member_order_updates || []).slice()
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      return `<div class="ac-order-card">
+        <div class="ac-order-head">
+          <div>
+            <p class="ac-order-ref">${esc(o.order_ref)}</p>
+            <p class="ac-order-placed">Placed ${esc(acFmtDate(o.created_at))}</p>
+          </div>
+          <span class="ac-status-badge ${badgeCls}">${esc(o.status)}</span>
+        </div>
+        ${stepper}
+        <div class="ac-order-grid">
+          <div><p class="ac-kv-label">Items</p><p class="ac-kv-value">${itemsHtml}</p></div>
+          <div><p class="ac-kv-label">Order Total</p><p class="ac-kv-value">${totalHtml}</p></div>
+          <div><p class="ac-kv-label">Est. Delivery</p><p class="ac-kv-value">${o.est_delivery ? esc(acFmtDate(o.est_delivery)) : "—"}</p></div>
+          <div><p class="ac-kv-label">Shipping &amp; Tracking</p><p class="ac-kv-value">${trackingHtml}</p></div>
+        </div>
+        ${o.notes ? `<div class="ac-order-block"><p class="ac-kv-label">Message from Vie Jewels</p><div class="ac-order-note">${esc(o.notes)}</div></div>` : ""}
+        ${docs.length ? `<div class="ac-order-block ac-order-docs"><p class="ac-kv-label">Documents</p>${docs.map((d) => `<a href="${esc(acSafeUrl(d.url))}" target="_blank" rel="noopener">${esc(d.title || "Document")} &#8599;</a>`).join("")}</div>` : ""}
+        ${updates.length ? `<div class="ac-order-block"><p class="ac-kv-label">Order Timeline</p><ul class="ac-timeline">${updates.map((u) =>
+          `<li><b>${esc(u.status || "Update")}</b>${u.message ? `<p>${esc(u.message)}</p>` : ""}<span>${esc(acFmtDateTime(u.created_at))}</span></li>`
+        ).join("")}</ul></div>` : ""}
+      </div>`;
+    }
+
+    // Fails silently (section stays hidden) if the member_orders table hasn't
+    // been created yet or the request errors — enquiries still load normally.
+    async function acLoadOrders(session) {
+      const section = document.getElementById("ac-orders-section");
+      const listEl = document.getElementById("ac-order-list");
+      try {
+        const res = await fetch(
+          SUPABASE_URL + "/rest/v1/member_orders?select=*,member_order_updates(*)&order=created_at.desc",
+          { headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + session.access_token } }
+        );
+        if (!res.ok) throw new Error("Could not load orders.");
+        const rows = await res.json();
+        if (!Array.isArray(rows) || !rows.length) return;
+        listEl.innerHTML = rows.map(acOrderCardHtml).join("");
+        section.style.display = "block";
+      } catch (err) {
+        console.warn("acLoadOrders:", err.message);
+      }
+    }
+
     function acShowGuest() {
       document.getElementById("ac-loading").style.display = "none";
       document.getElementById("ac-guest").style.display = "block";
@@ -812,7 +1030,7 @@
       document.getElementById("ac-hero-title").textContent =
         "Welcome back" + (meta.full_name ? ", " + meta.full_name.split(" ")[0] : "");
       document.getElementById("ac-hero-sub").textContent =
-        "Here's your profile and the status of your enquiries.";
+        "Here's your profile, your orders and the status of your enquiries.";
 
       document.getElementById("ac-name").textContent = meta.full_name || "Vie Jewels Client";
       document.getElementById("ac-email").textContent = user.email || "";
@@ -841,6 +1059,7 @@
       document.getElementById("ac-loading").style.display = "none";
       document.getElementById("ac-dashboard").classList.add("show");
 
+      acLoadOrders(session);
       acLoadEnquiries(session);
     }
 
