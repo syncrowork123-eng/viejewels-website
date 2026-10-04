@@ -194,28 +194,60 @@ body.vj-collections .catalog-sidebar {
   padding-left: 0;
   top: 40px;
 }
+
+/* PREMIUM SIDEBAR TITLE — "Refine" */
 body.vj-collections .catalog-sidebar h3 {
   font-family: var(--vj-serif);
   font-style: normal;
-  font-weight: 400;
-  font-size: 20px;
-  letter-spacing: 0.01em;
-  text-transform: none;
+  font-weight: 500;
+  font-size: 24px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--vj-ink);
+  position: relative;
   border-bottom: 1px solid var(--vj-hair);
-  padding-bottom: 18px;
-  margin-bottom: 32px;
+  padding-bottom: 16px;
+  margin-bottom: 28px;
 }
+/* short dark accent bar sitting on the divider */
+body.vj-collections .catalog-sidebar h3::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 48px;
+  height: 2px;
+  background: var(--vj-ink);
+}
+
+/* PREMIUM SIDEBAR TITLES — filter groups */
 body.vj-collections .filter-group h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--vj-sans);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  color: var(--vj-ink-faint);
-  border-bottom: 1px solid var(--vj-hair-soft);
-  padding-bottom: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vj-ink);
+  background: linear-gradient(90deg, rgba(23, 23, 23, 0.08), rgba(23, 23, 23, 0) 100%);
+  border-bottom: none;
+  border-left: 3px solid var(--vj-ink);
+  padding: 10px 10px;
+  margin-bottom: 14px;
 }
-body.vj-collections .filter-group { margin-bottom: 24px; }
+/* small diamond marker before each title */
+body.vj-collections .filter-group h4::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex-shrink: 0;
+  background: var(--vj-ink);
+  transform: rotate(45deg);
+}
+body.vj-collections .filter-group { margin-bottom: 28px; }
 
 body.vj-collections .filter-checkboxes label,
 body.vj-collections .filter-tree-label,
