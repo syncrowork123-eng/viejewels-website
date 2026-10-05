@@ -353,8 +353,8 @@
       </div>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Image</th><th>Media</th><th>Name</th><th>SKU</th><th>Category</th><th>Metal / Stone</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="products-tbody"><tr><td colspan="9" class="state-msg">Loading...</td></tr></tbody>
+      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Category</th><th>Metal / Stone</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="products-tbody"><tr><td colspan="10" class="state-msg">Loading...</td></tr></tbody>
     </table></div>
   </div>
 
@@ -2742,7 +2742,7 @@ async function loadProducts(){
     renderProductsTable(allProducts);
     populateMasterDropdowns();
   } catch(e){
-    document.getElementById("products-tbody").innerHTML="<tr><td colspan='9' class='state-msg'>Failed to load products.</td></tr>";
+    document.getElementById("products-tbody").innerHTML="<tr><td colspan='10' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
   }
 }
@@ -2855,6 +2855,28 @@ function mediaRowLabel(m){
   return file || url || "media";
 }
 
+// Detect which image host a media URL lives on — drives the "Host" column
+// in the Products table so it's obvious at a glance whether a SKU's photos
+// live on Cloudinary, ImageKit, both (mid-migration), or something else.
+function mediaUrlHost(url){
+  const u = String(url||"").toLowerCase();
+  if(!u) return null;
+  if(u.includes("cloudinary.com")) return "Cloudinary";
+  if(u.includes("imagekit.io")) return "ImageKit";
+  return "Other";
+}
+
+// Summarizes host(s) across all IMAGE rows (videos excluded) for one product.
+// label = what's shown in the cell; title = per-file breakdown for the tooltip.
+function productImageHostSummary(p){
+  const imgs = (p.product_media||[]).filter(m=>m.media_type!=="video" && m.url);
+  if(!imgs.length) return { label:"—", title:"No images uploaded", hosts:[] };
+  const perFile = imgs.map(m=>`${mediaRowLabel(m)}: ${mediaUrlHost(m.url)||"Unknown"}`);
+  const hosts = [...new Set(imgs.map(m=>mediaUrlHost(m.url)).filter(Boolean))];
+  const label = hosts.length===1 ? hosts[0] : hosts.length>1 ? "Mixed" : "Unknown";
+  return { label, title:perFile.join("\n"), hosts };
+}
+
 // Resolves with {imagesTotal, imagesOk, videosTotal, videosOk, brokenImages,
 // brokenVideos} for one product, checking each media URL (cached, so repeat
 // calls are free) and caching the result. brokenImages/brokenVideos are
@@ -2930,11 +2952,17 @@ function scheduleTableResort(tbodyId){
 
 function renderProductsTable(products){
   const tbody=document.getElementById("products-tbody");
-  if(!products.length){ tbody.innerHTML="<tr><td colspan='9' class='state-msg'>No products found.</td></tr>"; return; }
+  if(!products.length){ tbody.innerHTML="<tr><td colspan='10' class='state-msg'>No products found.</td></tr>"; return; }
   tbody.innerHTML=products.map(p=>{
     const pm=(p.product_media||[]);
     const primary=pm.find(m=>m.is_primary)||pm[0];
     const img=primary?.url?`<img src="${esc(primary.url)}" alt="" onerror="tableImgBroken(this)" />`:`<div class="no-img">&#128142;</div>`;
+    const hostInfo = productImageHostSummary(p);
+    const hostColor = hostInfo.label==="Cloudinary" ? "#1a5c1a"
+      : hostInfo.label==="ImageKit" ? "#1a407a"
+      : hostInfo.label==="Mixed" ? "var(--accent)"
+      : "var(--text-muted)";
+    const hostCell = `<span style="font-size:11px;font-weight:700;color:${hostColor}" title="${esc(hostInfo.title)}">${esc(hostInfo.label)}</span>`;
     // Metal: use p.metal text field
     const metalLabel = p.metal || "";
     // Stone: use p.stone text field, fall back to first product_stones row
@@ -2947,7 +2975,7 @@ function renderProductsTable(products){
     // render (unchecked products briefly sort as "less than zero" until their
     // real count lands) instead of flipping between numeric and alphabetic
     // sort depending on whether checks have finished yet.
-    return `<tr><td class="product-thumb-cell">${img}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}" data-sort="-1">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td><td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}" data-sort="-1">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td><td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
   products.forEach(p=>updateMediaCountCell(p));
 }
