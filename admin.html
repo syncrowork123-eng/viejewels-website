@@ -57,6 +57,16 @@
     .badge-active { background:rgba(39,174,96,0.15); color:#27ae60; }
     .badge-inactive { background:rgba(192,57,43,0.15); color:#e74c3c; }
     .actions-cell { display:flex; gap:6px; align-items:center; }
+    /* Products table: fit every column on one screen (no horizontal scroll) */
+    .products-table { table-layout:fixed; }
+    .products-table thead th { padding:10px 6px; white-space:normal; letter-spacing:0.04em; font-size:10px; line-height:1.25; vertical-align:bottom; }
+    .products-table tbody td { padding:8px 6px; overflow-wrap:anywhere; word-break:normal; }
+    .products-table .tbl-filter-row th { padding:4px 4px !important; }
+    .products-table .tbl-filter-input { min-width:0; padding:4px 5px; font-size:11px; }
+    .products-table .product-thumb-cell img, .products-table .no-img { width:40px; height:40px; }
+    .products-table .actions-cell { flex-wrap:wrap; gap:4px; }
+    .products-table .actions-cell .btn-sm { padding:4px 7px; font-size:11px; }
+    .products-table .jc-line { display:block; font-size:11px; line-height:1.35; }
     .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; align-items:center; justify-content:center; padding:16px; }
     .modal-overlay.open { display:flex; }
     .modal { background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; max-width:680px; max-height:90vh; display:flex; flex-direction:column; }
@@ -339,22 +349,18 @@
     <div class="toolbar">
       <div class="toolbar-left">
         <input class="search-input" id="product-search" placeholder="Search products..." oninput="filterProducts()" />
-        <select class="filter-select" id="category-filter" onchange="filterProducts()"><option value="">All categories</option></select>
       </div>
       <div style="display:flex;gap:8px;">
-        <select class="filter-select" id="media-provider-select" onchange="setActiveMediaProvider(this.value)" title="Which host new auto-generated SKU images point to">
-          <option value="cloudinary">Cloudinary</option>
-          <option value="imagekit">ImageKit</option>
-        </select>
         <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products with no working image (missing or all broken)">📷 No Images Only</button>
         <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
         <button class="btn btn-secondary" id="export-products-btn" onclick="exportProductsXlsx()">⬇ Export Products</button>
         <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
       </div>
     </div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Category</th><th>Metal / Stone</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="products-tbody"><tr><td colspan="14" class="state-msg">Loading...</td></tr></tbody>
+    <div class="table-wrap"><table class="products-table">
+      <colgroup><col style="width:5%"><col style="width:6%"><col style="width:5%"><col style="width:11%"><col style="width:7%"><col style="width:14%"><col style="width:8%"><col style="width:8%"><col style="width:13%"><col style="width:9%"><col style="width:6%"><col style="width:8%"></colgroup>
+      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Jewelry Category</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="products-tbody"><tr><td colspan="12" class="state-msg">Loading...</td></tr></tbody>
     </table></div>
   </div>
 
@@ -2634,8 +2640,6 @@ function confirmDeleteMaster(table,id,name){
 async function loadCategories(){
   try {
     allCategories=await sb("categories?select=id,name,slug&order=name.asc");
-    const opts=allCategories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
-    document.getElementById("category-filter").innerHTML="<option value=''>All categories</option>"+opts;
   } catch(e){ toast("Failed to load categories.","error"); }
 }
 
@@ -2742,7 +2746,7 @@ async function loadProducts(){
     renderProductsTable(allProducts);
     populateMasterDropdowns();
   } catch(e){
-    document.getElementById("products-tbody").innerHTML="<tr><td colspan='14' class='state-msg'>Failed to load products.</td></tr>";
+    document.getElementById("products-tbody").innerHTML="<tr><td colspan='12' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
   }
 }
@@ -2767,16 +2771,15 @@ async function toggleNoImageFilter(){
 
 function filterProducts(){
   const term=gv("product-search").toLowerCase();
-  const cat=document.getElementById("category-filter").value;
   renderProductsTable(allProducts.filter(p=>{
-    const mt=!term||[p.name,p.sku,p.metal,p.stone].filter(Boolean).join(" ").toLowerCase().includes(term);
-    const mc=!cat||String(p.category_id)===cat;
+    const jc=(p.product_jewel_cats||[]).map(c=>[c.jewel_type,c.sub_type1,c.sub_type2].filter(Boolean).join(" ")).join(" ");
+    const mt=!term||[p.name,p.sku,p.metal,p.stone,jc].filter(Boolean).join(" ").toLowerCase().includes(term);
     let mi = true;
     if(noImageFilterOn){
       const st = productMediaStatus.get(p.id);
       mi = st ? st.imagesOk===0 : true; // unknown status shouldn't happen (we await checks before enabling), but don't hide if it does
     }
-    return mt&&mc&&mi;
+    return mt&&mi;
   }));
 }
 
@@ -2969,36 +2972,32 @@ function productDetailCompleteness(p){
 }
 function completenessCell(c){
   const color = c.ok ? "var(--text)" : "#b3261e";
-  return `<td style="font-size:12px;white-space:nowrap;color:${color};${c.ok?"":"font-weight:700;"}" title="${esc(c.title)}">${esc(c.label)}</td>`;
+  return `<td style="font-size:11px;color:${color};${c.ok?"":"font-weight:700;"}" title="${esc(c.title)}">${esc(c.label)}</td>`;
 }
 
 function renderProductsTable(products){
   const tbody=document.getElementById("products-tbody");
-  if(!products.length){ tbody.innerHTML="<tr><td colspan='14' class='state-msg'>No products found.</td></tr>"; return; }
+  if(!products.length){ tbody.innerHTML="<tr><td colspan='12' class='state-msg'>No products found.</td></tr>"; return; }
   tbody.innerHTML=products.map(p=>{
     const pm=(p.product_media||[]);
     const primary=pm.find(m=>m.is_primary)||pm[0];
     const img=primary?.url?`<img src="${esc(primary.url)}" alt="" onerror="tableImgBroken(this)" />`:`<div class="no-img">&#128142;</div>`;
     const cmp = productDetailCompleteness(p);
+    // Jewelry categories (product_jewel_cats): one line per row, "Type › Sub 1 › Sub 2"
+    const jcLines = (p.product_jewel_cats||[]).map(c=>[c.jewel_type,c.sub_type1,c.sub_type2].filter(Boolean).join(" › ")).filter(Boolean);
+    const jewelCatCell = jcLines.length ? jcLines.map(l=>`<span class="jc-line">${esc(l)}</span>`).join(" ") : `<span style="color:var(--text-muted);font-size:12px">---</span>`;
     const hostInfo = productImageHostSummary(p);
     const hostColor = hostInfo.label==="Cloudinary" ? "#1a5c1a"
       : hostInfo.label==="ImageKit" ? "#1a407a"
       : hostInfo.label==="Mixed" ? "var(--accent)"
       : "var(--text-muted)";
     const hostCell = `<span style="font-size:11px;font-weight:700;color:${hostColor}" title="${esc(hostInfo.title)}">${esc(hostInfo.label)}</span>`;
-    // Metal: use p.metal text field
-    const metalLabel = p.metal || "";
-    // Stone: use p.stone text field, fall back to first product_stones row
-    const firstStone = (p.product_stones||[])[0];
-    const stoneLabel = p.stone || (firstStone ? [firstStone.stone_type, firstStone.shape].filter(Boolean).join(" ") : "");
-    const details = [metalLabel, stoneLabel].filter(Boolean).join(" / ");
-    const price=p.price?`${p.currency||"INR"} ${Number(p.price).toLocaleString()}`:"---";
     const badge=p.is_active?`<span class="badge badge-active">Active</span>`:`<span class="badge badge-inactive">Hidden</span>`;
     // data-sort="-1" so the Media column parses as numeric from the very first
     // render (unchecked products briefly sort as "less than zero" until their
     // real count lands) instead of flipping between numeric and alphabetic
     // sort depending on whether checks have finished yet.
-    return `<tr><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}" data-sort="-1">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td>${completenessCell(cmp.shortDesc)}${completenessCell(cmp.story)}${completenessCell(cmp.weights)}${completenessCell(cmp.stones)}<td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:11px" id="media-count-${p.id}" data-sort="-1">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td>${jewelCatCell}</td>${completenessCell(cmp.shortDesc)}${completenessCell(cmp.story)}${completenessCell(cmp.weights)}${completenessCell(cmp.stones)}<td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
   products.forEach(p=>updateMediaCountCell(p));
 }
