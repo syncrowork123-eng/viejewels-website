@@ -67,6 +67,9 @@
     .products-table .product-thumb-cell img, .products-table .no-img { width:46px; height:46px; }
     .products-table .actions-cell { flex-wrap:wrap; gap:4px; }
     .products-table .actions-cell .btn-sm { padding:5px 9px; font-size:12px; }
+    /* Sticky header (title row + filter row) that stays visible under the page header while scrolling */
+    .products-table thead { position:sticky; top:56px; z-index:20; background:var(--surface); box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+    @media (min-width:1240px){ #tab-products .table-wrap { overflow:visible; overflow:clip; } }  /* a scrolling wrapper would break sticky; table fits at this width anyway */
     .products-table td.cell-edit { cursor:pointer; position:relative; }
     .products-table td.cell-edit:hover { background:rgba(184,146,42,0.10); box-shadow:inset 0 0 0 1px var(--accent); }
     .products-table td.cell-edit:hover::after { content:"\270E"; position:absolute; top:3px; right:4px; font-size:11px; color:var(--accent); }
