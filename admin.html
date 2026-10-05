@@ -353,8 +353,8 @@
       </div>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Category</th><th>Metal / Stone</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="products-tbody"><tr><td colspan="10" class="state-msg">Loading...</td></tr></tbody>
+      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Category</th><th>Metal / Stone</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="products-tbody"><tr><td colspan="14" class="state-msg">Loading...</td></tr></tbody>
     </table></div>
   </div>
 
@@ -2742,7 +2742,7 @@ async function loadProducts(){
     renderProductsTable(allProducts);
     populateMasterDropdowns();
   } catch(e){
-    document.getElementById("products-tbody").innerHTML="<tr><td colspan='10' class='state-msg'>Failed to load products.</td></tr>";
+    document.getElementById("products-tbody").innerHTML="<tr><td colspan='14' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
   }
 }
@@ -2950,13 +2950,36 @@ function scheduleTableResort(tbodyId){
   resortDebounceTimers[tbodyId] = setTimeout(()=>nudgeTableResort(tbodyId), 200);
 }
 
+// Completeness cells for the Products table: each returns {label,title,ok}
+// so admins can filter a column for "missing" to find products with gaps.
+function productDetailCompleteness(p){
+  const txt = v => String(v==null?"":v).trim();
+  const wts = [["18K",p.net_weight_18k],["14K",p.net_weight_14k],["10K",p.net_weight_10k],["Silver",p.net_weight_silver]]
+    .filter(([,w])=>Number(w)>0);
+  const stones = p.product_stones||[];
+  const badStones = stones.filter(s=>!txt(s.stone_type) || !(Number(s.pcs)>0));
+  return {
+    shortDesc: txt(p.short_description) ? {ok:true,label:"✓",title:txt(p.short_description)} : {ok:false,label:"Missing",title:"No short description"},
+    story:     txt(p.description)       ? {ok:true,label:"✓",title:txt(p.description).slice(0,300)} : {ok:false,label:"Missing",title:"No product story"},
+    weights:   wts.length ? {ok:true,label:wts.map(([k,w])=>`${k} ${Number(w).toFixed(2)}`).join(" · "),title:"Net weights (grams)"} : {ok:false,label:"Missing",title:"All net weights are 0"},
+    stones:    !stones.length ? {ok:false,label:"Missing",title:"No diamond / stone rows"}
+             : badStones.length ? {ok:false,label:"Incomplete",title:`${badStones.length} of ${stones.length} row(s) lack a stone type or PCS`}
+             : {ok:true,label:`${stones.length} row${stones.length>1?"s":""}`,title:stones.map(s=>[s.stone_type,s.shape,s.pcs?s.pcs+" pcs":""].filter(Boolean).join(" ")).join("\n")}
+  };
+}
+function completenessCell(c){
+  const color = c.ok ? "var(--text)" : "#b3261e";
+  return `<td style="font-size:12px;white-space:nowrap;color:${color};${c.ok?"":"font-weight:700;"}" title="${esc(c.title)}">${esc(c.label)}</td>`;
+}
+
 function renderProductsTable(products){
   const tbody=document.getElementById("products-tbody");
-  if(!products.length){ tbody.innerHTML="<tr><td colspan='10' class='state-msg'>No products found.</td></tr>"; return; }
+  if(!products.length){ tbody.innerHTML="<tr><td colspan='14' class='state-msg'>No products found.</td></tr>"; return; }
   tbody.innerHTML=products.map(p=>{
     const pm=(p.product_media||[]);
     const primary=pm.find(m=>m.is_primary)||pm[0];
     const img=primary?.url?`<img src="${esc(primary.url)}" alt="" onerror="tableImgBroken(this)" />`:`<div class="no-img">&#128142;</div>`;
+    const cmp = productDetailCompleteness(p);
     const hostInfo = productImageHostSummary(p);
     const hostColor = hostInfo.label==="Cloudinary" ? "#1a5c1a"
       : hostInfo.label==="ImageKit" ? "#1a407a"
@@ -2975,7 +2998,7 @@ function renderProductsTable(products){
     // render (unchecked products briefly sort as "less than zero" until their
     // real count lands) instead of flipping between numeric and alphabetic
     // sort depending on whether checks have finished yet.
-    return `<tr><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}" data-sort="-1">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td><td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px;white-space:nowrap" id="media-count-${p.id}" data-sort="-1">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td style="font-size:12px">${esc(p.categories?.name||"---")}</td><td style="font-size:12px;color:var(--text-muted)">${esc(details||"---")}</td>${completenessCell(cmp.shortDesc)}${completenessCell(cmp.story)}${completenessCell(cmp.weights)}${completenessCell(cmp.stones)}<td style="font-size:12px">${esc(price)}</td><td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
   products.forEach(p=>updateMediaCountCell(p));
 }
