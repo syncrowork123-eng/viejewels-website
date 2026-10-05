@@ -67,6 +67,30 @@
     .products-table .product-thumb-cell img, .products-table .no-img { width:46px; height:46px; }
     .products-table .actions-cell { flex-wrap:wrap; gap:4px; }
     .products-table .actions-cell .btn-sm { padding:5px 9px; font-size:12px; }
+    .products-table td.cell-edit { cursor:pointer; position:relative; }
+    .products-table td.cell-edit:hover { background:rgba(184,146,42,0.10); box-shadow:inset 0 0 0 1px var(--accent); }
+    .products-table td.cell-edit:hover::after { content:"\270E"; position:absolute; top:3px; right:4px; font-size:11px; color:var(--accent); }
+    .products-table td.cell-edit.editing { background:rgba(184,146,42,0.16); box-shadow:inset 0 0 0 2px var(--accent); }
+    #cell-editor { position:fixed; z-index:250; width:min(380px,94vw); background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 12px 40px rgba(0,0,0,0.25); padding:14px; max-height:90vh; overflow:auto; }
+    #cell-editor.ce-mid { width:min(520px,94vw); } #cell-editor.ce-wide { width:min(760px,94vw); }
+    #cell-editor.ce-flash { animation:ceFlash .35s; }
+    @keyframes ceFlash { 0%,100%{transform:none} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    .ce-head { display:flex; justify-content:space-between; gap:10px; align-items:baseline; margin-bottom:10px; font-size:13px; }
+    .ce-head span { color:var(--text-muted); font-size:11px; }
+    .ce-in { width:100%; padding:7px 9px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; font-family:inherit; outline:none; }
+    .ce-in:focus { border-color:var(--accent); }
+    textarea.ce-in { resize:vertical; line-height:1.45; }
+    .ce-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .ce-grid label { font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px; }
+    .ce-row { display:grid; grid-template-columns:1fr 1fr 1fr 28px; gap:6px; margin-bottom:6px; align-items:center; }
+    .ce-row.ce-stone { grid-template-columns:1.3fr 1.3fr 1fr 60px 70px 70px 28px; }
+    .ce-x { background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; }
+    .ce-x:hover { color:#b3261e; }
+    .ce-empty { color:var(--text-muted); font-size:12px; padding:6px 0 10px; }
+    .ce-lbls { display:grid; gap:6px; font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+    .ce-foot { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:12px; }
+    .ce-hint { font-size:11px; color:var(--text-muted); }
+    .ce-foot .btn { margin-left:6px; }
     .products-table .jc-line { display:block; font-size:12px; line-height:1.4; }
     .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; align-items:center; justify-content:center; padding:16px; }
     .modal-overlay.open { display:flex; }
@@ -2954,6 +2978,170 @@ function scheduleTableResort(tbodyId){
   resortDebounceTimers[tbodyId] = setTimeout(()=>nudgeTableResort(tbodyId), 200);
 }
 
+// ── INLINE CELL EDITING (Products table) ─────────────────────────────────
+// Click an editable cell → small popover editor → Save writes straight to
+// Supabase and refreshes just that row (no modal, no full reload).
+let cellEd = null;
+const CE_TITLES = {name:"Name", sku:"SKU", short_description:"Short Description", description:"Product Story",
+  weights:"Metal Net Weights (grams)", status:"Status", jewel:"Jewelry Category", stones:"Diamond & Stone Details"};
+const ceFind = pid => allProducts.find(x=>String(x.id)===String(pid));
+function ceOpts(list,val){
+  const vals=[...list]; if(val && !vals.includes(val)) vals.push(val);
+  return '<option value="">—</option>'+vals.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)}</option>`).join("");
+}
+function ceFlash(){ const el=document.getElementById("cell-editor"); if(!el) return; el.classList.remove("ce-flash"); void el.offsetWidth; el.classList.add("ce-flash"); }
+function closeCellEditor(){
+  const el=document.getElementById("cell-editor"); if(el) el.remove();
+  if(cellEd && cellEd.td) cellEd.td.classList.remove("editing");
+  cellEd=null;
+}
+function cePosition(){
+  const el=document.getElementById("cell-editor"); if(!el||!cellEd) return;
+  let td=cellEd.td;
+  if(!td.isConnected){ td=document.querySelector(`#products-tbody tr[data-pid="${cellEd.pid}"] td[data-edit="${cellEd.field}"]`); if(td){ cellEd.td=td; td.classList.add("editing"); } }
+  if(!td) return;
+  const r=td.getBoundingClientRect(), w=el.offsetWidth, h=el.offsetHeight;
+  const left=Math.max(8,Math.min(r.left,innerWidth-w-8));
+  let top=r.bottom+6; if(top+h>innerHeight-8) top=r.top-h-6; if(top<8) top=8;
+  el.style.left=left+"px"; el.style.top=top+"px";
+}
+function openCellEditor(td){
+  const pid=td.closest("tr")?.dataset.pid, field=td.dataset.edit, p=ceFind(pid);
+  if(!p||!field) return;
+  if(cellEd){ if(cellEd.td===td) return; if(cellEd.dirty){ ceFlash(); return; } closeCellEditor(); }
+  cellEd={pid,field,td,dirty:false,saving:false};
+  let body="", cls="";
+  if(field==="name"||field==="sku") body=`<input id="ce-input" class="ce-in" type="text" value="${esc(field==="name"?p.name:p.sku)}" />`
+    + (field==="sku"?`<div class="ce-hint" style="margin-top:6px">Existing image links are not changed when the SKU changes.</div>`:"");
+  else if(field==="short_description") body=`<textarea id="ce-input" class="ce-in" rows="3">${esc(p.short_description)}</textarea>`;
+  else if(field==="description"){ cls="ce-mid"; body=`<textarea id="ce-input" class="ce-in" rows="9">${esc(p.description)}</textarea>`; }
+  else if(field==="weights"){
+    const w=(k,l)=>`<div><label>${l}</label><input id="ce-w-${k}" class="ce-in" type="number" step="0.001" min="0" value="${Number(p["net_weight_"+k])||0}" /></div>`;
+    body=`<div class="ce-grid">${w("18k","18K")}${w("14k","14K")}${w("10k","10K")}${w("silver","Silver")}</div><div class="ce-hint" style="margin-top:6px">Leave 0 if not produced in that alloy.</div>`;
+  }
+  else if(field==="status") body=`<select id="ce-input" class="ce-in"><option value="true"${p.is_active!==false?" selected":""}>Active</option><option value="false"${p.is_active===false?" selected":""}>Hidden</option></select>`;
+  else if(field==="jewel"){ cls="ce-mid"; cellEd.rows=(p.product_jewel_cats||[]).map(c=>({jewel_type:c.jewel_type||"",sub_type1:c.sub_type1||"",sub_type2:c.sub_type2||""})); }
+  else if(field==="stones"){ cls="ce-wide"; cellEd.rows=(p.product_stones||[]).map(s=>({stone_type:s.stone_type||"",setting_type:s.setting_type||"",shape:s.shape||"",pcs:s.pcs??"",length_mm:s.length_mm??"",width_mm:s.width_mm??""})); }
+  const el=document.createElement("div"); el.id="cell-editor"; el.className=cls;
+  el.innerHTML=`<div class="ce-head"><strong>${esc(CE_TITLES[field])}</strong><span>${esc(p.sku||p.name||"")}</span></div><div id="ce-body">${body}</div>
+    <div class="ce-foot"><span class="ce-hint">${field==="description"||field==="short_description"?"Ctrl+Enter to save · Esc to cancel":"Enter to save · Esc to cancel"}</span><div><button type="button" class="btn btn-secondary btn-sm" onclick="closeCellEditor()">Cancel</button><button type="button" class="btn btn-primary btn-sm" id="ce-save" onclick="saveCellEditor()">Save</button></div></div>`;
+  document.body.appendChild(el);
+  td.classList.add("editing");
+  el.addEventListener("input",()=>{ if(cellEd) cellEd.dirty=true; });
+  el.addEventListener("change",()=>{ if(cellEd) cellEd.dirty=true; });
+  el.addEventListener("keydown",ceKey);
+  if(field==="jewel") ceRenderJewel(); else if(field==="stones") ceRenderStones();
+  cePosition();
+  const f=el.querySelector("input,textarea,select"); if(f){ f.focus(); if(f.select && f.type!=="number") try{f.select();}catch(e){} }
+}
+function ceKey(e){
+  if(e.key==="Escape"){ e.preventDefault(); closeCellEditor(); return; }
+  if(e.key!=="Enter") return;
+  const t=e.target.tagName;
+  if(t==="TEXTAREA"){ if(e.ctrlKey||e.metaKey){ e.preventDefault(); saveCellEditor(); } }
+  else if(t==="INPUT"||t==="SELECT"){ e.preventDefault(); saveCellEditor(); }
+}
+// jewelry category rows
+function ceJewelLists(r){
+  const types=[...new Set(allJewelCats.map(c=>c.jewel_type).filter(Boolean))].sort();
+  const s1=[...new Set(allJewelCats.filter(c=>c.jewel_type===r.jewel_type&&c.sub_type1).map(c=>c.sub_type1))].sort();
+  const s2=[...new Set(allJewelCats.filter(c=>c.jewel_type===r.jewel_type&&c.sub_type1===r.sub_type1&&c.sub_type2).map(c=>c.sub_type2))].sort();
+  return {types,s1,s2};
+}
+function ceRenderJewel(){
+  const rows=cellEd.rows;
+  document.getElementById("ce-body").innerHTML=
+    (rows.length?`<div class="ce-lbls" style="grid-template-columns:1fr 1fr 1fr 28px"><span>Type</span><span>Sub type 1</span><span>Sub type 2</span><span></span></div>`:"")
+    +(rows.length?rows.map((r,i)=>{ const L=ceJewelLists(r); return `<div class="ce-row">
+      <select class="ce-in" onchange="ceJewelChange(${i},'jewel_type',this.value)">${ceOpts(L.types,r.jewel_type)}</select>
+      <select class="ce-in" onchange="ceJewelChange(${i},'sub_type1',this.value)">${ceOpts(L.s1,r.sub_type1)}</select>
+      <select class="ce-in" onchange="ceJewelChange(${i},'sub_type2',this.value)">${ceOpts(L.s2,r.sub_type2)}</select>
+      <button type="button" class="ce-x" onclick="ceRowRemove(${i})" title="Remove">×</button></div>`; }).join(""):`<div class="ce-empty">No jewelry category yet.</div>`)
+    +`<button type="button" class="btn btn-secondary btn-sm" onclick="ceRowAdd()">+ Add category</button>`;
+  cePosition();
+}
+function ceJewelChange(i,f,v){ const r=cellEd.rows[i]; r[f]=v; if(f==="jewel_type"){r.sub_type1="";r.sub_type2="";} if(f==="sub_type1") r.sub_type2=""; cellEd.dirty=true; ceRenderJewel(); }
+// stone rows
+function ceRenderStones(){
+  const types=[...new Set(allLookups.filter(l=>l.field==="type").map(l=>l.value))].sort();
+  const settings=allLabour.filter(l=>l.category==="Setting").map(l=>l.description||l.category);
+  const shapes=[...new Set(allLookups.filter(l=>l.field==="shape").map(l=>l.value))].sort();
+  const rows=cellEd.rows, cols="1.3fr 1.3fr 1fr 60px 70px 70px 28px";
+  const inp=(i,f,v,ph)=>`<input class="ce-in" type="number" step="any" min="0" placeholder="${ph}" value="${esc(v)}" oninput="ceStoneChange(${i},'${f}',this.value)" />`;
+  const sel=(i,f,list,v)=>`<select class="ce-in" onchange="ceStoneChange(${i},'${f}',this.value)">${ceOpts(list,v)}</select>`;
+  document.getElementById("ce-body").innerHTML=
+    (rows.length?`<div class="ce-lbls" style="grid-template-columns:${cols}"><span>Stone type</span><span>Setting</span><span>Shape</span><span>PCS</span><span>Length mm</span><span>Width mm</span><span></span></div>`:"")
+    +(rows.length?rows.map((r,i)=>`<div class="ce-row ce-stone">${sel(i,"stone_type",types,r.stone_type)}${sel(i,"setting_type",settings,r.setting_type)}${sel(i,"shape",shapes,r.shape)}${inp(i,"pcs",r.pcs,"0")}${inp(i,"length_mm",r.length_mm,"0.00")}${inp(i,"width_mm",r.width_mm,"0.00")}<button type="button" class="ce-x" onclick="ceRowRemove(${i})" title="Remove">×</button></div>`).join(""):`<div class="ce-empty">No stone rows yet.</div>`)
+    +`<button type="button" class="btn btn-secondary btn-sm" onclick="ceRowAdd()">+ Add stone row</button>`;
+  cePosition();
+}
+function ceStoneChange(i,f,v){ cellEd.rows[i][f]=v; cellEd.dirty=true; }
+function ceRowAdd(){
+  cellEd.rows.push(cellEd.field==="jewel"?{jewel_type:"",sub_type1:"",sub_type2:""}:{stone_type:"",setting_type:"",shape:"",pcs:"",length_mm:"",width_mm:""});
+  cellEd.dirty=true; cellEd.field==="jewel"?ceRenderJewel():ceRenderStones();
+}
+function ceRowRemove(i){ cellEd.rows.splice(i,1); cellEd.dirty=true; cellEd.field==="jewel"?ceRenderJewel():ceRenderStones(); }
+
+// Replace all child rows of one product (delete → insert); restores the old rows if the insert fails.
+async function ceReplaceRows(table,pid,rows,oldRows){
+  await sb(table+"?product_id=eq."+pid,"DELETE");
+  if(!rows.length) return;
+  try{ await sb(table,"POST",rows.map(r=>({product_id:pid,...r}))); }
+  catch(err){
+    try{ if(oldRows.length) await sb(table,"POST",oldRows.map(({id,product_id,...r})=>({product_id:pid,...r}))); }catch(e2){}
+    throw err;
+  }
+}
+async function saveCellEditor(){
+  const ed=cellEd; if(!ed||ed.saving) return;
+  const p=ceFind(ed.pid); if(!p){ closeCellEditor(); return; }
+  const val=id=>{ const e=document.getElementById(id); return e?e.value.trim():""; };
+  const num=v=>{ const n=parseFloat(v); return isFinite(n)?n:null; };
+  let patch=null;
+  if(ed.field==="name"){ const v=val("ce-input"); if(!v){ toast("Name cannot be empty.","error"); return; } patch={name:v}; }
+  else if(ed.field==="sku"){
+    const v=val("ce-input"); if(!v){ toast("SKU cannot be empty.","error"); return; }
+    if(allProducts.some(x=>String(x.id)!==String(p.id)&&(x.sku||"").toLowerCase()===v.toLowerCase())){ toast("Another product already uses this SKU.","error"); return; }
+    patch={sku:v};
+  }
+  else if(ed.field==="short_description"||ed.field==="description") patch={[ed.field]:val("ce-input")||null};
+  else if(ed.field==="weights") patch={net_weight_18k:parseFloat(val("ce-w-18k"))||0,net_weight_14k:parseFloat(val("ce-w-14k"))||0,net_weight_10k:parseFloat(val("ce-w-10k"))||0,net_weight_silver:parseFloat(val("ce-w-silver"))||0};
+  else if(ed.field==="status") patch={is_active:val("ce-input")==="true"};
+
+  const btn=document.getElementById("ce-save"); ed.saving=true; if(btn){ btn.disabled=true; btn.textContent="Saving…"; }
+  try{
+    if(ed.field==="jewel"){
+      const rows=ed.rows.filter(r=>r.jewel_type).map(r=>({jewel_type:r.jewel_type,sub_type1:r.sub_type1||null,sub_type2:r.sub_type2||null}));
+      await ceReplaceRows("product_jewel_cats",p.id,rows,p.product_jewel_cats||[]);
+      p.product_jewel_cats=rows;
+    } else if(ed.field==="stones"){
+      const rows=ed.rows.filter(r=>r.stone_type||r.setting_type||r.shape||r.pcs!==""||r.length_mm!==""||r.width_mm!=="")
+        .map(r=>({stone_type:r.stone_type||null,setting_type:r.setting_type||null,shape:r.shape||null,pcs:num(r.pcs),length_mm:num(r.length_mm),width_mm:num(r.width_mm)}));
+      await ceReplaceRows("product_stones",p.id,rows,p.product_stones||[]);
+      p.product_stones=rows;
+      // keep the products.stone text in sync, same rule as the full product form
+      const first=rows[0], stoneText=first?[first.stone_type,first.shape].filter(Boolean).join(" ")||null:null;
+      if((p.stone||null)!==stoneText){ await sb("products?id=eq."+p.id,"PATCH",{stone:stoneText}); p.stone=stoneText; }
+    } else {
+      await sb("products?id=eq."+p.id,"PATCH",patch);
+      Object.assign(p,patch);
+    }
+    closeCellEditor(); filterProducts(); toast("Saved.");
+  }catch(err){
+    console.error("cell edit failed:",err); ed.saving=false;
+    if(btn){ btn.disabled=false; btn.textContent="Save"; }
+    toast("Save failed: "+(err.message||err),"error");
+  }
+}
+document.addEventListener("click",e=>{ const td=e.target.closest("#products-tbody td.cell-edit"); if(td) openCellEditor(td); });
+document.addEventListener("mousedown",e=>{
+  if(!cellEd) return;
+  if(e.target.closest("#cell-editor")||e.target.closest("#products-tbody td.cell-edit")||e.target.closest("#confirm-modal")) return;
+  if(cellEd.dirty) ceFlash(); else closeCellEditor();
+});
+window.addEventListener("scroll",cePosition,true);
+window.addEventListener("resize",cePosition);
+
 // Completeness cells for the Products table: each returns {label,title,ok}
 // so admins can filter a column for "missing" to find products with gaps.
 function productDetailCompleteness(p){
@@ -2971,9 +3159,9 @@ function productDetailCompleteness(p){
              : {ok:true,label:`${stones.length} row${stones.length>1?"s":""}`,title:stones.map(s=>[s.stone_type,s.shape,s.pcs?s.pcs+" pcs":""].filter(Boolean).join(" ")).join("\n")}
   };
 }
-function completenessCell(c){
+function completenessCell(c,field){
   const color = c.ok ? "var(--text)" : "#b3261e";
-  return `<td style="font-size:12px;color:${color};${c.ok?"":"font-weight:700;"}" title="${esc(c.title)}">${esc(c.label)}</td>`;
+  return `<td class="cell-edit" data-edit="${field}" style="font-size:12px;color:${color};${c.ok?"":"font-weight:700;"}" title="${esc(c.title)}">${esc(c.label)}</td>`;
 }
 
 function renderProductsTable(products){
@@ -2998,7 +3186,7 @@ function renderProductsTable(products){
     // render (unchecked products briefly sort as "less than zero" until their
     // real count lands) instead of flipping between numeric and alphabetic
     // sort depending on whether checks have finished yet.
-    return `<tr><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td><strong>${esc(p.name)}</strong></td><td style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td>${jewelCatCell}</td>${completenessCell(cmp.shortDesc)}${completenessCell(cmp.story)}${completenessCell(cmp.weights)}${completenessCell(cmp.stones)}<td>${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
   products.forEach(p=>updateMediaCountCell(p));
 }
