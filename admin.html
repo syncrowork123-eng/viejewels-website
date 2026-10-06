@@ -6814,10 +6814,18 @@ function closeConfirm(){ document.getElementById("confirm-modal").classList.remo
         // suggestions (distinct values per column, over all rows)
         cols.forEach(c=>{
           if(!c.dl) return;
+          // Never touch the list while the user is picking from it: rebuilding a <datalist>
+          // makes the browser close its open dropdown (the table updates constantly while
+          // image checks run, which made the dropdown vanish before a choice could be made).
+          if(document.activeElement===c.input) return;
           const set = new Set();
           for(const r of data){ const v=String(vals.get(r)[c.i]??"").trim(); if(v && !BLANK.test(v) && v.length<=60) set.add(v); if(set.size>40) break; }
+          const list = set.size<=40 ? [...set].sort(natural) : [];
+          const sig = list.join("\u0001");
+          if(c.dlSig===sig) return;          // unchanged → leave the options alone
+          c.dlSig = sig;
           c.dl.innerHTML = "";
-          if(set.size<=40) [...set].sort(natural).forEach(v=>{ const o=document.createElement("option"); o.value=v; c.dl.appendChild(o); });
+          list.forEach(v=>{ const o=document.createElement("option"); o.value=v; c.dl.appendChild(o); });
         });
 
         // filter
