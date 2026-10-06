@@ -2,7 +2,7 @@
 // VIE JEWELS ADMIN — Version badge + changelog
 // Add ONE line to admin.html, just before </body> (put it LAST, after the
 // other admin-*.js scripts):
-//     <script src="admin-version.js?v=1.0"></script>
+//     <script src="admin-version.js?v=1.1"></script>
 //
 // VERSIONING RULE
 //   Each admin update raises the number by one step:
@@ -12,9 +12,13 @@
 //   don't serve a cached copy.
 // ════════════════════════════════════════════════════════════════
 (function () {
-  const ADMIN_VERSION = "1.0";
+  const ADMIN_VERSION = "1.1";
 
   const CHANGELOG = [
+    {
+      version: "1.1",
+      note: "Duplicate Design Name warning now also works when editing a name directly in the Products table (Change Name / Save Anyway)."
+    },
     {
       version: "1.0",
       note: "Baseline release. Products, Enquiries, Masters, Cost Calculator, Bulk Upload, Pages & Design, Members & Orders (client order tracking), and the duplicate Design Name check."
