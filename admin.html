@@ -3008,6 +3008,19 @@ function cePosition(){
   let top=r.bottom+6; if(top+h>innerHeight-8) top=r.top-h-6; if(top<8) top=8;
   el.style.left=left+"px"; el.style.top=top+"px";
 }
+// Same Excel ratios as deriveNetWeights(): 18K = Silver × 1.6 | 14K = Silver × 1.257 | 10K = Silver × 1.12
+function ceDeriveWeights(source){
+  const R={'18k':1.6,'14k':1.257,'10k':1.12,'silver':1};
+  const el=k=>document.getElementById('ce-w-'+k);
+  const src=parseFloat(el(source).value)||0;
+  const silver=src/R[source];
+  Object.keys(R).forEach(k=>{
+    if(k===source) return;
+    const v=silver*R[k];
+    el(k).value = v>0 ? v.toFixed(3) : '0.000';
+  });
+  if(cellEd) cellEd.dirty=true;
+}
 function openCellEditor(td){
   const pid=td.closest("tr")?.dataset.pid, field=td.dataset.edit, p=ceFind(pid);
   if(!p||!field) return;
@@ -3019,8 +3032,8 @@ function openCellEditor(td){
   else if(field==="short_description") body=`<textarea id="ce-input" class="ce-in" rows="3">${esc(p.short_description)}</textarea>`;
   else if(field==="description"){ cls="ce-mid"; body=`<textarea id="ce-input" class="ce-in" rows="9">${esc(p.description)}</textarea>`; }
   else if(field==="weights"){
-    const w=(k,l)=>`<div><label>${l}</label><input id="ce-w-${k}" class="ce-in" type="number" step="0.001" min="0" value="${Number(p["net_weight_"+k])||0}" /></div>`;
-    body=`<div class="ce-grid">${w("18k","18K")}${w("14k","14K")}${w("10k","10K")}${w("silver","Silver")}</div><div class="ce-hint" style="margin-top:6px">Leave 0 if not produced in that alloy.</div>`;
+    const w=(k,l)=>`<div><label>${l}</label><input id="ce-w-${k}" class="ce-in" type="number" step="0.001" min="0" oninput="ceDeriveWeights('${k}')" value="${Number(p["net_weight_"+k])||0}" /></div>`;
+    body=`<div class="ce-grid">${w("18k","18K")}${w("14k","14K")}${w("10k","10K")}${w("silver","Silver")}</div><div class="ce-hint" style="margin-top:6px">Other alloys auto-fill from the one you edit (18K = Silver × 1.6, 14K × 1.257, 10K × 1.12). Overwrite any to adjust; set 0 if not produced.</div>`;
   }
   else if(field==="status") body=`<select id="ce-input" class="ce-in"><option value="true"${p.is_active!==false?" selected":""}>Active</option><option value="false"${p.is_active===false?" selected":""}>Hidden</option></select>`;
   else if(field==="jewel"){ cls="ce-mid"; cellEd.rows=(p.product_jewel_cats||[]).map(c=>({jewel_type:c.jewel_type||"",sub_type1:c.sub_type1||"",sub_type2:c.sub_type2||""})); }
