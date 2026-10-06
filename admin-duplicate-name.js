@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════════════════════
 // VIE JEWELS ADMIN — Duplicate "Design Name" warning
 // Add ONE line to admin.html, just before </body> (after admin-members.js):
-//     <script src="admin-duplicate-name.js"></script>
+//     <script src="admin-duplicate-name.js?v=3"></script>
 //
 // Covers three places:
 //  0. Products table — click the Name cell to edit it inline; saving a name
@@ -18,51 +18,68 @@
 // never flagged. Relies on globals already in admin.html: allProducts,
 // editingProductId, bulkRows, gv(), esc(), openProductModal(),
 // saveProduct(), renderBulkPreview(), importProducts().
+//
+// v3 fixes: popup buttons dead when this file ended up loaded twice (two
+// popups with the same ids → the visible one had no click handlers);
+// keyboard focus stayed behind the popup so Enter/Esc acted on the editor
+// underneath and could leave the popup orphaned.
 // ════════════════════════════════════════════════════════════════
 (function () {
+  // Never wire the popup twice (a second load would leave duplicate ids and a visible popup with dead buttons)
+  if (window.__vjDupNameLoaded) return;
   const nameInput = document.getElementById("f-name");
   if (!nameInput || typeof saveProduct !== "function") return;
+  window.__vjDupNameLoaded = true;
 
   const norm = s => String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
   const $ = id => document.getElementById(id);
 
   /* ── Shared popup ──────────────────────────────────────── */
+  const stale = document.getElementById("dupname-modal");
+  if (stale) stale.remove();
+
   const modal = document.createElement("div");
   modal.className = "modal-overlay";
   modal.id = "dupname-modal";
   modal.style.zIndex = "400"; // above other modals
   modal.innerHTML = `
     <div class="modal" style="max-width:460px">
-      <div class="modal-header"><h2 id="dupname-title">Design name already exists</h2><button class="modal-close" id="dupname-x">×</button></div>
+      <div class="modal-header"><h2 id="dupname-title">Design name already exists</h2><button type="button" class="modal-close" id="dupname-x">×</button></div>
       <div class="modal-body">
         <p id="dupname-msg" style="font-size:14px;line-height:1.6;margin-bottom:12px"></p>
         <div id="dupname-list" style="font-size:13px;color:var(--text-muted);line-height:1.8;max-height:220px;overflow-y:auto"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="dupname-change">Change Name</button>
-        <button class="btn btn-primary" id="dupname-continue">Continue Anyway</button>
+        <button type="button" class="btn btn-secondary" id="dupname-change">Change Name</button>
+        <button type="button" class="btn btn-primary" id="dupname-continue">Continue Anyway</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
+  const m = id => modal.querySelector("#" + id); // always the popup's own elements
 
   let onChange = null, onContinue = null;
 
   function openPopup(o) {
-    $("dupname-title").textContent = o.title;
-    $("dupname-msg").innerHTML = o.msg;
-    $("dupname-list").innerHTML = o.list;
-    $("dupname-change").textContent = o.changeLabel;
-    $("dupname-continue").textContent = o.continueLabel;
+    m("dupname-title").textContent = o.title;
+    m("dupname-msg").innerHTML = o.msg;
+    m("dupname-list").innerHTML = o.list;
+    m("dupname-change").textContent = o.changeLabel;
+    m("dupname-continue").textContent = o.continueLabel;
     onChange = o.onChange || null;
     onContinue = o.onContinue || null;
     modal.classList.add("open");
+    m("dupname-change").focus(); // keep the keyboard inside the popup, not on the editor underneath
   }
   function closePopup() { modal.classList.remove("open"); }
 
   const doChange = () => { const cb = onChange; closePopup(); if (cb) cb(); };
-  $("dupname-change").addEventListener("click", doChange);
-  $("dupname-x").addEventListener("click", doChange);
-  $("dupname-continue").addEventListener("click", () => { const cb = onContinue; closePopup(); if (cb) cb(); });
+  m("dupname-change").addEventListener("click", doChange);
+  m("dupname-x").addEventListener("click", doChange);
+  m("dupname-continue").addEventListener("click", () => { const cb = onContinue; closePopup(); if (cb) cb(); });
+  // Esc = Change Name, handled before anything underneath can react to it
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && modal.classList.contains("open")) { e.preventDefault(); e.stopPropagation(); doChange(); }
+  }, true);
 
   /* ════════════════════════════════════════════════════════
      1. ADD / EDIT PRODUCT FORM
@@ -119,9 +136,6 @@
   };
 
   /* ════════════════════════════════════════════════════════
-     2. BULK UPLOAD (table / Excel)
-     ════════════════════════════════════════════════════════ */
-  /* ════════════════════════════════════════════════════════
      1b. PRODUCTS TABLE — click-to-edit Name cell (inline editor)
      ════════════════════════════════════════════════════════ */
   if (typeof saveCellEditor === "function") {
@@ -150,7 +164,8 @@
               },
               onContinue: () => {
                 cellAck[p.id] = norm(name);
-                origCellSave();
+                // the editor may have been closed meanwhile; only save if it is still open for this product
+                if (typeof cellEd !== "undefined" && cellEd && String(cellEd.pid) === String(p.id)) origCellSave();
               }
             });
             return;
@@ -161,6 +176,9 @@
     };
   }
 
+  /* ════════════════════════════════════════════════════════
+     2. BULK UPLOAD (table / Excel)
+     ════════════════════════════════════════════════════════ */
   if (typeof renderBulkPreview !== "function" || typeof importProducts !== "function") return;
 
   const rowSku = r => String(r.sku || "").trim().toLowerCase();
