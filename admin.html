@@ -4760,7 +4760,7 @@ function showImportProgress(done,total,label,stats){
 function hideImportProgress(){ const d=document.getElementById("import-progress"); if(d) d.remove(); }
 
 async function importProducts(){
-  if(window.__importRunning) return;
+  if(window.__importRunning){ console.warn("[bulk import] ignored: an import is already marked as running"); try{ toast("An import is already running. Refresh the page if it is stuck.","error"); }catch(_){} return; }
   window.__importRunning=true;
   window.__impFailures=[]; window.__impWarnings=[];
   console.info("[bulk import] started");
@@ -7016,6 +7016,19 @@ function closeConfirm(){ document.getElementById("confirm-modal").classList.remo
 </script>
 <script src="admin-members.js"></script>
 <script src="admin-duplicate-name.js?v=4"></script>
+<script>
+console.info("[admin] build import-status-v3 loaded");
+(function(){
+  const t=document.createElement("div");
+  t.textContent="build import-status-v3";
+  t.style.cssText="position:fixed;left:8px;bottom:6px;font-size:10px;color:#999;z-index:50;pointer-events:none";
+  document.body.appendChild(t);
+  document.addEventListener("click",function(e){
+    const b=e.target.closest&&e.target.closest("#import-btn");
+    if(b) console.info("[admin] Import button click received. importProducts:",typeof importProducts,"| running flag:",window.__importRunning,"| rows:",(typeof bulkRows!=="undefined"?bulkRows.length:"n/a"));
+  },true);
+})();
+</script>
 <script src="admin-version.js?v=1.2"></script>
 </body>
 </html>
