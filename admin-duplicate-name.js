@@ -308,10 +308,12 @@
     if (pending.size && !bulkAck) {
       const items = [...pending].slice(0, 10).map(i =>
         `• Row ${i + 1}: ${esc(bulkRows[i].name)}${bulkRows[i].sku ? " (" + esc(bulkRows[i].sku) + ")" : ""} <span style="color:var(--text-light)">— ${esc(flags.get(i))}</span>`).join("<br>");
+      if (window.setImportStatus) setImportStatus("warn", `Import NOT started yet — ${pending.size} row${pending.size > 1 ? "s have" : " has"} a duplicate design name`, ["Choose an option in the popup: Import All Anyway, Skip & Import Rest, or Review Rows."]);
       openPopup({
         title: "Duplicate design names not reviewed",
         msg: `<strong>${pending.size}</strong> row${pending.size > 1 ? "s have" : " has"} a design name that is already in use and ${pending.size > 1 ? "are" : "is"} not marked <em>Intentional</em>. Review them, skip them, or import everything as it is.`,
         list: items + (pending.size > 10 ? `<br>…and ${pending.size - 10} more` : ""),
+        onChange: () => { if (window.setImportStatus) setImportStatus("warn", "Import paused — nothing has been imported", ["Tick “Intentional” on the flagged rows in the preview, then click Import All Products again (or use Skip / Import All Anyway)."]); },
         changeLabel: "Review Rows",
         skipLabel: `Skip ${pending.size} & Import Rest`,
         continueLabel: "Import All Anyway",
