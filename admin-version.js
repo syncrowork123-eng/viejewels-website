@@ -2,19 +2,25 @@
 // VIE JEWELS ADMIN — Version badge + changelog
 // Add ONE line to admin.html, just before </body> (put it LAST, after the
 // other admin-*.js scripts):
-//     <script src="admin-version.js?v=1.1"></script>
+//     <script src="admin-version.js?v=1.2"></script>
 //
 // VERSIONING RULE
 //   Each admin update raises the number by one step:
 //   1.0 → 1.1 → 1.2 … 1.9 → 2.0 → 2.1 … 2.9 → 3.0 and so on.
-//   To release an update: change ADMIN_VERSION below, add a new entry at the
-//   TOP of CHANGELOG, and change the ?v= number in the script tag so browsers
-//   don't serve a cached copy.
+//   To release an update (all three, every time):
+//     1. change ADMIN_VERSION below
+//     2. add a new entry at the TOP of CHANGELOG
+//     3. change the ?v= number in the <script> tag in admin.html to the same
+//        version, so browsers don't serve a cached copy of this file
 // ════════════════════════════════════════════════════════════════
 (function () {
-  const ADMIN_VERSION = "1.1";
+  const ADMIN_VERSION = "1.2";
 
   const CHANGELOG = [
+    {
+      version: "1.2",
+      note: "Fixed the Products table column filters: the suggestion dropdown no longer disappears while you are choosing a value. Duplicate Design Name popup made more reliable: its buttons always respond, and Esc / Enter now act on the popup instead of the editor behind it."
+    },
     {
       version: "1.1",
       note: "Duplicate Design Name warning now also works when editing a name directly in the Products table (Change Name / Save Anyway)."
