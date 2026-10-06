@@ -4714,8 +4714,39 @@ async function applyStdImagesToAllProducts(){
 }
 
 async function importProducts(){
+  if(window.__importRunning) return;
+  window.__importRunning=true;
+  window.__impFailures=[]; window.__impWarnings=[];
+  const btn=document.getElementById("import-btn");
+  try{ await importProductsCore(); }
+  catch(e){
+    console.error("Import crashed:",e);
+    showImportResult(false,"Import failed",["The import stopped unexpectedly and may be incomplete.","Error: "+(e&&e.message?e.message:String(e))],[]);
+  }
+  finally{
+    window.__importRunning=false;
+    if(btn){ btn.disabled=false; btn.textContent="Import All Products"; }
+  }
+}
+function impWarn(row,e){
+  (window.__impWarnings=window.__impWarnings||[]).push({sku:String(row&&row.sku||"").trim(),name:String(row&&row.name||"").trim(),msg:(e&&e.message)?e.message:String(e)});
+}
+function showImportResult(ok,title,lines,details){
+  const old=document.getElementById("import-result-modal"); if(old) old.remove();
+  const col=ok?"#2e7d32":"#c62828";
+  const d=document.createElement("div");
+  d.id="import-result-modal";
+  d.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px";
+  const det=(details||[]).length?`<div style="margin-top:12px;max-height:240px;overflow:auto;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:12px;line-height:1.5;background:#fafafa">`+details.map(x=>"• "+esc(x)).join("<br>")+`</div>`:"";
+  d.innerHTML=`<div style="background:#fff;color:#222;max-width:560px;width:100%;border-radius:10px;padding:22px;border-top:5px solid ${col};font-family:inherit">
+    <div style="font-size:18px;font-weight:700;color:${col};margin-bottom:10px">${ok?"✔ ":"✖ "}${esc(title)}</div>
+    <div style="font-size:14px;line-height:1.6">${(lines||[]).map(esc).join("<br>")}</div>${det}
+    <div style="text-align:right;margin-top:16px"><button class="btn btn-secondary" onclick="this.closest('#import-result-modal').remove()">Close</button></div></div>`;
+  document.body.appendChild(d);
+}
+async function importProductsCore(){
   const valid = bulkRows.filter(r => String(r.name||"").trim());
-  if(!valid.length){ toast("No valid rows.","error"); return; }
+  if(!valid.length){ showImportResult(false,"Import failed",["No valid rows found. Each row needs a product name.","Re-select the file and try again."],[]); return; }
   const btn = document.getElementById("import-btn");
   btn.disabled=true; btn.textContent="Importing...";
   let inserted=0, updated=0, failed=0;
@@ -4730,7 +4761,10 @@ async function importProducts(){
     existingProds.forEach(p=>{ if(p.sku) existingBySku[p.sku.trim()] = p.id; });
   }catch(e){ console.warn("Could not pre-fetch existing SKUs, will fall back per-row.",e); }
 
+  let __n=0;
+  toast("Import started: "+valid.length+" products. Please keep this tab open...");
   for(const row of valid){
+    btn.textContent="Importing "+(++__n)+" / "+valid.length+"...";
     try{
       const name  = String(row.name).trim();
       const sku   = String(row.sku||"").trim()||null;
@@ -4797,25 +4831,25 @@ async function importProducts(){
 
       // Tags — create any missing tags automatically, then link all of them
       const tagIds = await ensureTagIds(row.tags);
-      try{ await sb("product_tags?product_id=eq."+pid,"DELETE"); }catch(e){}
-      for(const tid of tagIds) try{ await sb("product_tags","POST",{product_id:pid,tag_id:tid}); }catch(e){}
+      try{ await sb("product_tags?product_id=eq."+pid,"DELETE"); }catch(e){ impWarn(row,e); }
+      for(const tid of tagIds) try{ await sb("product_tags","POST",{product_id:pid,tag_id:tid}); }catch(e){ impWarn(row,e); }
 
       // Jewel Categories — from Jewel Categories sheet (preferred) OR fallback to Products row
-      try{ await sb("product_jewel_cats?product_id=eq."+pid,"DELETE"); }catch(e){}
+      try{ await sb("product_jewel_cats?product_id=eq."+pid,"DELETE"); }catch(e){ impWarn(row,e); }
       const jcatsForSku = sku ? bulkJcatRows.filter(j=>String(j.sku||"").trim()===sku) : [];
       if(jcatsForSku.length){
         for(const jc of jcatsForSku){
           const jt = String(jc.jewel_type||"").trim();
           if(!jt) continue;
-          try{ await sb("product_jewel_cats","POST",{product_id:pid,jewel_type:jt,sub_type1:String(jc.sub_type1||"").trim()||null,sub_type2:String(jc.sub_type2||"").trim()||null}); }catch(e){}
+          try{ await sb("product_jewel_cats","POST",{product_id:pid,jewel_type:jt,sub_type1:String(jc.sub_type1||"").trim()||null,sub_type2:String(jc.sub_type2||"").trim()||null}); }catch(e){ impWarn(row,e); }
         }
       } else if(String(row.jewel_type||"").trim()){
         const jt = String(row.jewel_type).trim();
-        try{ await sb("product_jewel_cats","POST",{product_id:pid,jewel_type:jt,sub_type1:String(row.jewel_sub1||"").trim()||null,sub_type2:String(row.jewel_sub2||"").trim()||null}); }catch(e){}
+        try{ await sb("product_jewel_cats","POST",{product_id:pid,jewel_type:jt,sub_type1:String(row.jewel_sub1||"").trim()||null,sub_type2:String(row.jewel_sub2||"").trim()||null}); }catch(e){ impWarn(row,e); }
       }
 
       // Stone Rows — from Stone Rows sheet (preferred) — one row per stone
-      try{ await sb("product_stones?product_id=eq."+pid,"DELETE"); }catch(e){}
+      try{ await sb("product_stones?product_id=eq."+pid,"DELETE"); }catch(e){ impWarn(row,e); }
       const stonesForSku = sku ? bulkStoneRows.filter(s=>String(s.sku||"").trim()===sku) : [];
       for(const s of stonesForSku){
         const st = String(s.stone_type||"").trim();
@@ -4828,7 +4862,7 @@ async function importProducts(){
           pcs:         parseInt(s.pcs)||null,
           length_mm:   parseFloat(s.length_mm)||null,
           width_mm:    parseFloat(s.width_mm)||null,
-        }); }catch(e){}
+        }); }catch(e){ impWarn(row,e); }
       }
 
       // Media — only insert if URLs are provided in this import file;
@@ -4844,9 +4878,9 @@ async function importProducts(){
        .map(m=>({...m, url:stripCloudVersion(String(m.url).trim())}));
 
       if(mediaUrls.length){
-        try{ await sb("product_media?product_id=eq."+pid+"&media_type=eq.image","DELETE"); }catch(e){}
+        try{ await sb("product_media?product_id=eq."+pid+"&media_type=eq.image","DELETE"); }catch(e){ impWarn(row,e); }
         for(const m of mediaUrls){
-          try{ await sb("product_media","POST",{product_id:pid,url:String(m.url).trim(),media_type:"image",is_primary:m.is_primary,sort_order:m.sort_order,alt_text:m.alt}); }catch(e){}
+          try{ await sb("product_media","POST",{product_id:pid,url:String(m.url).trim(),media_type:"image",is_primary:m.is_primary,sort_order:m.sort_order,alt_text:m.alt}); }catch(e){ impWarn(row,e); }
         }
       }
       // Every product gets the 5 standard SKU images (W/Y/R/Model/Spot) — anything not already there is added.
@@ -4863,19 +4897,23 @@ async function importProducts(){
         }catch(e){ console.error("Standard images failed:",sku,e.message); }
       }
       if(String(row.video_url||"").trim()){
-        try{ await sb("product_media","POST",{product_id:pid,url:String(row.video_url).trim(),media_type:"video",is_primary:false,sort_order:10}); }catch(e){}
+        try{ await sb("product_media","POST",{product_id:pid,url:String(row.video_url).trim(),media_type:"video",is_primary:false,sort_order:10}); }catch(e){ impWarn(row,e); }
       }
 
-    }catch(e){ failed++; console.error("Failed:",row.name,e.message); }
+    }catch(e){ failed++; console.error("Failed:",row.name,e.message); window.__impFailures.push({sku:String(row.sku||"").trim(),name:String(row.name||"").trim(),msg:e.message}); }
   }
 
   btn.disabled=false; btn.textContent="Import All Products";
-  const summary = [
-    inserted && `${inserted} added`,
-    updated  && `${updated} updated`,
-    failed   && `${failed} failed`,
-  ].filter(Boolean).join(", ");
-  toast(summary, failed?"error":"success");
+  const fails=window.__impFailures||[], warns=window.__impWarnings||[];
+  const counts=[inserted&&`${inserted} added`, updated&&`${updated} updated`].filter(Boolean).join(", ")||"0 products changed";
+  if(!failed && !warns.length){
+    showImportResult(true,"Import successful",[`${counts} (${valid.length} rows processed).`,"All products, categories, stones and images were saved without errors."],[]);
+  } else if(!failed){
+    showImportResult(true,"Import completed with warnings",[`${counts} (${valid.length} rows processed).`,`${warns.length} related-data step(s) (tags, categories, stones or images) reported a problem:`],warns.slice(0,50).map(w=>`${w.sku||w.name}: ${w.msg}`.slice(0,300)));
+  } else {
+    showImportResult(false,"Import finished with errors",[`${counts}; ${failed} of ${valid.length} rows FAILED.`,"Failed rows were not saved. Details:"],fails.slice(0,50).map(w=>`${w.sku||"(no SKU)"} ${w.name}: ${w.msg}`.slice(0,300)).concat(warns.length?[`+ ${warns.length} related-data warning(s), see browser console`]:[]));
+    warns.forEach(w=>console.warn("Import warning:",w));
+  }
   bulkRows=[]; bulkStoneRows=[]; bulkJcatRows=[];
   document.getElementById("preview-wrap").style.display="none";
   document.getElementById("file-input").value="";
@@ -6901,7 +6939,7 @@ function closeConfirm(){ document.getElementById("confirm-modal").classList.remo
 })();
 </script>
 <script src="admin-members.js"></script>
-<script src="admin-duplicate-name.js?v=3"></script>
+<script src="admin-duplicate-name.js?v=4"></script>
 <script src="admin-version.js?v=1.2"></script>
 </body>
 </html>
