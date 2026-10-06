@@ -1,37 +1,42 @@
 // ════════════════════════════════════════════════════════════════
-// VIE JEWELS ADMIN — Duplicate "Design Name" warning
-// Add ONE line to admin.html, just before </body> (after admin-members.js):
-//     <script src="admin-duplicate-name.js?v=3"></script>
+// VIE JEWELS ADMIN — Duplicate "Design Name" warning  (v4)
+// In admin.html, just before </body>:
+//     <script src="admin-duplicate-name.js?v=4"></script>
 //
-// Covers three places:
-//  0. Products table — click the Name cell to edit it inline; saving a name
-//     that another product already has opens the same popup
-//     (Change Name / Save Anyway).
-//  1. Add / Edit Product form — popup when the Design Name already exists
-//     on another product (Change Name / Continue Anyway).
-//  2. Bulk Upload (table / Excel) — rows whose name already exists on a
-//     product with a different SKU, or repeats inside the file under a
-//     different SKU, are flagged "NAME EXISTS" in the preview and you are
-//     asked to Review Rows or Continue Import before anything is saved.
-// Matching ignores upper/lower case and extra spaces. A row that has the
-// same SKU as an existing product is an update of that product, so it is
-// never flagged. Relies on globals already in admin.html: allProducts,
-// editingProductId, bulkRows, gv(), esc(), openProductModal(),
-// saveProduct(), renderBulkPreview(), importProducts().
+// Covers:
+//  0/1b. Products table — inline Name cell edit warns on duplicate.
+//  1.    Add / Edit Product form — popup when the Design Name already exists.
+//  2.    Bulk Upload (Excel) — rows whose name clashes are flagged NAME EXISTS;
+//        each flagged row has an "Intentional" checkbox. On import you can
+//        Review, Skip the unmarked duplicates, or Import everything anyway.
 //
-// v3 fixes: popup buttons dead when this file ended up loaded twice (two
-// popups with the same ids → the visible one had no click handlers);
-// keyboard focus stayed behind the popup so Enter/Esc acted on the editor
-// underneath and could leave the popup orphaned.
+// v4 changes:
+//  - Stronger matching: ignores case, accents, punctuation, hyphen/space,
+//    "&" vs "and", zero-width/hidden characters.
+//  - Bulk preview compares against ALL products in the database (paged),
+//    not just allProducts (which may be capped at 1000 rows).
+//  - Same SKU repeated in the file under the same name is now flagged too.
+//  - Flags are attached to rows by the "#" column, so sorting/filtering the
+//    preview table can no longer put a badge on the wrong row.
+//  - Per-row "Intentional" checkbox + "Skip unmarked & import rest" option.
+// Relies on globals in admin.html: allProducts, editingProductId, bulkRows,
+// sb(), gv(), esc(), openProductModal(), saveProduct(), renderBulkPreview(),
+// importProducts().
 // ════════════════════════════════════════════════════════════════
 (function () {
-  // Never wire the popup twice (a second load would leave duplicate ids and a visible popup with dead buttons)
   if (window.__vjDupNameLoaded) return;
   const nameInput = document.getElementById("f-name");
   if (!nameInput || typeof saveProduct !== "function") return;
   window.__vjDupNameLoaded = true;
 
-  const norm = s => String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
+  // Loose comparison key
+  const norm = s => String(s == null ? "" : s)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")            // accents
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "") // hidden chars
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, "");       // spaces, hyphens, punctuation
   const $ = id => document.getElementById(id);
 
   /* ── Shared popup ──────────────────────────────────────── */
@@ -41,9 +46,9 @@
   const modal = document.createElement("div");
   modal.className = "modal-overlay";
   modal.id = "dupname-modal";
-  modal.style.zIndex = "400"; // above other modals
+  modal.style.zIndex = "400";
   modal.innerHTML = `
-    <div class="modal" style="max-width:460px">
+    <div class="modal" style="max-width:480px">
       <div class="modal-header"><h2 id="dupname-title">Design name already exists</h2><button type="button" class="modal-close" id="dupname-x">×</button></div>
       <div class="modal-body">
         <p id="dupname-msg" style="font-size:14px;line-height:1.6;margin-bottom:12px"></p>
@@ -51,13 +56,14 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="dupname-change">Change Name</button>
+        <button type="button" class="btn btn-secondary" id="dupname-skip" style="display:none">Skip</button>
         <button type="button" class="btn btn-primary" id="dupname-continue">Continue Anyway</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
-  const m = id => modal.querySelector("#" + id); // always the popup's own elements
+  const m = id => modal.querySelector("#" + id);
 
-  let onChange = null, onContinue = null;
+  let onChange = null, onContinue = null, onSkip = null;
 
   function openPopup(o) {
     m("dupname-title").textContent = o.title;
@@ -65,18 +71,22 @@
     m("dupname-list").innerHTML = o.list;
     m("dupname-change").textContent = o.changeLabel;
     m("dupname-continue").textContent = o.continueLabel;
+    const skipBtn = m("dupname-skip");
+    skipBtn.style.display = o.skipLabel ? "" : "none";
+    if (o.skipLabel) skipBtn.textContent = o.skipLabel;
     onChange = o.onChange || null;
     onContinue = o.onContinue || null;
+    onSkip = o.onSkip || null;
     modal.classList.add("open");
-    m("dupname-change").focus(); // keep the keyboard inside the popup, not on the editor underneath
+    m("dupname-change").focus();
   }
   function closePopup() { modal.classList.remove("open"); }
 
   const doChange = () => { const cb = onChange; closePopup(); if (cb) cb(); };
   m("dupname-change").addEventListener("click", doChange);
   m("dupname-x").addEventListener("click", doChange);
+  m("dupname-skip").addEventListener("click", () => { const cb = onSkip; closePopup(); if (cb) cb(); });
   m("dupname-continue").addEventListener("click", () => { const cb = onContinue; closePopup(); if (cb) cb(); });
-  // Esc = Change Name, handled before anything underneath can react to it
   document.addEventListener("keydown", e => {
     if (e.key === "Escape" && modal.classList.contains("open")) { e.preventDefault(); e.stopPropagation(); doChange(); }
   }, true);
@@ -84,15 +94,13 @@
   /* ════════════════════════════════════════════════════════
      1. ADD / EDIT PRODUCT FORM
      ════════════════════════════════════════════════════════ */
-  let ackName = ""; // normalised name the admin has already chosen to keep
+  let ackName = "";
 
   function findDups(name, excludeId) {
     const n = norm(name);
     if (!n) return [];
     const skip = excludeId !== undefined ? excludeId : editingProductId;
-    return allProducts.filter(p =>
-      String(p.id) !== String(skip) && norm(p.name) === n
-    );
+    return allProducts.filter(p => String(p.id) !== String(skip) && norm(p.name) === n);
   }
 
   function askFormDuplicate(name, dups, thenSave) {
@@ -108,14 +116,11 @@
     });
   }
 
-  // Check as soon as the name field is filled in
   nameInput.addEventListener("change", () => {
     const dups = findDups(nameInput.value);
     if (dups.length && norm(nameInput.value) !== ackName) askFormDuplicate(nameInput.value, dups, null);
   });
 
-  // Reset acknowledgement whenever the editor opens (an edited product's
-  // existing name counts as accepted)
   const origOpen = window.openProductModal;
   window.openProductModal = function (id) {
     const r = origOpen.apply(this, arguments);
@@ -123,7 +128,6 @@
     return r;
   };
 
-  // Safety net on Save, in case the first popup was skipped
   const origSave = window.saveProduct;
   window.saveProduct = function () {
     const name = nameInput.value;
@@ -136,11 +140,11 @@
   };
 
   /* ════════════════════════════════════════════════════════
-     1b. PRODUCTS TABLE — click-to-edit Name cell (inline editor)
+     1b. PRODUCTS TABLE — click-to-edit Name cell
      ════════════════════════════════════════════════════════ */
   if (typeof saveCellEditor === "function") {
     const origCellSave = window.saveCellEditor;
-    const cellAck = {}; // product id -> normalised name already confirmed
+    const cellAck = {};
 
     window.saveCellEditor = function () {
       if (typeof cellEd !== "undefined" && cellEd && cellEd.field === "name" && !cellEd.saving) {
@@ -164,7 +168,6 @@
               },
               onContinue: () => {
                 cellAck[p.id] = norm(name);
-                // the editor may have been closed meanwhile; only save if it is still open for this product
                 if (typeof cellEd !== "undefined" && cellEd && String(cellEd.pid) === String(p.id)) origCellSave();
               }
             });
@@ -177,84 +180,146 @@
   }
 
   /* ════════════════════════════════════════════════════════
-     2. BULK UPLOAD (table / Excel)
+     2. BULK UPLOAD (Excel)
      ════════════════════════════════════════════════════════ */
   if (typeof renderBulkPreview !== "function" || typeof importProducts !== "function") return;
 
   const rowSku = r => String(r.sku || "").trim().toLowerCase();
 
-  // Returns Map(rowIndex -> reason text) for rows with a name clash
-  function bulkFlags(rows) {
-    const flags = new Map();
+  let bulkDb = null;                 // every product (id, name, sku) from the database
+  const intentional = new Set();     // row indexes the admin marked as intentional
+  let lastFlags = new Map();
+  let bulkAck = false;
 
-    // (a) name already used by an existing product with a different SKU
-    rows.forEach((r, i) => {
-      const n = norm(r.name);
-      if (!n) return;
-      const sku = rowSku(r);
-      const hit = allProducts.find(p =>
-        norm(p.name) === n && (!sku || String(p.sku || "").trim().toLowerCase() !== sku)
-      );
-      if (hit) flags.set(i, `Already used by existing product ${hit.sku || "(no SKU)"}`);
+  // Fetch ALL products in pages so a server row cap can't hide existing names
+  async function fetchAllProducts() {
+    const out = [];
+    const PAGE = 1000;
+    for (let guard = 0; guard < 200; guard++) {
+      const rows = await sb(`products?select=id,name,sku&order=id.asc&limit=${PAGE}&offset=${out.length}`);
+      if (!rows || !rows.length) break;
+      out.push(...rows);
+    }
+    return out;
+  }
+
+  // Map(rowIndex -> reason). Indexes refer to positions in `rows` (= bulkRows).
+  function bulkFlags(rows) {
+    const db = bulkDb || allProducts;
+    const dbByName = new Map();
+    db.forEach(p => {
+      const k = norm(p.name);
+      if (!k) return;
+      if (!dbByName.has(k)) dbByName.set(k, []);
+      dbByName.get(k).push(p);
     });
 
-    // (b) same name repeated in the file under different SKUs
+    const flags = new Map();
+    const add = (i, why) => flags.set(i, flags.has(i) ? flags.get(i) + "; " + why : why);
+
+    // (a) name used by an existing product with a different SKU
+    rows.forEach((r, i) => {
+      const k = norm(r.name);
+      if (!k) return;
+      const sku = rowSku(r);
+      const hit = (dbByName.get(k) || []).find(p => !sku || String(p.sku || "").trim().toLowerCase() !== sku);
+      if (hit) add(i, `Already used by existing product ${hit.sku || "(no SKU)"}`);
+    });
+
+    // (b) same name more than once inside the file
     const groups = new Map();
     rows.forEach((r, i) => {
-      const n = norm(r.name);
-      if (!n) return;
-      if (!groups.has(n)) groups.set(n, []);
-      groups.get(n).push(i);
+      const k = norm(r.name);
+      if (!k) return;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(i);
     });
     groups.forEach(idxs => {
+      if (idxs.length < 2) return;
       const keys = new Set(idxs.map(i => rowSku(rows[i]) || "#" + i));
-      if (keys.size > 1) {
-        idxs.forEach(i => { if (!flags.has(i)) flags.set(i, "Same name appears more than once in this file"); });
-      }
+      const nums = idxs.map(i => i + 1).join(", ");
+      const why = keys.size > 1
+        ? `Same name on file rows ${nums} (different SKUs)`
+        : `Same SKU listed on file rows ${nums} — later row overwrites earlier`;
+      idxs.forEach(i => add(i, why));
     });
     return flags;
   }
 
-  let bulkAck = false;
+  function refreshUnreviewed() {
+    const el = $("dup-unrev");
+    if (!el) return;
+    let n = 0;
+    lastFlags.forEach((_, i) => { if (!intentional.has(i)) n++; });
+    el.textContent = n;
+  }
 
-  // After the preview renders, mark the flagged rows
+  document.addEventListener("change", e => {
+    const cb = e.target;
+    if (!cb || !cb.matches || !cb.matches("input[data-dup-idx]")) return;
+    const i = parseInt(cb.dataset.dupIdx, 10);
+    if (cb.checked) intentional.add(i); else intentional.delete(i);
+    const tr = cb.closest("tr");
+    if (tr) tr.style.background = cb.checked ? "rgba(39,174,96,0.07)" : "rgba(192,57,43,0.06)";
+    refreshUnreviewed();
+  });
+
   const origPreview = window.renderBulkPreview;
   window.renderBulkPreview = async function (rows) {
     const r = await origPreview.apply(this, arguments);
     bulkAck = false;
+    intentional.clear();
+    try { bulkDb = await fetchAllProducts(); }
+    catch (e) { bulkDb = null; console.warn("Duplicate check: could not load full product list, using loaded products only.", e); }
+
     const flags = bulkFlags(rows || []);
-    const trs = document.querySelectorAll("#preview-tbody tr");
+    lastFlags = flags;
+
+    // attach by the "#" column so sorting/filtering the preview can't misplace badges
+    const byNum = new Map();
+    document.querySelectorAll("#preview-tbody tr").forEach(tr => {
+      const n = parseInt(tr.cells[0] && tr.cells[0].textContent, 10);
+      if (n) byNum.set(n, tr);
+    });
     flags.forEach((reason, i) => {
-      const tr = trs[i];
+      const tr = byNum.get(i + 1);
       if (!tr) return;
       const last = tr.lastElementChild;
       if (last) last.insertAdjacentHTML("beforeend",
-        `<div style="margin-top:4px"><span class="badge badge-inactive" title="${esc(reason)}">NAME EXISTS</span></div>`);
+        `<div style="margin-top:4px"><span class="badge badge-inactive" title="${esc(reason)}">NAME EXISTS</span></div>` +
+        `<label style="display:flex;align-items:center;gap:4px;margin-top:4px;font-size:11px;color:var(--text-muted);cursor:pointer" title="${esc(reason)}">` +
+        `<input type="checkbox" data-dup-idx="${i}" /> Intentional</label>`);
       tr.style.background = "rgba(192,57,43,0.06)";
       tr.title = reason;
     });
     if (flags.size) {
       const stats = $("preview-stats");
       if (stats) stats.insertAdjacentHTML("beforeend",
-        `<div class="stat-card"><div class="stat-num" style="color:var(--danger)">${flags.size}</div><div class="stat-label">Name exists</div></div>`);
+        `<div class="stat-card"><div class="stat-num" style="color:var(--danger)">${flags.size}</div><div class="stat-label">Name exists</div></div>` +
+        `<div class="stat-card"><div class="stat-num" id="dup-unrev" style="color:var(--danger)">${flags.size}</div><div class="stat-label">Not yet marked intentional</div></div>`);
     }
     return r;
   };
 
-  // Ask once before importing if any rows are flagged
   const origImport = window.importProducts;
   window.importProducts = function () {
-    const rows = bulkRows.filter(r => String(r.name || "").trim());
-    const flags = bulkFlags(rows);
-    if (flags.size && !bulkAck) {
-      const items = [...flags.entries()].slice(0, 10).map(([i, why]) =>
-        `• ${esc(rows[i].name)}${rows[i].sku ? " (" + esc(rows[i].sku) + ")" : ""} <span style="color:var(--text-light)">— ${esc(why)}</span>`).join("<br>");
+    const flags = bulkFlags(bulkRows);
+    const pending = new Set([...flags.keys()].filter(i => !intentional.has(i)));
+    if (pending.size && !bulkAck) {
+      const items = [...pending].slice(0, 10).map(i =>
+        `• Row ${i + 1}: ${esc(bulkRows[i].name)}${bulkRows[i].sku ? " (" + esc(bulkRows[i].sku) + ")" : ""} <span style="color:var(--text-light)">— ${esc(flags.get(i))}</span>`).join("<br>");
       openPopup({
-        title: "Some design names already exist",
-        msg: `<strong>${flags.size}</strong> row${flags.size > 1 ? "s use" : " uses"} a design name that already exists. Review those rows (marked NAME EXISTS), or continue and import them as they are.`,
-        list: items + (flags.size > 10 ? `<br>…and ${flags.size - 10} more` : ""),
+        title: "Duplicate design names not reviewed",
+        msg: `<strong>${pending.size}</strong> row${pending.size > 1 ? "s have" : " has"} a design name that is already in use and ${pending.size > 1 ? "are" : "is"} not marked <em>Intentional</em>. Review them, skip them, or import everything as it is.`,
+        list: items + (pending.size > 10 ? `<br>…and ${pending.size - 10} more` : ""),
         changeLabel: "Review Rows",
-        continueLabel: "Continue Import",
+        skipLabel: `Skip ${pending.size} & Import Rest`,
+        continueLabel: "Import All Anyway",
+        onSkip: () => {
+          bulkRows = bulkRows.filter((r, i) => !pending.has(i));
+          bulkAck = true;
+          origImport();
+        },
         onContinue: () => { bulkAck = true; origImport(); }
       });
       return;
