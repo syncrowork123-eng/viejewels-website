@@ -308,7 +308,28 @@
     if (pending.size && !bulkAck) {
       const items = [...pending].slice(0, 10).map(i =>
         `• Row ${i + 1}: ${esc(bulkRows[i].name)}${bulkRows[i].sku ? " (" + esc(bulkRows[i].sku) + ")" : ""} <span style="color:var(--text-light)">— ${esc(flags.get(i))}</span>`).join("<br>");
-      if (window.setImportStatus) setImportStatus("warn", `Import NOT started yet — ${pending.size} row${pending.size > 1 ? "s have" : " has"} a duplicate design name`, ["Choose an option in the popup: Import All Anyway, Skip & Import Rest, or Review Rows."]);
+      if (window.setImportStatus) setImportStatus("warn", `Import NOT started yet — ${pending.size} row${pending.size > 1 ? "s have" : " has"} a duplicate design name`, ["Choose below (or in the popup): Import All Anyway, or Skip the flagged rows."]);
+      const doSkip = () => { bulkRows = bulkRows.filter((r, i) => !pending.has(i)); bulkAck = true; origImport(); };
+      const doAll = () => { bulkAck = true; origImport(); };
+      // Same choices as inline buttons, in case the popup is missed or hidden
+      try {
+        const st = document.getElementById("import-status");
+        if (st) {
+          const bar = document.createElement("div");
+          bar.style.cssText = "margin-top:10px;display:flex;gap:8px;flex-wrap:wrap";
+          const mk = (label, primary, fn) => {
+            const b = document.createElement("button");
+            b.type = "button"; b.textContent = label;
+            b.className = primary ? "btn btn-primary" : "btn btn-secondary";
+            b.addEventListener("click", () => { closePopup(); fn(); });
+            return b;
+          };
+          bar.appendChild(mk("Import All Anyway", true, doAll));
+          bar.appendChild(mk(`Skip ${pending.size} & Import Rest`, false, doSkip));
+          st.appendChild(bar);
+          st.scrollIntoView({ block: "center" });
+        }
+      } catch (e) { console.warn("inline duplicate actions failed", e); }
       openPopup({
         title: "Duplicate design names not reviewed",
         msg: `<strong>${pending.size}</strong> row${pending.size > 1 ? "s have" : " has"} a design name that is already in use and ${pending.size > 1 ? "are" : "is"} not marked <em>Intentional</em>. Review them, skip them, or import everything as it is.`,
@@ -317,12 +338,8 @@
         changeLabel: "Review Rows",
         skipLabel: `Skip ${pending.size} & Import Rest`,
         continueLabel: "Import All Anyway",
-        onSkip: () => {
-          bulkRows = bulkRows.filter((r, i) => !pending.has(i));
-          bulkAck = true;
-          origImport();
-        },
-        onContinue: () => { bulkAck = true; origImport(); }
+        onSkip: doSkip,
+        onContinue: doAll
       });
       return;
     }
