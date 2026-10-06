@@ -960,6 +960,7 @@
       6. Save as <code>.xlsx</code>, drag onto zone below, preview, then click <strong>Import All</strong>.</p>
     </div>
     <div style="margin-bottom:20px"><button class="btn btn-secondary" onclick="downloadTemplate()">Download Template (.xlsx)</button></div>
+    <div id="import-status" style="display:none;margin-bottom:16px;padding:14px 16px;border-radius:8px;border:1px solid var(--border);border-left:5px solid #b8922a;background:var(--surface);font-size:14px;line-height:1.6"></div>
     <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
       <div class="upload-icon">📂</div>
       <strong>Click to choose file or drag and drop here</strong>
@@ -4397,6 +4398,7 @@ let bulkStoneRows = [];   // [{sku, stone_type, setting_type, shape, pcs, length
 let bulkJcatRows  = [];   // [{sku, jewel_type, sub_type1, sub_type2}]
 
 function processFile(file){
+  const __st=document.getElementById("import-status"); if(__st) __st.style.display="none";
   const reader = new FileReader();
   reader.onload = async e => {
     const wb = XLSX.read(new Uint8Array(e.target.result), {type:"array"});
@@ -4729,6 +4731,13 @@ async function applyStdImagesToAllProducts(){
 // ══════════════════════════════════════════════════════════════
 // BULK IMPORT — with progress overlay + success/failure popup
 // ══════════════════════════════════════════════════════════════
+// Persistent inline status (lives in the Bulk Upload tab, never hidden by the overlay logic)
+function setImportStatus(kind,title,lines){
+  const el=document.getElementById("import-status"); if(!el) return;
+  const col={run:"#b8922a",ok:"#2e7d32",warn:"#ef6c00",err:"#c62828"}[kind]||"#b8922a";
+  el.style.display="block"; el.style.borderLeftColor=col;
+  el.innerHTML=`<div style="font-weight:700;color:${col}">${esc(title)}</div>`+(lines||[]).filter(Boolean).map(l=>`<div>${esc(l)}</div>`).join("");
+}
 function showImportProgress(done,total,label,stats){
   let d=document.getElementById("import-progress");
   if(!d){
@@ -4744,6 +4753,7 @@ function showImportProgress(done,total,label,stats){
   }
   const pct=total?Math.round(done/total*100):0;
   document.getElementById("imp-prog-bar").style.width=pct+"%";
+  try{ setImportStatus("run",`Importing products… ${pct}%`,[`${done} of ${total}${label?" — "+label:""}`, stats||""]); }catch(_){}
   document.getElementById("imp-prog-text").textContent=`${done} of ${total} (${pct}%)${label?" — "+label:""}`;
   if(stats!==undefined){ const st=document.getElementById("imp-prog-stats"); if(st) st.textContent=stats; }
 }
@@ -4753,11 +4763,14 @@ async function importProducts(){
   if(window.__importRunning) return;
   window.__importRunning=true;
   window.__impFailures=[]; window.__impWarnings=[];
+  console.info("[bulk import] started");
+  try{ setImportStatus("run","Import started…",["Preparing "+(bulkRows||[]).length+" rows"]); document.getElementById("import-status").scrollIntoView({block:"nearest"}); }catch(_){}
   const btn=document.getElementById("import-btn");
   try{ await importProductsCore(); }
   catch(e){
     console.error("Import crashed:",e);
     hideImportProgress();
+    try{ setImportStatus("err","Import failed",["The import stopped unexpectedly and may be incomplete.",(e&&e.message)||String(e)]); }catch(_){}
     showImportResult(false,"Import failed",["The import stopped unexpectedly and may be incomplete.","Error: "+(e&&e.message?e.message:String(e))],[]);
   }
   finally{
@@ -4960,6 +4973,13 @@ async function importProductsCore(){
   const fails=window.__impFailures||[], warns=window.__impWarnings||[];
   const counts=[inserted&&`${inserted} added`, updated&&`${updated} updated`].filter(Boolean).join(", ")||"0 products changed";
 
+  console.info("[bulk import] finished",{inserted,updated,failed,warnings:warns.length});
+  try{
+    const summary=[`${counts} (${valid.length} rows processed).`];
+    if(failed) setImportStatus("err",`Import finished with errors — ${failed} of ${valid.length} rows failed`,summary.concat(fails.slice(0,10).map(f=>`${f.sku||"(no SKU)"} ${f.name}: ${f.msg}`.slice(0,200))));
+    else if(warns.length) setImportStatus("warn","Import completed with warnings",summary.concat([`${warns.length} related-data step(s) reported a problem (see popup / console).`]));
+    else setImportStatus("ok","✔ All products imported successfully",summary);
+  }catch(_){}
   try{ toast(failed?`Import finished: ${failed} of ${valid.length} rows failed`:`Import complete: ${valid.length} product${valid.length!==1?"s":""} saved`, failed?"error":"success"); }catch(_){}
   if(!failed && !warns.length){
     showImportResult(true,"Upload successful",[`${counts} (${valid.length} rows processed).`,"All products, categories, stones and images were saved without errors."],[]);
