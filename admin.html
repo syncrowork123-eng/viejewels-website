@@ -4729,7 +4729,7 @@ async function applyStdImagesToAllProducts(){
 // ══════════════════════════════════════════════════════════════
 // BULK IMPORT — with progress overlay + success/failure popup
 // ══════════════════════════════════════════════════════════════
-function showImportProgress(done,total,label){
+function showImportProgress(done,total,label,stats){
   let d=document.getElementById("import-progress");
   if(!d){
     d=document.createElement("div"); d.id="import-progress";
@@ -4738,12 +4738,14 @@ function showImportProgress(done,total,label){
       <div style="font-weight:700;font-size:16px;margin-bottom:12px">Importing products…</div>
       <div style="height:10px;background:#eee;border-radius:5px;overflow:hidden"><div id="imp-prog-bar" style="height:100%;width:0;background:#b8922a;transition:width .2s"></div></div>
       <div id="imp-prog-text" style="font-size:13px;margin-top:10px;word-break:break-word"></div>
+      <div id="imp-prog-stats" style="font-size:12px;color:#555;margin-top:6px"></div>
       <div style="font-size:11px;color:#888;margin-top:6px">Keep this tab open until it finishes.</div></div>`;
     document.body.appendChild(d);
   }
   const pct=total?Math.round(done/total*100):0;
   document.getElementById("imp-prog-bar").style.width=pct+"%";
   document.getElementById("imp-prog-text").textContent=`${done} of ${total} (${pct}%)${label?" — "+label:""}`;
+  if(stats!==undefined){ const st=document.getElementById("imp-prog-stats"); if(st) st.textContent=stats; }
 }
 function hideImportProgress(){ const d=document.getElementById("import-progress"); if(d) d.remove(); }
 
@@ -4946,6 +4948,8 @@ async function importProductsCore(){
       console.error("Failed:",row.name,e.message);
       window.__impFailures.push({sku:String(row.sku||"").trim(),name:String(row.name||"").trim(),msg:e.message});
     }
+    // row finished: bar now reflects completed rows, plus running totals
+    showImportProgress(__n,valid.length,String(row.name||row.sku||""),`${inserted} added · ${updated} updated · ${failed} failed`);
   }
 
   showImportProgress(valid.length,valid.length,"Finishing up…");
@@ -4956,6 +4960,7 @@ async function importProductsCore(){
   const fails=window.__impFailures||[], warns=window.__impWarnings||[];
   const counts=[inserted&&`${inserted} added`, updated&&`${updated} updated`].filter(Boolean).join(", ")||"0 products changed";
 
+  try{ toast(failed?`Import finished: ${failed} of ${valid.length} rows failed`:`Import complete: ${valid.length} product${valid.length!==1?"s":""} saved`, failed?"error":"success"); }catch(_){}
   if(!failed && !warns.length){
     showImportResult(true,"Upload successful",[`${counts} (${valid.length} rows processed).`,"All products, categories, stones and images were saved without errors."],[]);
   } else if(!failed){
