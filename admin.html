@@ -4940,7 +4940,9 @@ async function importProductsCore(){
       }
 
       // ── Standard SKU images (W/Y/R/Model/Spot) — NO network probing (fast) ──
-      if(sku){
+      // Only auto-add W/Y/R/Model/Spot when the sheet gave this product NO images.
+      // If the sheet lists images, the product gets exactly those, nothing extra.
+      if(sku && !mediaUrls.length){
         try{
           const have = await sb("product_media?product_id=eq."+pid+"&select=url,alt_text,media_type,is_primary,sort_order") || [];
           const missing = missingStdImages(have, sku);
