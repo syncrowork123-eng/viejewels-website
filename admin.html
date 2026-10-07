@@ -4690,6 +4690,8 @@ function stdImageUrl(sku, suffix){
 function missingStdImages(rows, sku){
   sku = String(sku||"").trim();
   if(!sku) return [];
+  // Already has a full set of images: don't pile a 6th one on top
+  if((rows||[]).filter(r=>r && r.media_type!=="video" && r.url).length >= IMG_SUFFIXES.length) return [];
   const have = new Set((rows||[]).map(mediaRowSuffix).filter(Boolean));
   return IMG_SUFFIXES.filter(s=>!have.has(s))
     .map(s=>({url:stdImageUrl(sku,s), media_type:"image", alt_text:s, is_primary:false, _auto:true}));
@@ -4923,7 +4925,7 @@ async function importProductsCore(){
 
       // ── Media from file columns (only if provided) ──
       const mediaUrls = [
-        {url:row.image_url,       is_primary:true,  sort_order:0, alt:""},
+        {url:row.image_url,       is_primary:true,  sort_order:0, alt:(stdSuffixOfUrl(row.image_url) || (String(row.image_url_w||"").trim() ? "" : "W"))},
         {url:row.image_url_y,     is_primary:false, sort_order:1, alt:"Y"},
         {url:row.image_url_w,     is_primary:false, sort_order:2, alt:"W"},
         {url:row.image_url_r,     is_primary:false, sort_order:3, alt:"R"},
