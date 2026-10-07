@@ -1925,7 +1925,7 @@ document.getElementById('pe-iframe').addEventListener('load', () => {
 
       <!-- METAL NET WEIGHTS -->
       <div class="divider"></div>
-      <p class="section-label">Metal Net Weights (Grams) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— enter 18K weight; the others auto-calculate (Silver × 1.488 / 1.35 / 1.20). Leave 0 if not produced in that alloy</span></p>
+      <p class="section-label">Metal Net Weights (Grams) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— enter 18K weight; the others auto-calculate (Silver × 1.4875 / 1.2425 / 1.1051). Leave 0 if not produced in that alloy</span></p>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
           <thead>
@@ -3116,7 +3116,7 @@ function openCellEditor(td){
   else if(field==="description"){ cls="ce-mid"; body=`<textarea id="ce-input" class="ce-in" rows="9">${esc(p.description)}</textarea>`; }
   else if(field==="weights"){
     const w=(k,l)=>`<div><label>${l}</label><input id="ce-w-${k}" class="ce-in" type="number" step="0.001" min="0" oninput="ceDeriveWeights('${k}')" value="${Number(p["net_weight_"+k])||0}" /></div>`;
-    body=`<div class="ce-grid">${w("18k","18K")}${w("14k","14K")}${w("10k","10K")}${w("silver","Silver")}</div><div class="ce-hint" style="margin-top:6px">Other alloys auto-fill from the one you edit (18K = Silver × 1.488, 14K × 1.35, 10K × 1.20). Overwrite any to adjust; set 0 if not produced.</div>`;
+    body=`<div class="ce-grid">${w("18k","18K")}${w("14k","14K")}${w("10k","10K")}${w("silver","Silver")}</div><div class="ce-hint" style="margin-top:6px">Other alloys auto-fill from the one you edit (18K = Silver × 1.4875, 14K × 1.2425, 10K × 1.1051). Overwrite any to adjust; set 0 if not produced.</div>`;
   }
   else if(field==="status") body=`<select id="ce-input" class="ce-in"><option value="true"${p.is_active!==false?" selected":""}>Active</option><option value="false"${p.is_active===false?" selected":""}>Hidden</option></select>`;
   else if(field==="jewel"){ cls="ce-mid"; cellEd.rows=(p.product_jewel_cats||[]).map(c=>({jewel_type:c.jewel_type||"",sub_type1:c.sub_type1||"",sub_type2:c.sub_type2||""})); }
@@ -3385,11 +3385,12 @@ function populateProductSizeDropdown(jewelType){
 }
 
 // ── NET WEIGHT AUTO-DERIVE (from Excel ratios) ────────────────────────────
-// Silver is the base. 18K = Silver × 1.488 | 14K = Silver × 1.35 | 10K = Silver × 1.20
+// Silver is the base. 18K = Silver × 1.4875 | 14K = Silver × 1.2425 | 10K = Silver × 1.1051
+// (derived from 12.45 / 10.40 / 9.25 / 8.37 g)
 // Single source of truth for every weight-conversion in the admin (product form,
 // Sizes modal, inline table editor). Enter a weight in ANY field and the other
 // three are recalculated; the admin normally enters only the 18K weight.
-const METAL_WT_RATIO = { '18k':1.488, '14k':1.35, '10k':1.20, 'silver':1 };
+const METAL_WT_RATIO = { '18k':1.4875, '14k':1.2425, '10k':1.1051, 'silver':1 };
 
 // idPrefix = 'f-wt-' (product form) or 'svm-wt-' (sizes modal)
 function deriveWeightsByRatio(idPrefix, source){
