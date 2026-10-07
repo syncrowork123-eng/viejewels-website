@@ -447,7 +447,7 @@
       <div class="metal-market-panel" id="metal-inr-panel">
         <div class="metal-market-header">
           <span class="metal-market-title">Step 1 — Metal Rate Per Gram (INR)</span>
-          <span class="metal-market-hint">Enter today's rate in ₹ per gram — it converts to USD per troy oz below</span>
+          <span class="metal-market-hint">Enter today's rate in ₹ per gram — ₹/g ÷ USD currency rate × 31.10348 = USD per troy oz</span>
         </div>
         <div class="metal-market-inputs">
           <div class="metal-market-card">
@@ -6584,44 +6584,48 @@ function initMetalMarketInputs(){
 }
 
 // ── INR → USD conversion for metal base rates ───────────────────────────
-// USD per troy oz = INR per gram × 31.10348 × (USD per 1 INR, from Currencies tab)
-function getUsdPerInr(){
+// USD per troy oz = (INR per gram ÷ USD currency rate [₹ per $1]) × 31.10348
+// The USD currency rate comes from the Currencies tab. If it is stored as "USD per 1 INR"
+// (a value below 1, e.g. 0.0118) it is inverted to ₹ per $ automatically.
+function getInrPerUsd(){
   const c=(typeof allCurrencies!=='undefined'?allCurrencies:[]).find(x=>String(x.code).toUpperCase()==='USD');
   const r=parseFloat(c&&c.rate_to_inr);
-  return r>0?r:0;
+  if(!(r>0)) return 0;
+  return r<1 ? 1/r : r;
+}
+function metalFxLine(rate){
+  return rate
+    ? `USD currency rate (Currencies tab): <strong>₹${rate.toFixed(4)} per $1</strong>`
+    : `<span style="color:#c0392b">USD rate not set — add USD in the Currencies tab so INR can convert to USD.</span>`;
 }
 function inrToUsdMetal(){
-  const fx=getUsdPerInr();
+  const rate=getInrPerUsd();
   const fxLine=document.getElementById('metal-fx-line');
-  if(fxLine) fxLine.innerHTML = fx
-    ? `Exchange rate used (Currencies tab): 1 INR = ${fx} USD &nbsp;(1 USD ≈ ₹${(1/fx).toFixed(2)})`
-    : `<span style="color:#c0392b">USD rate not set — add USD in the Currencies tab (1 INR = ? USD) so INR can convert to USD.</span>`;
-  [['gold','Gold'],['silver','Silver']].forEach(([k])=>{
+  if(fxLine) fxLine.innerHTML=metalFxLine(rate);
+  ['gold','silver'].forEach(k=>{
     const inr=parseFloat(document.getElementById(k+'-inr-gram').value)||0;
     const calc=document.getElementById(k+'-inr-calc');
     const usdEl=document.getElementById(k+'-troy-oz');
     if(!inr){ calc.textContent='—'; return; }
-    const inrOz=inr*TROY_OZ_GRAMS;
-    if(!fx){ calc.textContent=`₹${inr} × ${TROY_OZ_GRAMS} = ₹${inrOz.toFixed(2)} / troy oz (needs USD rate to convert)`; return; }
-    const usdOz=inrOz*fx;
+    if(!rate){ calc.textContent=`₹${inr} × ${TROY_OZ_GRAMS} = ₹${(inr*TROY_OZ_GRAMS).toFixed(2)} / troy oz (needs USD rate to convert)`; return; }
+    const usdOz=inr/rate*TROY_OZ_GRAMS;
     usdEl.value=usdOz.toFixed(4);
-    calc.textContent=`₹${inr} × ${TROY_OZ_GRAMS} = ₹${inrOz.toFixed(2)} × ${fx} = $${usdOz.toFixed(2)} / troy oz`;
+    calc.textContent=`₹${inr} ÷ ${rate.toFixed(4)} × ${TROY_OZ_GRAMS} = $${usdOz.toFixed(2)} / troy oz`;
   });
   deriveMetalRates();
 }
 // When USD is typed/restored directly, show the matching INR per gram
 function usdOzEdited(){
-  const fx=getUsdPerInr();
-  [['gold'],['silver']].forEach(([k])=>{
+  const rate=getInrPerUsd();
+  ['gold','silver'].forEach(k=>{
     const usd=parseFloat(document.getElementById(k+'-troy-oz').value)||0;
     const inrEl=document.getElementById(k+'-inr-gram');
     const calc=document.getElementById(k+'-inr-calc');
-    if(usd&&fx){ const inr=usd/TROY_OZ_GRAMS/fx; inrEl.value=inr.toFixed(2); calc.textContent=`$${usd} ÷ ${TROY_OZ_GRAMS} ÷ ${fx} = ₹${inr.toFixed(2)} / gram`; }
+    if(usd&&rate){ const inr=usd/TROY_OZ_GRAMS*rate; inrEl.value=inr.toFixed(2); calc.textContent=`$${usd} ÷ ${TROY_OZ_GRAMS} × ${rate.toFixed(4)} = ₹${inr.toFixed(2)} / gram`; }
     else { if(!usd) inrEl.value=''; calc.textContent='—'; }
   });
   const fxLine=document.getElementById('metal-fx-line');
-  if(fxLine) fxLine.innerHTML = fx ? `Exchange rate used (Currencies tab): 1 INR = ${fx} USD &nbsp;(1 USD ≈ ₹${(1/fx).toFixed(2)})`
-    : `<span style="color:#c0392b">USD rate not set — add USD in the Currencies tab (1 INR = ? USD) so INR can convert to USD.</span>`;
+  if(fxLine) fxLine.innerHTML=metalFxLine(rate);
   deriveMetalRates();
 }
 
