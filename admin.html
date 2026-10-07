@@ -369,6 +369,7 @@
     <button class="tab-btn" data-tab="masters">Masters</button>
     <button class="tab-btn" data-tab="calculator">Cost Calculator</button>
     <button class="tab-btn" data-tab="bulk">Bulk Upload</button>
+    <button class="tab-btn" data-tab="stonereport">Stone Report</button>
     <button class="tab-btn" data-tab="pages">Pages &amp; Design</button>
   </nav>
 
@@ -1008,6 +1009,57 @@
       </table></div>
     </div>
   </div>
+
+<!-- ═══════════ STONE REPORT TAB ═══════════ -->
+<div class="tab-panel" id="tab-stonereport">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <input class="search-input" id="sr-search" placeholder="Search SKU / name..." oninput="renderStoneReport()" />
+      <select class="filter-select" id="sr-type" onchange="renderStoneReport()">
+        <option value="">All Stone Types</option>
+      </select>
+      <span id="sr-note" style="font-size:12px;color:var(--text-muted)"></span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary" onclick="renderStoneReport()">↻ Refresh</button>
+      <button class="btn btn-secondary" onclick="exportStoneReportXlsx()">⬇ Export Report</button>
+    </div>
+  </div>
+
+  <div class="section-label">Style-wise Stone Report</div>
+  <div class="table-wrap" style="margin-bottom:28px">
+    <table>
+      <thead>
+        <tr>
+          <th>SKU</th><th>Design Name</th><th>Total Shapes</th><th>Total Sizes</th>
+          <th>Total Stones (pcs)</th><th>Shapes (pcs)</th><th>Sizes (pcs)</th>
+        </tr>
+      </thead>
+      <tbody id="sr-style-tbody"><tr><td colspan="7" class="state-msg">Loading...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="calc-layout">
+    <div>
+      <div class="section-label">All Shapes Used</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Shape</th><th>Styles</th><th>Total Stones (pcs)</th></tr></thead>
+          <tbody id="sr-shape-tbody"><tr><td colspan="3" class="state-msg">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">All Sizes Used</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Shape</th><th>Size (mm)</th><th>Size Basis</th><th>Styles</th><th>Total Stones (pcs)</th></tr></thead>
+          <tbody id="sr-size-tbody"><tr><td colspan="5" class="state-msg">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════
      PAGES & DESIGN TAB
@@ -2803,6 +2855,7 @@ async function loadProducts(){
     allProducts=await sb("products?select="+SELECT+"&order=sort_order.asc,name.asc");
     renderProductsTable(allProducts);
     populateMasterDropdowns();
+    renderStoneReport();
   } catch(e){
     document.getElementById("products-tbody").innerHTML="<tr><td colspan='12' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
@@ -6879,6 +6932,155 @@ async function confirmImportPreview(){
     closeImportPreview();
   }
 }
+
+// ══════════════════════════════════════════════════════════════
+// STONE REPORT — derived from product_stones (per-design data)
+// ══════════════════════════════════════════════════════════════
+let srCache = null;
+
+function srFmt(n){ return Number(n).toString(); }
+
+// Size label from Length × Width (mm). Equal L/W (e.g. round) shows one number.
+function srSize(s){
+  const l = s.length_mm, w = s.width_mm;
+  if(l == null && w == null) return "No size";
+  if(w == null || Number(w) === Number(l)) return srFmt(l) + " mm";
+  if(l == null) return srFmt(w) + " mm";
+  return srFmt(l) + " × " + srFmt(w) + " mm";
+}
+
+// Look up Size Basis in the Diamond Sizes master by stone type + shape + mm
+function srBasis(s){
+  const same = (a,b) => a != null && b != null && Math.abs(Number(a) - Number(b)) < 0.005;
+  const hit = (allDiamonds || []).find(d =>
+    (d.stone_type || "").toLowerCase() === (s.stone_type || "").toLowerCase() &&
+    (d.shape || "").toLowerCase() === (s.shape || "").toLowerCase() &&
+    same(d.mm_length, s.length_mm) &&
+    (s.width_mm == null || same(d.mm_width, s.width_mm))
+  );
+  return hit ? (hit.size_basis || "") : "";
+}
+
+function buildStoneReport(){
+  const term = (document.getElementById("sr-search")?.value || "").toLowerCase().trim();
+  const typeSel = document.getElementById("sr-type");
+
+  const types = [...new Set(allProducts.flatMap(p => (p.product_stones || []).map(s => s.stone_type)).filter(Boolean))].sort();
+  const cur = typeSel.value;
+  typeSel.innerHTML = '<option value="">All Stone Types</option>' +
+    types.map(t => `<option value="${esc(t)}"${t === cur ? " selected" : ""}>${esc(t)}</option>`).join("");
+  const typeFilter = typeSel.value;
+
+  const styles = [], shapeMaster = new Map(), sizeMaster = new Map();
+  let withoutStones = 0;
+
+  allProducts.forEach(p => {
+    if(term && ![p.sku, p.name].filter(Boolean).join(" ").toLowerCase().includes(term)) return;
+    const stones = (p.product_stones || []).filter(s => !typeFilter || s.stone_type === typeFilter);
+    if(!stones.length){ withoutStones++; return; }
+
+    const shapes = new Map(), sizes = new Map();
+    let total = 0;
+
+    stones.forEach(s => {
+      const pcs = parseInt(s.pcs) || 0;
+      const shape = s.shape || "No shape";
+      const size = srSize(s);
+      const basis = srBasis(s);
+      total += pcs;
+
+      shapes.set(shape, (shapes.get(shape) || 0) + pcs);
+
+      const sk = shape + " " + size;
+      sizes.set(sk, {
+        label: (s.shape ? shape + " " : "") + size + (basis ? " (" + basis + ")" : ""),
+        pcs: (sizes.get(sk)?.pcs || 0) + pcs
+      });
+
+      const m = shapeMaster.get(shape) || { pcs: 0, skus: new Set() };
+      m.pcs += pcs; m.skus.add(p.id); shapeMaster.set(shape, m);
+
+      const z = sizeMaster.get(sk) || { shape, size, basis, pcs: 0, skus: new Set() };
+      z.pcs += pcs; z.skus.add(p.id); sizeMaster.set(sk, z);
+    });
+
+    styles.push({ sku: p.sku || "", name: p.name || "", shapes, sizes, total });
+  });
+
+  return { styles, shapeMaster, sizeMaster, withoutStones };
+}
+
+function renderStoneReport(){
+  if(!document.getElementById("sr-style-tbody")) return;
+  const r = srCache = buildStoneReport();
+
+  document.getElementById("sr-style-tbody").innerHTML = r.styles.length
+    ? r.styles.map(s => `<tr>
+        <td><strong>${esc(s.sku || "—")}</strong></td>
+        <td>${esc(s.name)}</td>
+        <td>${s.shapes.size}</td>
+        <td>${s.sizes.size}</td>
+        <td data-sort="${s.total}"><strong>${s.total}</strong></td>
+        <td style="font-size:12px">${[...s.shapes].map(([k,v]) => `<span class="jc-line">${esc(k)} (${v})</span>`).join("")}</td>
+        <td style="font-size:12px">${[...s.sizes.values()].map(z => `<span class="jc-line">${esc(z.label)} (${z.pcs})</span>`).join("")}</td>
+      </tr>`).join("")
+    : "<tr><td colspan='7' class='state-msg'>No styles with stone details found.</td></tr>";
+
+  document.getElementById("sr-shape-tbody").innerHTML =
+    [...r.shapeMaster].sort((a,b) => a[0].localeCompare(b[0]))
+      .map(([k,v]) => `<tr><td><strong>${esc(k)}</strong></td><td>${v.skus.size}</td><td>${v.pcs}</td></tr>`).join("")
+    || "<tr><td colspan='3' class='state-msg'>No data.</td></tr>";
+
+  document.getElementById("sr-size-tbody").innerHTML =
+    [...r.sizeMaster.values()]
+      .sort((a,b) => a.shape.localeCompare(b.shape) || parseFloat(a.size) - parseFloat(b.size))
+      .map(z => `<tr><td>${esc(z.shape)}</td><td><strong>${esc(z.size)}</strong></td><td>${esc(z.basis || "—")}</td><td>${z.skus.size}</td><td>${z.pcs}</td></tr>`).join("")
+    || "<tr><td colspan='5' class='state-msg'>No data.</td></tr>";
+
+  document.getElementById("sr-note").textContent =
+    `${r.styles.length} styles with stones · ${r.shapeMaster.size} shapes · ${r.sizeMaster.size} sizes` +
+    (r.withoutStones ? ` · ${r.withoutStones} styles have no stone details` : "");
+}
+
+function exportStoneReportXlsx(){
+  const r = srCache || buildStoneReport();
+  if(!r.styles.length){ toast("Nothing to export.", "error"); return; }
+
+  const wb = XLSX.utils.book_new();
+  const add = (name, head, rows, wch) => {
+    const ws = XLSX.utils.aoa_to_sheet([head, ...rows]);
+    ws["!cols"] = wch.map(w => ({ wch: w }));
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  };
+
+  add("Style Report",
+    ["SKU", "Design Name", "Total Shapes", "Total Sizes", "Total Stones (pcs)", "Shapes (pcs)", "Sizes (pcs)"],
+    r.styles.map(s => [
+      s.sku, s.name, s.shapes.size, s.sizes.size, s.total,
+      [...s.shapes].map(([k,v]) => `${k} (${v})`).join("; "),
+      [...s.sizes.values()].map(z => `${z.label} (${z.pcs})`).join("; ")
+    ]),
+    [16, 24, 13, 13, 17, 40, 60]);
+
+  add("Shapes Used",
+    ["Shape", "Styles", "Total Stones (pcs)"],
+    [...r.shapeMaster].sort((a,b) => a[0].localeCompare(b[0])).map(([k,v]) => [k, v.skus.size, v.pcs]),
+    [18, 10, 18]);
+
+  add("Sizes Used",
+    ["Shape", "Size (mm)", "Size Basis", "Styles", "Total Stones (pcs)"],
+    [...r.sizeMaster.values()]
+      .sort((a,b) => a.shape.localeCompare(b.shape) || parseFloat(a.size) - parseFloat(b.size))
+      .map(z => [z.shape, z.size, z.basis, z.skus.size, z.pcs]),
+    [18, 16, 14, 10, 18]);
+
+  XLSX.writeFile(wb, "viejewels-stone-report-" + new Date().toISOString().slice(0,10) + ".xlsx");
+  toast("Stone report exported.");
+}
+
+// Refresh the report whenever its tab is opened
+document.querySelector('.tab-btn[data-tab="stonereport"]')
+  ?.addEventListener("click", () => renderStoneReport());
 
 // ── CONFIRM HELPER ───────────────────────────────────────────────────────
 function openConfirm(msg,onOk){
