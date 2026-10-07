@@ -6,7 +6,8 @@
 // How the number is worked out (first one available wins):
 //   1. admin.html's Last-Modified header from the server   → "v2026.10.07 14:32"
 //   2. admin.html's ETag header (hosts that don't send a date) → "build 3f9a1c2"
-//   3. Opened from a local file (file://)                  → file's modified date
+//   3. No headers at all: a fingerprint of the page itself   → "build 3f9a1c2"
+//   4. Opened from a local file (file://)                  → file's modified date
 //
 // While the page stays open it re-checks every 5 minutes. If a newer
 // admin.html has been uploaded, the badge turns gold: "New version — click to refresh".
@@ -30,13 +31,20 @@
     return s.replace(/[^a-zA-Z0-9]/g, "").slice(0, 7) || "unknown";
   }
 
-  // Returns { label, key, title } describing the admin.html currently on the server
-  async function readServerVersion() {
-    if (location.protocol === "file:") {
-      const d = new Date(document.lastModified);
-      return { label: "v" + fmtDate(d), key: String(d.getTime()), title: "Local file — modified " + d.toString() };
+  // Small stable hash of the page text (used when the server sends no date / ETag)
+  function hashText(str) {
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
     }
-    const res = await fetch(location.pathname + location.search, { method: "HEAD", cache: "no-store" });
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16).padStart(14, "0").slice(0, 7);
+  }
+
+  function fromHeaders(res) {
     const lm = res.headers.get("Last-Modified");
     if (lm) {
       const d = new Date(lm);
@@ -44,7 +52,29 @@
     }
     const et = res.headers.get("ETag");
     if (et) return { label: "build " + shortHash(et), key: et, title: "admin.html build id (ETag) " + et };
-    return { label: "version n/a", key: "", title: "The server did not send Last-Modified or ETag for admin.html" };
+    return null;
+  }
+
+  // Returns { label, key, title } describing the admin.html currently on the server
+  async function readServerVersion() {
+    if (location.protocol === "file:") {
+      const d = new Date(document.lastModified);
+      return { label: "v" + fmtDate(d), key: String(d.getTime()), title: "Local file — modified " + d.toString() };
+    }
+    const url = location.pathname + location.search;
+    // 1. cheap: headers only
+    try {
+      const res = await fetch(url, { method: "HEAD", cache: "no-store" });
+      const v = res.ok && fromHeaders(res);
+      if (v) return v;
+    } catch (e) { /* fall through to full download */ }
+    // 2. fallback: download the page and fingerprint it (changes exactly when admin.html changes)
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status + " reading " + url);
+    const v = fromHeaders(res);
+    if (v) return v;
+    const h = hashText(await res.text());
+    return { label: "build " + h, key: h, title: "admin.html fingerprint " + h + " (server sends no date; this changes whenever the file changes)" };
   }
 
   const badge = document.createElement("div");
