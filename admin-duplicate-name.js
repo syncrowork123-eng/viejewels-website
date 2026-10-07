@@ -301,7 +301,32 @@
     return r;
   };
 
-  const origImport = window.importProducts;
+  // Run the import directly (does not depend on whatever importProducts currently points to,
+  // in case another script replaced or wrapped it).
+  async function runImportDirect() {
+    if (window.__importRunning) {
+      console.warn("[bulk import] ignored: an import is already marked as running");
+      try { toast("An import is already running. Refresh the page if it is stuck.", "error"); } catch (_) {}
+      return;
+    }
+    window.__importRunning = true;
+    window.__impFailures = []; window.__impWarnings = [];
+    console.info("[bulk import] started");
+    try { setImportStatus("run", "Import started…", ["Preparing " + (bulkRows || []).length + " rows"]); } catch (_) {}
+    const btn = document.getElementById("import-btn");
+    try { await importProductsCore(); }
+    catch (e) {
+      console.error("Import crashed:", e);
+      try { hideImportProgress(); } catch (_) {}
+      try { setImportStatus("err", "Import failed", ["The import stopped unexpectedly and may be incomplete.", (e && e.message) || String(e)]); } catch (_) {}
+      try { showImportResult(false, "Import failed", ["The import stopped unexpectedly and may be incomplete.", "Error: " + ((e && e.message) || String(e))], []); } catch (_) {}
+    } finally {
+      window.__importRunning = false;
+      try { hideImportProgress(); } catch (_) {}
+      if (btn) { btn.disabled = false; btn.textContent = "Import All Products"; }
+    }
+  }
+  const origImport = runImportDirect;
   window.importProducts = function () {
     const flags = bulkFlags(bulkRows);
     const pending = new Set([...flags.keys()].filter(i => !intentional.has(i)));
@@ -309,8 +334,16 @@
       const items = [...pending].slice(0, 10).map(i =>
         `• Row ${i + 1}: ${esc(bulkRows[i].name)}${bulkRows[i].sku ? " (" + esc(bulkRows[i].sku) + ")" : ""} <span style="color:var(--text-light)">— ${esc(flags.get(i))}</span>`).join("<br>");
       if (window.setImportStatus) setImportStatus("warn", `Import NOT started yet — ${pending.size} row${pending.size > 1 ? "s have" : " has"} a duplicate design name`, ["Choose below (or in the popup): Import All Anyway, or Skip the flagged rows."]);
-      const doSkip = () => { bulkRows = bulkRows.filter((r, i) => !pending.has(i)); bulkAck = true; origImport(); };
-      const doAll = () => { bulkAck = true; origImport(); };
+      const run = (label) => {
+        console.info("[dup gate] user chose:", label, "| rows to import:", bulkRows.length);
+        if (window.setImportStatus) setImportStatus("run", "Starting import…", [label + " — " + bulkRows.length + " rows"]);
+        Promise.resolve().then(() => origImport()).catch(e => {
+          console.error("[dup gate] importProducts threw:", e);
+          if (window.setImportStatus) setImportStatus("err", "Import could not start", [(e && e.message) || String(e)]);
+        });
+      };
+      const doSkip = () => { bulkRows = bulkRows.filter((r, i) => !pending.has(i)); bulkAck = true; run("Skip flagged rows"); };
+      const doAll = () => { bulkAck = true; run("Import all anyway"); };
       // Same choices as inline buttons, in case the popup is missed or hidden
       try {
         const st = document.getElementById("import-status");
