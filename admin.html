@@ -3120,7 +3120,8 @@ function openCellEditor(td){
   }
   else if(field==="status") body=`<select id="ce-input" class="ce-in"><option value="true"${p.is_active!==false?" selected":""}>Active</option><option value="false"${p.is_active===false?" selected":""}>Hidden</option></select>`;
   else if(field==="jewel"){ cls="ce-mid"; cellEd.rows=(p.product_jewel_cats||[]).map(c=>({jewel_type:c.jewel_type||"",sub_type1:c.sub_type1||"",sub_type2:c.sub_type2||""})); }
-  else if(field==="stones"){ cls="ce-wide"; cellEd.rows=(p.product_stones||[]).map(s=>({stone_type:s.stone_type||"",setting_type:s.setting_type||"",shape:s.shape||"",pcs:s.pcs??"",length_mm:s.length_mm??"",width_mm:s.width_mm??""})); }
+  else if(field==="stones"){ cls="ce-wide"; cellEd.rows=(p.product_stones||[]).map(s=>({stone_type:s.stone_type||"",setting_type:s.setting_type||"",shape:s.shape||"",pcs:s.pcs??"",length_mm:s.length_mm??"",width_mm:s.width_mm??""}));
+    if(!cellEd.rows.length) cellEd.rows.push(newStoneRow()); }
   const el=document.createElement("div"); el.id="cell-editor"; el.className=cls;
   el.innerHTML=`<div class="ce-head"><strong>${esc(CE_TITLES[field])}</strong><span>${esc(p.sku||p.name||"")}</span></div><div id="ce-body">${body}</div>
     <div class="ce-foot"><span class="ce-hint">${field==="description"||field==="short_description"?"Ctrl+Enter to save · Esc to cancel":"Enter to save · Esc to cancel"}</span><div><button type="button" class="btn btn-secondary btn-sm" onclick="closeCellEditor()">Cancel</button><button type="button" class="btn btn-primary btn-sm" id="ce-save" onclick="saveCellEditor()">Save</button></div></div>`;
@@ -3160,23 +3161,42 @@ function ceRenderJewel(){
   cePosition();
 }
 function ceJewelChange(i,f,v){ const r=cellEd.rows[i]; r[f]=v; if(f==="jewel_type"){r.sub_type1="";r.sub_type2="";} if(f==="sub_type1") r.sub_type2=""; cellEd.dirty=true; ceRenderJewel(); }
+// ── Stone row defaults ────────────────────────────────────────────────────
+// Every new stone row starts as Diamond / Round (admin can change either dropdown).
+const DEFAULT_STONE_TYPE = "Diamond", DEFAULT_STONE_SHAPE = "Round";
+function newStoneRow(){
+  return {stone_type:DEFAULT_STONE_TYPE,setting_type:"",shape:DEFAULT_STONE_SHAPE,pcs:"",length_mm:"",width_mm:""};
+}
+// Typing Length copies it into Width, unless Width was already set to something
+// different by the admin (then it is left alone). Returns true if Width was synced.
+function stoneWidthFollowsLength(row,newLength){
+  const w=String(row.width_mm??""), prev=String(row.length_mm??"");
+  return w==="" || w===prev;
+}
 // stone rows
 function ceRenderStones(){
   const types=[...new Set(allLookups.filter(l=>l.field==="type").map(l=>l.value))].sort();
   const settings=allLabour.filter(l=>l.category==="Setting").map(l=>l.description||l.category);
   const shapes=[...new Set(allLookups.filter(l=>l.field==="shape").map(l=>l.value))].sort();
   const rows=cellEd.rows, cols="1.3fr 1.3fr 1fr 60px 70px 70px 28px";
-  const inp=(i,f,v,ph)=>`<input class="ce-in" type="number" step="any" min="0" placeholder="${ph}" value="${esc(v)}" oninput="ceStoneChange(${i},'${f}',this.value)" />`;
+  const inp=(i,f,v,ph,id)=>`<input ${id?`id="${id}" `:""}class="ce-in" type="number" step="any" min="0" placeholder="${ph}" value="${esc(v)}" oninput="ceStoneChange(${i},'${f}',this.value)" />`;
   const sel=(i,f,list,v)=>`<select class="ce-in" onchange="ceStoneChange(${i},'${f}',this.value)">${ceOpts(list,v)}</select>`;
   document.getElementById("ce-body").innerHTML=
     (rows.length?`<div class="ce-lbls" style="grid-template-columns:${cols}"><span>Stone type</span><span>Setting</span><span>Shape</span><span>PCS</span><span>Length mm</span><span>Width mm</span><span></span></div>`:"")
-    +(rows.length?rows.map((r,i)=>`<div class="ce-row ce-stone">${sel(i,"stone_type",types,r.stone_type)}${sel(i,"setting_type",settings,r.setting_type)}${sel(i,"shape",shapes,r.shape)}${inp(i,"pcs",r.pcs,"0")}${inp(i,"length_mm",r.length_mm,"0.00")}${inp(i,"width_mm",r.width_mm,"0.00")}<button type="button" class="ce-x" onclick="ceRowRemove(${i})" title="Remove">×</button></div>`).join(""):`<div class="ce-empty">No stone rows yet.</div>`)
+    +(rows.length?rows.map((r,i)=>`<div class="ce-row ce-stone">${sel(i,"stone_type",types,r.stone_type)}${sel(i,"setting_type",settings,r.setting_type)}${sel(i,"shape",shapes,r.shape)}${inp(i,"pcs",r.pcs,"0")}${inp(i,"length_mm",r.length_mm,"0.00")}${inp(i,"width_mm",r.width_mm,"0.00","ce-st-w-"+i)}<button type="button" class="ce-x" onclick="ceRowRemove(${i})" title="Remove">×</button></div>`).join(""):`<div class="ce-empty">No stone rows yet.</div>`)
     +`<button type="button" class="btn btn-secondary btn-sm" onclick="ceRowAdd()">+ Add stone row</button>`;
   cePosition();
 }
-function ceStoneChange(i,f,v){ cellEd.rows[i][f]=v; cellEd.dirty=true; }
+function ceStoneChange(i,f,v){
+  const r=cellEd.rows[i];
+  if(f==="length_mm" && stoneWidthFollowsLength(r,v)){
+    r.width_mm=v;
+    const w=document.getElementById("ce-st-w-"+i); if(w) w.value=v;
+  }
+  r[f]=v; cellEd.dirty=true;
+}
 function ceRowAdd(){
-  cellEd.rows.push(cellEd.field==="jewel"?{jewel_type:"",sub_type1:"",sub_type2:""}:{stone_type:"",setting_type:"",shape:"",pcs:"",length_mm:"",width_mm:""});
+  cellEd.rows.push(cellEd.field==="jewel"?{jewel_type:"",sub_type1:"",sub_type2:""}:newStoneRow());
   cellEd.dirty=true; cellEd.field==="jewel"?ceRenderJewel():ceRenderStones();
 }
 function ceRowRemove(i){ cellEd.rows.splice(i,1); cellEd.dirty=true; cellEd.field==="jewel"?ceRenderJewel():ceRenderStones(); }
@@ -3407,7 +3427,7 @@ function deriveNetWeights(source){ deriveWeightsByRatio('f-wt-', source); }
 
 // ── STONE DETAIL ROWS ─────────────────────────────────────────────────────
 function addStoneDetailRow(){
-  productStoneRows.push({stone_type:'',setting_type:'',shape:'',pcs:'',length_mm:'',width_mm:''});
+  productStoneRows.push(newStoneRow());
   renderStoneDetailRows();
 }
 
@@ -3417,7 +3437,12 @@ function removeStoneDetailRow(i){
 }
 
 function stoneDetailRowChanged(i, field, val){
-  if(productStoneRows[i]) productStoneRows[i][field]=val;
+  const r=productStoneRows[i]; if(!r) return;
+  if(field==='length_mm' && stoneWidthFollowsLength(r,val)){
+    r.width_mm=val;
+    const w=document.getElementById('f-st-w-'+i); if(w) w.value=val;
+  }
+  r[field]=val;
 }
 
 function renderStoneDetailRows(){
@@ -3431,8 +3456,8 @@ function renderStoneDetailRows(){
   const shapes      = [...new Set(allLookups.filter(l=>l.field==='shape').map(l=>l.value))].sort();
 
   const mkSel=(id,opts,val,field,i)=>`<select onchange="stoneDetailRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;">
-    <option value="">—</option>${opts.map(o=>`<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
-  const mkTxt=(field,val,ph,i)=>`<input type="text" value="${esc(val)}" placeholder="${ph}" oninput="stoneDetailRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;" />`;
+    <option value="">—</option>${(val&&!opts.includes(val)?[...opts,val]:opts).map(o=>`<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  const mkTxt=(field,val,ph,i)=>`<input ${field==='width_mm'?`id="f-st-w-${i}" `:''}type="text" value="${esc(val)}" placeholder="${ph}" oninput="stoneDetailRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;" />`;
 
   tbody.innerHTML = productStoneRows.map((r,i)=>`<tr>
     <td style="padding:6px 8px">${mkSel('st'+i,stoneTypes,r.stone_type,'stone_type',i)}</td>
@@ -3936,7 +3961,7 @@ function svmPopulateSizeDropdown(){
 function svmDeriveNetWeights(source){ deriveWeightsByRatio('svm-wt-', source); }
 
 function svmAddStoneRow(){
-  svmStoneRows.push({stone_type:'',setting_type:'',shape:'',pcs:'',length_mm:'',width_mm:''});
+  svmStoneRows.push(newStoneRow());
   svmRenderStoneRows();
 }
 function svmRemoveStoneRow(i){
@@ -3944,7 +3969,12 @@ function svmRemoveStoneRow(i){
   svmRenderStoneRows();
 }
 function svmStoneRowChanged(i, field, val){
-  if(svmStoneRows[i]) svmStoneRows[i][field]=val;
+  const r=svmStoneRows[i]; if(!r) return;
+  if(field==='length_mm' && stoneWidthFollowsLength(r,val)){
+    r.width_mm=val;
+    const w=document.getElementById('svm-st-w-'+i); if(w) w.value=val;
+  }
+  r[field]=val;
 }
 function svmRenderStoneRows(){
   const tbody = document.getElementById('svm-stone-tbody');
@@ -3957,8 +3987,8 @@ function svmRenderStoneRows(){
   const shapes      = [...new Set(allLookups.filter(l=>l.field==='shape').map(l=>l.value))].sort();
 
   const mkSel=(opts,val,field,i)=>`<select onchange="svmStoneRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;">
-    <option value="">—</option>${opts.map(o=>`<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
-  const mkTxt=(field,val,ph,i)=>`<input type="text" value="${esc(val)}" placeholder="${ph}" oninput="svmStoneRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;" />`;
+    <option value="">—</option>${(val&&!opts.includes(val)?[...opts,val]:opts).map(o=>`<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  const mkTxt=(field,val,ph,i)=>`<input ${field==='width_mm'?`id="svm-st-w-${i}" `:''}type="text" value="${esc(val)}" placeholder="${ph}" oninput="svmStoneRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;" />`;
 
   tbody.innerHTML = svmStoneRows.map((r,i)=>`<tr>
     <td style="padding:6px 8px">${mkSel(stoneTypes,r.stone_type,'stone_type',i)}</td>
