@@ -7249,8 +7249,8 @@ function closeConfirm(){ document.getElementById("confirm-modal").classList.remo
           // image checks run, which made the dropdown vanish before a choice could be made).
           if(document.activeElement===c.input) return;
           const set = new Set();
-          for(const r of data){ const v=String(vals.get(r)[c.i]??"").trim(); if(v && !BLANK.test(v) && v.length<=60) set.add(v); if(set.size>40) break; }
-          const list = set.size<=40 ? [...set].sort(natural) : [];
+          for(const r of data){ const v=String(vals.get(r)[c.i]??"").trim(); if(v && !BLANK.test(v) && v.length<=60) set.add(v); if(set.size>1000) break; }
+          const list = set.size<=1000 ? [...set].sort(natural) : [];
           const sig = list.join("\u0001");
           if(c.dlSig===sig) return;          // unchanged → leave the options alone
           c.dlSig = sig;
