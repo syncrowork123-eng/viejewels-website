@@ -1873,7 +1873,7 @@ document.getElementById('pe-iframe').addEventListener('load', () => {
       <div class="divider"></div>
       <div class="form-grid">
         <div class="form-group">
-          <label>Size</label>
+          <label id="f-size-label">Size</label>
           <select id="f-size" class="filter-select" style="width:100%"><option value="">Select size...</option></select>
           <input type="text" id="f-size-custom" placeholder="Or type custom size..." style="margin-top:6px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;width:100%;outline:none;" onfocus="document.getElementById('f-size').value=''" />
         </div>
@@ -2041,7 +2041,7 @@ document.getElementById('pe-iframe').addEventListener('load', () => {
         <p class="section-label" id="svm-form-title">Add Size</p>
         <div class="form-grid" style="margin-bottom:16px">
           <div class="form-group">
-            <label>Size *</label>
+            <label id="svm-size-label">Size *</label>
             <select id="svm-size-select" class="filter-select" style="width:100%"><option value="">Select size...</option></select>
             <input type="text" id="svm-size-custom" placeholder="Or type custom size..." style="margin-top:6px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;width:100%;outline:none;" onfocus="document.getElementById('svm-size-select').value=''" />
           </div>
@@ -2579,7 +2579,7 @@ function populateMasterDropdowns(){
   if(tagsGrid) tagsGrid.innerHTML=allTags.map(t=>`<span class="tag-chip" data-tag-id="${t.id}" onclick="toggleTag(this)">${esc(t.name)}</span>`).join("");
   document.getElementById("calc-metal-type").innerHTML="<option value=''>Select...</option>"+allMetals.filter(m=>m.quality!==METAL_BASE_GOLD_KEY && m.quality!==METAL_BASE_SILVER_KEY).map(m=>`<option value="${m.id}" data-rate="${m.price_per_gram||0}">${esc(m.name)}${m.quality?" ("+m.quality+")":""} — $${m.price_per_gram?Number(m.price_per_gram).toFixed(4):"-"}/g</option>`).join("");
   document.getElementById("calc-stone-type").innerHTML="<option value=''>Select...</option>"+allStones.map(s=>`<option value="${s.id}" data-rate-usd="${s.price_usd||0}" data-label="${esc((s.type||'')+(s.shape?' '+s.shape:'')+(s.size_basis?' '+s.size_basis:'')+(s.color?' '+s.color:'')+(s.quality?' '+s.quality:''))}">${esc((s.type||'')+(s.shape?' '+s.shape:'')+(s.size_basis?' ['+s.size_basis+']':'')+(s.quality?' '+s.quality:''))}</option>`).join("");
-  const settingCharges=allLabour.filter(l=>l.category==="Setting");
+  const settingCharges=settingTypeRows();
   document.getElementById("calc-stone-setting").innerHTML="<option value=''>No Setting</option>"+settingCharges.map(l=>`<option value="${l.id}" data-rate="${l.charge||0}">${esc(l.description||l.category)}</option>`).join("");
   document.getElementById("calc-diamond-size").innerHTML="<option value=''>Select...</option>"+allDiamonds.map(d=>`<option value="${d.id}" data-rate="${d.price_per_ct||0}" data-size="${d.size_ct}">${d.size_ct}ct${d.quality?" ("+d.quality+")":""}</option>`).join("");
   document.getElementById("calc-labour-type").innerHTML="<option value=''>Select...</option>"+allLabour.map(l=>`<option value="${l.id}" data-rate="${l.charge||0}">${esc(l.category)} - ${esc(l.description||"")}</option>`).join("");
@@ -3177,7 +3177,7 @@ function stoneWidthFollowsLength(row,newLength){
 // stone rows
 function ceRenderStones(){
   const types=[...new Set(allLookups.filter(l=>l.field==="type").map(l=>l.value))].sort();
-  const settings=allLabour.filter(l=>l.category==="Setting").map(l=>l.description||l.category);
+  const settings=settingTypeNames();
   const shapes=[...new Set(allLookups.filter(l=>l.field==="shape").map(l=>l.value))].sort();
   const rows=cellEd.rows, cols="1.3fr 1.3fr 1fr 60px 70px 70px 28px";
   const inp=(i,f,v,ph,id)=>`<input ${id?`id="${id}" `:""}class="ce-in" type="number" step="any" min="0" placeholder="${ph}" value="${esc(v)}" oninput="ceStoneChange(${i},'${f}',this.value)" />`;
@@ -3276,7 +3276,7 @@ function productDetailCompleteness(p){
     weights:   wts.length ? {ok:true,label:wts.map(([k,w])=>`${k} ${Number(w).toFixed(2)}`).join(" · "),title:"Net weights (grams)"} : {ok:false,label:"Missing",title:"All net weights are 0"},
     stones:    !stones.length ? {ok:false,label:"Missing",title:"No diamond / stone rows"}
              : badStones.length ? {ok:false,label:"Incomplete",title:`${badStones.length} of ${stones.length} row(s) lack a stone type or PCS`}
-             : {ok:true,label:`${stones.length} row${stones.length>1?"s":""}`,title:stones.map(s=>[s.stone_type,s.shape,s.pcs?s.pcs+" pcs":""].filter(Boolean).join(" ")).join("\n")}
+             : {ok:true,label:`${stones.length} row${stones.length>1?"s":""}`,title:stones.map(s=>[s.stone_type,s.setting_type,s.shape,s.pcs?s.pcs+" pcs":""].filter(Boolean).join(" ")).join("\n")}
   };
 }
 function completenessCell(c,field){
@@ -3411,12 +3411,36 @@ function pickSizeOption(selId, customId, saved){
   if(val) sv(customId, val);
 }
 
+// Setting types come from the Labour Charges → Setting Charges table. Rows added there
+// are saved with category "__setting__" (older rows may use "Setting"), and the setting
+// name is the row's description. Every stone-row "Setting" dropdown reads from here.
+function settingTypeRows(){
+  return (allLabour||[]).filter(l => (l.category==="__setting__" || l.category==="Setting") && String(l.description||"").trim());
+}
+function settingTypeNames(){
+  return [...new Set(settingTypeRows().map(l=>String(l.description).trim()))].sort((a,b)=>a.localeCompare(b));
+}
+
+// Bracelets are sized by a typed length in inches, not from the bangle chart:
+// hide the dropdown and turn the custom box into the only size input.
+function setSizeFieldMode(selId, customId, labelId, isBracelet){
+  const sel = document.getElementById(selId), custom = document.getElementById(customId), label = document.getElementById(labelId);
+  if(sel) sel.style.display = isBracelet ? 'none' : '';
+  if(custom){
+    custom.placeholder = isBracelet ? 'Length in inches, e.g. 7.5 in' : 'Or type custom size...';
+    custom.style.marginTop = isBracelet ? '0' : '6px';
+  }
+  if(label) label.textContent = (isBracelet ? 'Length (inches)' : 'Size') + (labelId === 'svm-size-label' ? ' *' : '');
+}
+
 // ── SIZE DROPDOWN (ring vs bangle based on jewelry type) ──────────────────
 function populateProductSizeDropdown(jewelType){
   const sel = document.getElementById('f-size');
   sel.innerHTML = '<option value="">Select size...</option>';
   const isRing   = jewelType && jewelType.toLowerCase().includes('ring');
-  const isBangle = jewelType && (jewelType.toLowerCase().includes('bangle')||jewelType.toLowerCase().includes('bracelet'));
+  const isBangle = jewelType && jewelType.toLowerCase().includes('bangle');
+  const isBracelet = !!jewelType && !isBangle && jewelType.toLowerCase().includes('bracelet');
+  setSizeFieldMode('f-size','f-size-custom','f-size-label',isBracelet);
   let sizes = [];
   if(isRing)        sizes = allRingSizes;
   else if(isBangle) sizes = allBangleSizes;
@@ -3487,7 +3511,7 @@ function renderStoneDetailRows(){
     return;
   }
   const stoneTypes  = [...new Set(allLookups.filter(l=>l.field==='type').map(l=>l.value))].sort();
-  const settingTypes= allLabour.filter(l=>l.category==='Setting').map(l=>l.description||l.category);
+  const settingTypes= settingTypeNames();
   const shapes      = [...new Set(allLookups.filter(l=>l.field==='shape').map(l=>l.value))].sort();
 
   const mkSel=(id,opts,val,field,i)=>`<select onchange="stoneDetailRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;">
@@ -3570,6 +3594,7 @@ function openProductModal(id=null){
   document.getElementById("product-modal-title").textContent=id?"Edit Product":"Add Product";
 
   populateProductJewelTypeDropdown();
+  populateProductSizeDropdown('');   // reset size field to its default mode
 
   if(id){
     const p=allProducts.find(x=>String(x.id)===String(id));
@@ -3962,7 +3987,9 @@ function svmPopulateSizeDropdown(){
   const jewelType = (svmProduct?.product_jewel_cats||[])[0]?.jewel_type || "";
   sel.innerHTML = '<option value="">Select size...</option>';
   const isRing   = jewelType && jewelType.toLowerCase().includes('ring');
-  const isBangle = jewelType && (jewelType.toLowerCase().includes('bangle')||jewelType.toLowerCase().includes('bracelet'));
+  const isBangle = jewelType && jewelType.toLowerCase().includes('bangle');
+  const isBracelet = !!jewelType && !isBangle && jewelType.toLowerCase().includes('bracelet');
+  setSizeFieldMode('svm-size-select','svm-size-custom','svm-size-label',isBracelet);
   let sizes = [];
   if(isRing)        sizes = allRingSizes;
   else if(isBangle) sizes = allBangleSizes;
@@ -4010,7 +4037,7 @@ function svmRenderStoneRows(){
     return;
   }
   const stoneTypes  = [...new Set(allLookups.filter(l=>l.field==='type').map(l=>l.value))].sort();
-  const settingTypes= allLabour.filter(l=>l.category==='Setting').map(l=>l.description||l.category);
+  const settingTypes= settingTypeNames();
   const shapes      = [...new Set(allLookups.filter(l=>l.field==='shape').map(l=>l.value))].sort();
 
   const mkSel=(opts,val,field,i)=>`<select onchange="svmStoneRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;">
