@@ -799,17 +799,18 @@
           <div class="jsc-chart-header">
             <span class="jsc-chart-icon">📿</span>
             <span class="jsc-chart-title">Bangle Size Chart</span>
-            <span class="jsc-chart-sub">Bangle wrist sizes with anna &amp; inch equivalents</span>
+            <span class="jsc-chart-sub">Bangle sizes (Anna) with inner diameter &amp; circumference</span>
           </div>
           <div class="jsc-table-wrap">
             <table class="jsc-table">
               <thead><tr>
-                <th class="jsc-td-primary">Bangle Size</th>
-                <th>Anna<span class="jsc-th-unit">Millimeters</span></th>
-                <th>Inches<span class="jsc-th-unit">1 inch = 25.4 mm</span></th>
+                <th class="jsc-td-primary">Bangle Size<span class="jsc-th-unit">Anna</span></th>
+                <th>Inner Diameter (ID)<span class="jsc-th-unit">Millimeters</span></th>
+                <th>Inner Diameter (ID)<span class="jsc-th-unit">Inches (25.4 mm)</span></th>
+                <th>Circumference<span class="jsc-th-unit">Inches</span></th>
                 <th></th>
               </tr></thead>
-              <tbody id="jsc-bangle-tbody"><tr><td colspan="4" class="state-msg">Loading…</td></tr></tbody>
+              <tbody id="jsc-bangle-tbody"><tr><td colspan="5" class="state-msg">Loading…</td></tr></tbody>
             </table>
           </div>
           <div class="jsc-footer" id="jsc-bangle-footer">—</div>
@@ -6074,7 +6075,7 @@ function bangleRowHtml(r){
     `<td><input class="jsc-cell-input ${cls}" data-id="${id}" data-col="${col}" value="${esc(val??'')}" onchange="saveBangleSizeCell(this)" /></td>`;
   return `<tr data-row-id="${id}">
     <td class="jsc-td-primary"><input class="jsc-cell-input primary-val" data-id="${id}" data-col="label" value="${esc(r.label??'')}" onchange="saveBangleSizeCell(this)" /></td>
-    ${f('size_mm', r.size_mm)} ${f('size_in', r.size_in)}
+    ${f('size_mm', r.size_mm)} ${f('size_in', r.size_in)} ${f('circumference_in', r.circumference_in)}
     <td><button class="jsc-del-btn" onclick="deleteBangleSizeRow(${id}, this)" title="Delete">×</button></td>
   </tr>`;
 }
@@ -6083,7 +6084,7 @@ function renderBangleSizesTable(){
   const tbody = document.getElementById('jsc-bangle-tbody');
   tbody.innerHTML = allBangleSizes.length
     ? allBangleSizes.map(r=>bangleRowHtml(r)).join('')
-    : "<tr><td colspan='4' class='state-msg'>No bangle sizes yet. Click + Add Row.</td></tr>";
+    : "<tr><td colspan='5' class='state-msg'>No bangle sizes yet. Click + Add Row.</td></tr>";
   document.getElementById('jsc-bangle-footer').textContent =
     allBangleSizes.length + ' sizes · Click any cell to edit · Changes auto-save';
 }
@@ -6092,7 +6093,7 @@ async function saveBangleSizeCell(input){
   const id = input.dataset.id;
   const col = input.dataset.col;
   const val = input.value.trim();
-  const numCols = ['size_mm','size_in'];
+  const numCols = ['size_mm','size_in','circumference_in'];
   const payload = { [col]: numCols.includes(col) ? (parseFloat(val)||null) : (val||null) };
   try{
     await sb("bangle_sizes?id=eq."+id,"PATCH",payload);
@@ -6111,6 +6112,7 @@ async function addBangleSizeRow(){
     <td class="jsc-td-primary"><input class="jsc-cell-input primary-val" data-temp="${tempId}" data-col="label" placeholder='e.g. 2-4/16"' onblur="commitNewBangleRow(this)" /></td>
     <td><input class="jsc-cell-input" data-temp="${tempId}" data-col="size_mm" placeholder="57" /></td>
     <td><input class="jsc-cell-input" data-temp="${tempId}" data-col="size_in" placeholder="2.24" /></td>
+    <td><input class="jsc-cell-input" data-temp="${tempId}" data-col="circumference_in" placeholder="7.04" /></td>
     <td><button class="jsc-del-btn" onclick="this.closest('tr').remove()" title="Cancel">×</button></td>`;
   tbody.appendChild(tr);
   tr.querySelector('input').focus();
@@ -6124,7 +6126,7 @@ async function commitNewBangleRow(labelInput){
   const label = getVal('label');
   const size_mm = parseFloat(getVal('size_mm'))||null;
   if(!label && !size_mm){ return; }
-  const payload = { label: label||null, size_mm, size_in: parseFloat(getVal('size_in'))||null };
+  const payload = { label: label||null, size_mm, size_in: parseFloat(getVal('size_in'))||null, circumference_in: parseFloat(getVal('circumference_in'))||null };
   try{
     const [saved] = await sb("bangle_sizes","POST",payload);
     allBangleSizes.push(saved);
@@ -6148,11 +6150,11 @@ async function deleteBangleSizeRow(id, btn){
 
 function exportBangleSizesXlsx(){
   if(!allBangleSizes.length){ toast("No bangle sizes to export.","error"); return; }
-  const headers=["Bangle Size","Anna (Millimeters)","Inches (25.4 mm)"];
-  const rows=allBangleSizes.map(r=>[r.label??'',r.size_mm??'',r.size_in??'']);
+  const headers=["Bangle Size (Anna)","Inner Diameter (ID) Millimeters","Inner Diameter (ID) Inches (25.4 mm)","Circumference (Inches)"];
+  const rows=allBangleSizes.map(r=>[r.label??'',r.size_mm??'',r.size_in??'',r.circumference_in??'']);
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-  ws["!cols"]=[{wch:14},{wch:18},{wch:14}];
+  ws["!cols"]=[{wch:16},{wch:24},{wch:24},{wch:22}];
   XLSX.utils.book_append_sheet(wb,ws,"Bangle Sizes");
   const wsI=XLSX.utils.aoa_to_sheet([["VIE JEWELS — Jewelry Size (Bangle) Export"],["Exported: "+new Date().toLocaleString()],[""],[" HOW TO IMPORT"],["1. Edit data — do not change column headers"],["2. Add rows at bottom for new sizes"],["3. Save as .xlsx and use Import Excel button"]]);
   XLSX.utils.book_append_sheet(wb,wsI,"Instructions");
@@ -6173,13 +6175,14 @@ async function importBangleSizesXlsx(e){
       if(!matrix.length){ toast("Sheet is empty.","error"); return; }
 
       const COLS=[
-        {key:'label',   pos:0, kw:['bangle','label','size']},
-        {key:'size_mm', pos:1, kw:['anna','mm','millimeter']},
-        {key:'size_in', pos:2, kw:['inch']},
+        {key:'label',            pos:0, kw:['bangle','label']},
+        {key:'size_mm',          pos:1, kw:['millimeter','idmm']},
+        {key:'size_in',          pos:2, kw:['idinch','innerdiameterinch','inches254']},
+        {key:'circumference_in', pos:3, kw:['circumference']},
       ];
       const detected=_detectSheetColumns(matrix,COLS,2);
       if(!detected){
-        toast("Could not detect columns. Expected headers like: Bangle Size, Anna (Millimeters), Inches.","error");
+        toast("Could not detect columns. Expected headers like: Bangle Size (Anna), Inner Diameter (ID) Millimeters, Inner Diameter (ID) Inches, Circumference (Inches).","error");
         e.target.value=""; return;
       }
 
@@ -6192,7 +6195,9 @@ async function importBangleSizesXlsx(e){
         if(!label && !size_mm) continue;
         const inRaw=_normHeaderCell(cell(detected.map.size_in)).replace(/"+$/,"");
         const size_in=parseFloat(inRaw)||null;
-        payloads.push({ label:label||null, size_mm, size_in });
+        const circRaw=_normHeaderCell(cell(detected.map.circumference_in)).replace(/"+$/,"");
+        const circumference_in=parseFloat(circRaw)||null;
+        payloads.push({ label:label||null, size_mm, size_in, circumference_in });
       }
       if(!payloads.length){ toast("No valid rows found.","error"); return; }
       await sbUpsert("bangle_sizes","label",payloads);
