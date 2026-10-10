@@ -943,7 +943,8 @@
     function pdSizeKind(product) {
       const t = (product.product_jewel_cats || []).map(c => (c.jewel_type || '').toLowerCase()).join(' ');
       if (/ring|band/.test(t)) return 'ring';
-      if (/bangle|bracelet/.test(t)) return 'bangle';
+      if (/bangle/.test(t)) return 'bangle';
+      if (/bracelet/.test(t)) return 'bracelet';
       return null;
     }
 
@@ -968,7 +969,7 @@
 
       const kind = pdSizeKind(product);
       const multi = options.length > 1;
-      const fitment = kind === 'ring' ? 'Standard ring fitment' : kind === 'bangle' ? 'Standard bangle fitment' : 'Standard fitment';
+      const fitment = kind === 'ring' ? 'Standard ring fitment' : kind === 'bangle' ? 'Standard bangle fitment' : kind === 'bracelet' ? 'Length in inches' : 'Standard fitment';
       const parsed = options.map(o => pdParseSizeLabel(o.size_label));
 
       host.innerHTML = `
@@ -987,7 +988,7 @@
           </ul>` : ''}
           <div class="pd-size-foot">
             <span>${esc(fitment)}</span>
-            ${kind ? '<button type="button" class="pd-size-link" data-sz-guide>Size guide</button>' : ''}
+            ${(kind === 'ring' || kind === 'bangle') ? '<button type="button" class="pd-size-link" data-sz-guide>Size guide</button>' : ''}
           </div>
         </div>`;
 
