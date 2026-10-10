@@ -1074,13 +1074,14 @@
 
       const head = isRing
         ? '<th>ID (mm)</th><th>US</th><th>IND</th><th>EU</th><th>UK</th>'
-        : '<th>Size</th><th>mm</th><th>Inches</th>';
+        : '<th>ID (mm)</th><th>Anna</th><th>ID (in)</th><th>Circumference (in)</th>';
       const body = rows.map(r => {
         const key = isRing ? r.diameter_mm : r.size_mm;
         const hit = mm && Number(key) === Number(mm) ? ' class="hit"' : '';
+        const q = (v) => (v == null || v === '') ? '—' : v + '"';
         const cells = isRing
           ? [r.diameter_mm, r.us, r.india, r.europe, r.uk]
-          : [r.label, r.size_mm, r.size_in];
+          : [r.size_mm, r.label ? r.label + '"' : '—', q(r.size_in), q(r.circumference_in)];
         return `<tr${hit}>${cells.map(c => `<td>${esc(c ?? '—')}</td>`).join('')}</tr>`;
       }).join('');
 
