@@ -3375,6 +3375,42 @@ function renderProductJewelCats(){
     </div>`).join('');
 }
 
+// ── SIZE OPTION HELPERS ───────────────────────────────────────────────────
+// Bangle size option text, built from the Bangle Sizes master. Inner Diameter (mm)
+// always comes first — the storefront shows that part as the main line of the
+// size dropdown and everything after it underneath.
+//   "ID 54mm / Anna 2-2/16\" / Inches 2.12\" / Circumference 6.66\""
+function bangleSizeLabel(s){
+  const fmt = n => (n == null || n === '') ? null : String(Number(n));
+  const mm   = fmt(s.size_mm), inch = fmt(s.size_in), circ = fmt(s.circumference_in);
+  return [
+    mm   && 'ID ' + mm + 'mm',
+    s.label && 'Anna ' + s.label + '"',
+    inch && 'Inches ' + inch + '"',
+    circ && 'Circumference ' + circ + '"',
+  ].filter(Boolean).join(' / ');
+}
+
+// Select the dropdown option matching a saved size. Products saved before the
+// bangle chart change have an older label, so fall back to matching on the
+// inner-diameter mm value; if nothing matches, keep the text in the custom box
+// so it is never silently lost on save.
+function pickSizeOption(selId, customId, saved){
+  const sel = document.getElementById(selId);
+  const val = String(saved || '');
+  sv(customId, '');
+  if(!sel) return;
+  sel.value = val;
+  if(val && sel.value === val) return;
+  const m = val.match(/ID\s*([\d.]+)\s*mm/i);
+  if(m){
+    const hit = [...sel.options].find(o => (o.value.match(/ID\s*([\d.]+)\s*mm/i)||[])[1] === m[1]);
+    if(hit){ sel.value = hit.value; return; }
+  }
+  sel.value = '';
+  if(val) sv(customId, val);
+}
+
 // ── SIZE DROPDOWN (ring vs bangle based on jewelry type) ──────────────────
 function populateProductSizeDropdown(jewelType){
   const sel = document.getElementById('f-size');
@@ -3396,9 +3432,7 @@ function populateProductSizeDropdown(jewelType){
           s.uk           && 'UK '  + s.uk,
         ].filter(Boolean).join(' / ');
       } else {
-        const btnLabel  = (s.label || '') + (s.label ? '"(IN)' : '');
-        const annaLabel = s.size_mm != null ? 'ID ' + s.size_mm + 'mm' : '';
-        label = [btnLabel, annaLabel].filter(Boolean).join(' / ');
+        label = bangleSizeLabel(s);
       }
       sel.innerHTML += `<option value="${esc(label||s.id)}">${esc(label||s.id)}</option>`;
     });
@@ -3558,7 +3592,7 @@ function openProductModal(id=null){
     // Size — populate dropdown based on first jewel cat
     const firstCat = productJewelCats[0];
     if(firstCat) populateProductSizeDropdown(firstCat.jewel_type);
-    sv("f-size",p.size||""); sv("f-size-custom","");
+    pickSizeOption("f-size","f-size-custom",p.size);
     // Tags
     selectedTags=(p.product_tags||[]).map(t=>t.tags?.id).filter(Boolean);
     // Photos / video
@@ -3902,15 +3936,9 @@ function svmOpenEditForm(variantId){
   document.getElementById("svm-form-title").textContent = "Edit Size";
   document.getElementById("svm-form").style.display = "block";
   svmPopulateSizeDropdown();
-  const sel = document.getElementById("svm-size-select");
-  sel.value = v.size_label || "";
-  if(![...sel.options].some(o=>o.value===v.size_label)){
-    // Size label isn't one of the standard chart options — show it as custom text instead
-    sel.value = "";
-    sv("svm-size-custom", v.size_label||"");
-  } else {
-    sv("svm-size-custom","");
-  }
+  // Matches the exact label, or (for sizes saved before the chart change) the same
+  // inner-diameter mm; otherwise the old text is kept in the custom box.
+  pickSizeOption("svm-size-select","svm-size-custom",v.size_label);
   sv("svm-wt-18k",(v.net_weight_18k||0).toFixed(3));
   sv("svm-wt-14k",(v.net_weight_14k||0).toFixed(3));
   sv("svm-wt-10k",(v.net_weight_10k||0).toFixed(3));
@@ -3949,9 +3977,7 @@ function svmPopulateSizeDropdown(){
         s.uk           && 'UK '  + s.uk,
       ].filter(Boolean).join(' / ');
     } else {
-      const btnLabel  = (s.label || '') + (s.label ? '"(IN)' : '');
-      const annaLabel = s.size_mm != null ? 'ID ' + s.size_mm + 'mm' : '';
-      label = [btnLabel, annaLabel].filter(Boolean).join(' / ');
+      label = bangleSizeLabel(s);
     }
     sel.innerHTML += `<option value="${esc(label||s.id)}">${esc(label||s.id)}</option>`;
   });
