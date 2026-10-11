@@ -59,7 +59,7 @@
     .actions-cell { display:flex; gap:6px; align-items:center; }
     /* Products table: fit every column on one screen (no horizontal scroll) */
     #tab-products { max-width:none; padding:24px 28px; }   /* use the full browser width for this tab */
-    .products-table { table-layout:fixed; min-width:1180px; }
+    .products-table { table-layout:fixed; min-width:1280px; }
     .products-table thead th { padding:12px 10px; white-space:normal; letter-spacing:0.05em; font-size:11px; line-height:1.3; vertical-align:bottom; }
     .products-table tbody td { padding:10px; overflow-wrap:anywhere; word-break:normal; font-size:12px; }
     .products-table .tbl-filter-row th { padding:4px 4px !important; }
@@ -69,7 +69,7 @@
     .products-table .actions-cell .btn-sm { padding:5px 9px; font-size:12px; }
     /* Sticky header (title row + filter row) that stays visible under the page header while scrolling */
     .products-table thead { position:sticky; top:56px; z-index:20; background:var(--surface); box-shadow:0 2px 6px rgba(0,0,0,0.08); }
-    @media (min-width:1240px){ #tab-products .table-wrap { overflow:visible; overflow:clip; } }  /* a scrolling wrapper would break sticky; table fits at this width anyway */
+    @media (min-width:1340px){ #tab-products .table-wrap { overflow:visible; overflow:clip; } }  /* a scrolling wrapper would break sticky; table fits at this width anyway */
     .products-table td.cell-edit { cursor:pointer; position:relative; }
     .products-table td.cell-edit:hover { background:rgba(184,146,42,0.10); box-shadow:inset 0 0 0 1px var(--accent); }
     .products-table td.cell-edit:hover::after { content:"\270E"; position:absolute; top:3px; right:4px; font-size:11px; color:var(--accent); }
@@ -387,9 +387,9 @@
       </div>
     </div>
     <div class="table-wrap"><table class="products-table">
-      <colgroup><col style="width:5%"><col style="width:6%"><col style="width:5%"><col style="width:11%"><col style="width:7%"><col style="width:14%"><col style="width:8%"><col style="width:8%"><col style="width:13%"><col style="width:8%"><col style="width:6%"><col style="width:9%"></colgroup>
-      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Jewelry Category</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="products-tbody"><tr><td colspan="12" class="state-msg">Loading...</td></tr></tbody>
+      <colgroup><col style="width:5%"><col style="width:5%"><col style="width:5%"><col style="width:10%"><col style="width:6%"><col style="width:12%"><col style="width:9%"><col style="width:7%"><col style="width:7%"><col style="width:11%"><col style="width:7%"><col style="width:5%"><col style="width:11%"></colgroup>
+      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Jewelry Category</th><th>Sizes</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="products-tbody"><tr><td colspan="13" class="state-msg">Loading...</td></tr></tbody>
     </table></div>
   </div>
 
@@ -2850,6 +2850,7 @@ async function loadProducts(){
       "product_media(id,url,media_type,is_primary,alt_text,sort_order)",
       "product_tags(tags(id,name,slug))",
       "product_jewel_cats(id,jewel_type,sub_type1,sub_type2)",
+      "product_size_variants(id,size_label,sort_order)",
       "product_stones(id,stone_type,setting_type,shape,pcs,length_mm,width_mm)",
       "product_set_links!product_set_links_product_id_fkey(id,linked_product_id)"
     ].join(",");
@@ -2858,7 +2859,7 @@ async function loadProducts(){
     populateMasterDropdowns();
     renderStoneReport();
   } catch(e){
-    document.getElementById("products-tbody").innerHTML="<tr><td colspan='12' class='state-msg'>Failed to load products.</td></tr>";
+    document.getElementById("products-tbody").innerHTML="<tr><td colspan='13' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
   }
 }
@@ -3065,12 +3066,53 @@ function scheduleTableResort(tbodyId){
   resortDebounceTimers[tbodyId] = setTimeout(()=>nudgeTableResort(tbodyId), 200);
 }
 
+// ── SIZES COLUMN (Products table) ─────────────────────────────────────────
+// Short text for a size label: composite labels ("ID 54mm / Anna 2-2/16\" / ...") show only the
+// first part (the ID in mm when present); the full label is in the cell's hover text.
+function sizeShortLabel(label){
+  const parts = String(label||"").split(/\s+\/\s+/).map(x=>x.trim()).filter(Boolean);
+  if(parts.length < 2) return String(label||"");
+  return parts.find(x=>/^ID\s/i.test(x)) || parts[0];
+}
+function productSizeLabels(p){
+  const out = [];
+  if(p.size) out.push(p.size);
+  (p.product_size_variants||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).forEach(v=>{
+    if(v.size_label && !out.includes(v.size_label)) out.push(v.size_label);
+  });
+  return out;
+}
+function productSizesCell(p){
+  const labels = productSizeLabels(p);
+  if(!labels.length) return `<span style="color:var(--text-muted);font-size:12px">---</span>`;
+  return labels.map((l,i)=>`<span class="jc-line" title="${esc(l)}"${i===0?' style="font-weight:600"':''}>${esc(sizeShortLabel(l))}</span>`).join(" ");
+}
+// Which kind of size input a product gets, from its first jewelry category type.
+// \b keeps "Earrings" from matching "ring".
+function sizeFieldConfig(p){
+  const t = String(((p.product_jewel_cats||[])[0]||{}).jewel_type||"").toLowerCase();
+  if(/\b(ring|band)/.test(t)){
+    return {mode:"select", labels: allRingSizes.map(s=>[
+      s.diameter_mm != null && 'ID ' + s.diameter_mm + 'mm',
+      s.india && 'IND ' + s.india, s.us && 'US ' + s.us, s.europe && 'EU ' + s.europe, s.uk && 'UK ' + s.uk,
+    ].filter(Boolean).join(' / ') || String(s.id))};
+  }
+  if(/\bbangle/.test(t)) return {mode:"select", labels: allBangleSizes.map(s=>bangleSizeLabel(s)||String(s.id))};
+  if(/\bbracelet/.test(t)) return {mode:"bracelet"};
+  return {mode:"text"};
+}
+function ceManageSizes(){
+  const pid = cellEd && cellEd.pid;
+  closeCellEditor();
+  if(pid) openSizeVariantsModal(pid);
+}
+
 // ── INLINE CELL EDITING (Products table) ─────────────────────────────────
 // Click an editable cell → small popover editor → Save writes straight to
 // Supabase and refreshes just that row (no modal, no full reload).
 let cellEd = null;
 const CE_TITLES = {name:"Name", sku:"SKU", short_description:"Short Description", description:"Product Story",
-  weights:"Metal Net Weights (grams)", status:"Status", jewel:"Jewelry Category", stones:"Diamond & Stone Details"};
+  weights:"Metal Net Weights (grams)", status:"Status", jewel:"Jewelry Category", stones:"Diamond & Stone Details", sizes:"Size"};
 const ceFind = pid => allProducts.find(x=>String(x.id)===String(pid));
 function ceOpts(list,val){
   const vals=[...list]; if(val && !vals.includes(val)) vals.push(val);
@@ -3119,6 +3161,13 @@ function openCellEditor(td){
     const w=(k,l)=>`<div><label>${l}</label><input id="ce-w-${k}" class="ce-in" type="number" step="0.001" min="0" oninput="ceDeriveWeights('${k}')" value="${Number(p["net_weight_"+k])||0}" /></div>`;
     body=`<div class="ce-grid">${w("18k","18K")}${w("14k","14K")}${w("10k","10K")}${w("silver","Silver")}</div><div class="ce-hint" style="margin-top:6px">Other alloys auto-fill from the one you edit (18K = Silver × 1.4875, 14K × 1.2425, 10K × 1.1051). Overwrite any to adjust; set 0 if not produced.</div>`;
   }
+  else if(field==="sizes"){
+    const cfg=sizeFieldConfig(p);
+    const manage=`<div class="ce-hint" style="margin-top:10px">Each extra size can have its own metal weights and stones.</div><div style="margin-top:6px"><button type="button" class="btn btn-secondary btn-sm" onclick="ceManageSizes()">Manage additional sizes…</button></div>`;
+    if(cfg.mode==="select") body=`<select id="ce-size-sel" class="ce-in"><option value="">Select size…</option>${cfg.labels.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join("")}</select><input id="ce-size-custom" class="ce-in" type="text" style="margin-top:6px" placeholder="Or type custom size…" onfocus="document.getElementById('ce-size-sel').value=''" />`+manage;
+    else body=`<input id="ce-size-custom" class="ce-in" type="text" value="${esc(p.size||"")}" placeholder="${cfg.mode==="bracelet"?"Length in inches, e.g. 7.5 in":"Size"}" />`+manage;
+    cellEd.sizeMode=cfg.mode;
+  }
   else if(field==="status") body=`<select id="ce-input" class="ce-in"><option value="true"${p.is_active!==false?" selected":""}>Active</option><option value="false"${p.is_active===false?" selected":""}>Hidden</option></select>`;
   else if(field==="jewel"){ cls="ce-mid"; cellEd.rows=(p.product_jewel_cats||[]).map(c=>({jewel_type:c.jewel_type||"",sub_type1:c.sub_type1||"",sub_type2:c.sub_type2||""})); }
   else if(field==="stones"){ cls="ce-wide"; cellEd.rows=(p.product_stones||[]).map(s=>({stone_type:s.stone_type||"",setting_type:s.setting_type||"",shape:s.shape||"",pcs:s.pcs??"",length_mm:s.length_mm??"",width_mm:s.width_mm??""}));
@@ -3132,6 +3181,7 @@ function openCellEditor(td){
   el.addEventListener("change",()=>{ if(cellEd) cellEd.dirty=true; });
   el.addEventListener("keydown",ceKey);
   if(field==="jewel") ceRenderJewel(); else if(field==="stones") ceRenderStones();
+  else if(field==="sizes" && cellEd.sizeMode==="select") pickSizeOption("ce-size-sel","ce-size-custom",p.size);
   cePosition();
   const f=el.querySelector("input,textarea,select"); if(f){ f.focus(); if(f.select && f.type!=="number") try{f.select();}catch(e){} }
 }
@@ -3227,6 +3277,7 @@ async function saveCellEditor(){
   else if(ed.field==="short_description"||ed.field==="description") patch={[ed.field]:val("ce-input")||null};
   else if(ed.field==="weights") patch={net_weight_18k:parseFloat(val("ce-w-18k"))||0,net_weight_14k:parseFloat(val("ce-w-14k"))||0,net_weight_10k:parseFloat(val("ce-w-10k"))||0,net_weight_silver:parseFloat(val("ce-w-silver"))||0};
   else if(ed.field==="status") patch={is_active:val("ce-input")==="true"};
+  else if(ed.field==="sizes") patch={size:(val("ce-size-sel")||val("ce-size-custom"))||null};
 
   const btn=document.getElementById("ce-save"); ed.saving=true; if(btn){ btn.disabled=true; btn.textContent="Saving…"; }
   try{
@@ -3286,7 +3337,7 @@ function completenessCell(c,field){
 
 function renderProductsTable(products){
   const tbody=document.getElementById("products-tbody");
-  if(!products.length){ tbody.innerHTML="<tr><td colspan='12' class='state-msg'>No products found.</td></tr>"; return; }
+  if(!products.length){ tbody.innerHTML="<tr><td colspan='13' class='state-msg'>No products found.</td></tr>"; return; }
   tbody.innerHTML=products.map(p=>{
     const pm=(p.product_media||[]);
     const primary=pm.find(m=>m.is_primary)||pm[0];
@@ -3306,7 +3357,7 @@ function renderProductsTable(products){
     // render (unchecked products briefly sort as "less than zero" until their
     // real count lands) instead of flipping between numeric and alphabetic
     // sort depending on whether checks have finished yet.
-    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td><td class="cell-edit" data-edit="sizes">${productSizesCell(p)}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
   products.forEach(p=>updateMediaCountCell(p));
 }
@@ -3901,6 +3952,10 @@ async function openSizeVariantsModal(productId){
 
 function closeSizeVariantsModal(){
   document.getElementById("size-variants-modal").classList.remove("open");
+  if(svmProduct){   // keep the Products table's Sizes column in step with what was just edited
+    svmProduct.product_size_variants = svmVariants.map(v=>({id:v.id,size_label:v.size_label,sort_order:v.sort_order}));
+    filterProducts();
+  }
   svmProductId = null; svmProduct = null; svmVariants = [];
 }
 
