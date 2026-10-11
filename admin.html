@@ -3183,7 +3183,7 @@ function openCellEditor(td){
   if(field==="jewel") ceRenderJewel(); else if(field==="stones") ceRenderStones();
   else if(field==="sizes" && cellEd.sizeMode==="select") pickSizeOption("ce-size-sel","ce-size-custom",p.size);
   cePosition();
-  const f=el.querySelector("input,textarea,select"); if(f){ f.focus(); if(f.select && f.type!=="number") try{f.select();}catch(e){} }
+  const f=el.querySelector("input,textarea,select"); if(f){ f.focus(); if(f.select) try{f.select();}catch(e){} }
 }
 function ceKey(e){
   if(e.key==="Escape"){ e.preventDefault(); closeCellEditor(); return; }
@@ -3312,6 +3312,23 @@ document.addEventListener("mousedown",e=>{
 });
 window.addEventListener("scroll",cePosition,true);
 window.addEventListener("resize",cePosition);
+
+// ── EASY NUMBER ENTRY ─────────────────────────────────────────────────────
+// Clicking (or tabbing into) a weight / number box selects what is already in it, so
+// typing replaces it — no need to delete "0.000" first. Covers the metal-weight boxes in
+// the product form, the Sizes window and the inline table editor (plus its stone-row numbers).
+const EASY_NUM_SELECTOR = '#cell-editor input[type="number"], #f-wt-18k, #f-wt-14k, #f-wt-10k, #f-wt-silver, input[id^="svm-wt-"]';
+document.addEventListener("focusin",e=>{
+  const t=e.target;
+  if(!(t&&t.matches&&t.matches(EASY_NUM_SELECTOR))) return;
+  t.dataset.selectOnUp="1";
+  setTimeout(()=>{ try{ t.select(); }catch(err){} },0);
+});
+// The mouse-up that finishes the click would drop the selection and place the cursor — cancel it once.
+document.addEventListener("mouseup",e=>{
+  const t=e.target;
+  if(t&&t.dataset&&t.dataset.selectOnUp==="1"){ e.preventDefault(); delete t.dataset.selectOnUp; }
+},true);
 
 // Completeness cells for the Products table: each returns {label,title,ok}
 // so admins can filter a column for "missing" to find products with gaps.
