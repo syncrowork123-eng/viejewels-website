@@ -57,19 +57,20 @@
     .badge-active { background:rgba(39,174,96,0.15); color:#27ae60; }
     .badge-inactive { background:rgba(192,57,43,0.15); color:#e74c3c; }
     .actions-cell { display:flex; gap:6px; align-items:center; }
-    /* Products table: fit every column on one screen (no horizontal scroll) */
+    /* Products table: every column auto-fits its content (minimal widths); long text is cut with … (hover for the full text) */
     #tab-products { max-width:none; padding:24px 28px; }   /* use the full browser width for this tab */
-    .products-table { table-layout:fixed; min-width:1280px; }
-    .products-table thead th { padding:12px 10px; white-space:normal; letter-spacing:0.05em; font-size:11px; line-height:1.3; vertical-align:bottom; }
-    .products-table tbody td { padding:10px; overflow-wrap:anywhere; word-break:normal; font-size:12px; }
+    .products-table { table-layout:auto; width:auto; min-width:0; }
+    .products-table thead th { padding:12px 8px; white-space:normal; letter-spacing:0.05em; font-size:11px; line-height:1.3; vertical-align:bottom; }
+    .products-table tbody td { padding:8px; white-space:nowrap; max-width:230px; overflow:hidden; text-overflow:ellipsis; font-size:12px; }
+    .products-table .jc-line { overflow:hidden; text-overflow:ellipsis; }
     .products-table .tbl-filter-row th { padding:4px 4px !important; }
-    .products-table .tbl-filter-input { min-width:0; padding:5px 7px; font-size:12px; }
+    .products-table .tbl-filter-input { width:100%; min-width:56px; padding:5px 6px; font-size:12px; }
     .products-table .product-thumb-cell img, .products-table .no-img { width:46px; height:46px; }
-    .products-table .actions-cell { flex-wrap:wrap; gap:4px; }
+    .products-table .actions-cell { flex-wrap:wrap; gap:4px; min-width:104px; }
     .products-table .actions-cell .btn-sm { padding:5px 9px; font-size:12px; }
     /* Sticky header (title row + filter row) that stays visible under the page header while scrolling */
     .products-table thead { position:sticky; top:56px; z-index:20; background:var(--surface); box-shadow:0 2px 6px rgba(0,0,0,0.08); }
-    @media (min-width:1340px){ #tab-products .table-wrap { overflow:visible; overflow:clip; } }  /* a scrolling wrapper would break sticky; table fits at this width anyway */
+    @media (min-width:1100px){ #tab-products .table-wrap { overflow:visible; overflow:clip; } }  /* a scrolling wrapper would break sticky; table fits at this width anyway */
     .products-table td.cell-edit { cursor:pointer; position:relative; }
     .products-table td.cell-edit:hover { background:rgba(184,146,42,0.10); box-shadow:inset 0 0 0 1px var(--accent); }
     .products-table td.cell-edit:hover::after { content:"\270E"; position:absolute; top:3px; right:4px; font-size:11px; color:var(--accent); }
@@ -387,7 +388,6 @@
       </div>
     </div>
     <div class="table-wrap"><table class="products-table">
-      <colgroup><col style="width:5%"><col style="width:5%"><col style="width:5%"><col style="width:10%"><col style="width:6%"><col style="width:12%"><col style="width:9%"><col style="width:7%"><col style="width:7%"><col style="width:11%"><col style="width:7%"><col style="width:5%"><col style="width:11%"></colgroup>
       <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Jewelry Category</th><th>Sizes</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Status</th><th>Actions</th></tr></thead>
       <tbody id="products-tbody"><tr><td colspan="13" class="state-msg">Loading...</td></tr></tbody>
     </table></div>
@@ -3324,7 +3324,7 @@ function productDetailCompleteness(p){
   return {
     shortDesc: txt(p.short_description) ? {ok:true,label:"✓",title:txt(p.short_description)} : {ok:false,label:"Missing",title:"No short description"},
     story:     txt(p.description)       ? {ok:true,label:"✓",title:txt(p.description).slice(0,300)} : {ok:false,label:"Missing",title:"No product story"},
-    weights:   wts.length ? {ok:true,label:wts.map(([k,w])=>`${k} ${Number(w).toFixed(2)}`).join(" · "),title:"Net weights (grams)"} : {ok:false,label:"Missing",title:"All net weights are 0"},
+    weights:   wts.length ? {ok:true,label:wts.map(([k,w])=>`${k} ${Number(w).toFixed(2)}`).join(" · "),title:wts.map(([k,w])=>`${k} ${Number(w).toFixed(2)}`).join(" · ")+" (grams)"} : {ok:false,label:"Missing",title:"All net weights are 0"},
     stones:    !stones.length ? {ok:false,label:"Missing",title:"No diamond / stone rows"}
              : badStones.length ? {ok:false,label:"Incomplete",title:`${badStones.length} of ${stones.length} row(s) lack a stone type or PCS`}
              : {ok:true,label:`${stones.length} row${stones.length>1?"s":""}`,title:stones.map(s=>[s.stone_type,s.setting_type,s.shape,s.pcs?s.pcs+" pcs":""].filter(Boolean).join(" ")).join("\n")}
@@ -3357,7 +3357,7 @@ function renderProductsTable(products){
     // render (unchecked products briefly sort as "less than zero" until their
     // real count lands) instead of flipping between numeric and alphabetic
     // sort depending on whether checks have finished yet.
-    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td><td class="cell-edit" data-edit="sizes">${productSizesCell(p)}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name" title="${esc(p.name)}"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td><td class="cell-edit" data-edit="sizes">${productSizesCell(p)}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
   products.forEach(p=>updateMediaCountCell(p));
 }
