@@ -68,6 +68,7 @@
       transition: transform 0.25s ease;
     }
     .pd-lightbox.is-open img { transform: scale(1); }
+    [data-product-extra] .showcase-item:last-child:nth-child(odd) { grid-column: 1 / -1; }
     .product-showcase-row .showcase-label {
       font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
       color: var(--text-light); text-align: center;
@@ -400,6 +401,7 @@
             <p style="color:var(--text-light);font-size:13px">Loading image...</p>
           </div>
           <div class="product-showcase-row" data-product-showcase></div>
+          <div class="product-showcase-row" data-product-extra style="display:none"></div>
         </div>
 
         <!-- RIGHT: Info -->
@@ -1098,6 +1100,57 @@
       dlg.querySelector('[data-sg-close]').addEventListener('click', () => dlg.close());
     }
 
+    /* ── EXTRA IMAGES ─────────────────────────────────────────────────
+       Any image on the product that is NOT one of the standard slots
+       (White / Yellow / Rose / Multi-Tone / Model Showcase / Spotlight View) —
+       e.g. "Inspiration", "Packaging", "On hand" — is shown under the main
+       gallery. Add as many as you like in admin; each uses its alt text as the caption. */
+    const PD_STD_COLOR_KEYS = ['white', 'yellow', 'rose', 'multi-tone', 'model showcase', 'spotlight view'];
+
+    function pdIsStdImage(m) {
+      const mc = (m.metal_color || '').toLowerCase();
+      if (PD_STD_COLOR_KEYS.includes(mc)) return true;
+      if (PD_STD_COLOR_KEYS.some(k => _imageMatchesColor(m.url, k))) return true;
+      const base = (m.url || '').split('?')[0].toLowerCase().replace(/\.[a-z0-9]+$/, '');
+      return /[-_]multi\d*$/.test(base);
+    }
+
+    function pdExtraLabel(m) {
+      const alt = (m.alt_text || '').trim();
+      if (alt) return alt;
+      const file = (m.url || '').split('?')[0].split('#')[0].split('/').pop().replace(/\.[a-z0-9]+$/i, '');
+      const part = file.split(/[-_]/).pop() || '';
+      return part ? part.charAt(0).toUpperCase() + part.slice(1) : '';
+    }
+
+    function pdRenderExtraImages(product) {
+      const wrap = document.querySelector('[data-product-extra]');
+      if (!wrap || !product) return;
+      const images = (product.product_media || [])
+        .filter(m => m.media_type !== 'video' && m.url)
+        .slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+      let extras = images.filter(m => !pdIsStdImage(m));
+
+      // Products with no standard-named images: the gallery's main picture is the primary
+      // (or first) image, so don't repeat it down here.
+      if (!images.some(pdIsStdImage)) {
+        const main = images.find(m => m.is_primary) || images[0];
+        extras = extras.filter(m => m !== main);
+      }
+
+      if (!extras.length) { wrap.innerHTML = ''; wrap.style.display = 'none'; return; }
+      wrap.innerHTML = extras.map(m => {
+        const label = pdExtraLabel(m);
+        return `<div class="showcase-item">
+          <img src="${esc(cldImg(m.url, 900))}" data-full="${esc(cldImg(m.url, 2400))}" alt="${esc((product.name || '') + (label ? ' — ' + label : ''))}" loading="lazy"
+               onerror="this.closest('.showcase-item').style.display='none'" />
+          ${label ? `<span class="showcase-label">${esc(label)}</span>` : ''}
+        </div>`;
+      }).join('');
+      wrap.style.display = '';
+    }
+
     async function renderProductDetail() {
       await _renderProductDetailBase();
       if (!document.querySelector('[data-product-detail]')) return;
@@ -1106,6 +1159,7 @@
       pdBuildBreadcrumb(_lastLoadedProduct);
       pdWireMetalSwatches(_lastLoadedProduct);
       pdWireLightbox();
+      pdRenderExtraImages(_lastLoadedProduct);
       pdRenderMatchingSets(_lastLoadedProduct);
       await runProductPricing(_lastLoadedProduct);
       pdWireCartButton(_lastLoadedProduct);
