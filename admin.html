@@ -123,6 +123,8 @@
     .broken-thumb { width:52px; height:52px; border:1px dashed var(--danger); color:var(--danger); border-radius:6px; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; background:rgba(192,57,43,0.08); }
     .media-url-input { width:100%; padding:5px 8px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:12px; font-family:var(--font); outline:none; }
     .media-url-input:focus { border-color:var(--accent); color:var(--text); }
+    .media-host-select { padding:5px 8px; font-size:11px; font-weight:600; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text-muted); cursor:pointer; outline:none; max-width:130px; }
+    .media-host-select:focus { border-color:var(--accent); }
     .media-warn { font-size:11px; color:var(--danger); margin-top:3px; }
     /* Sort & filter (all admin tables) */
     .tbl-sortable { cursor:pointer; user-select:none; }
@@ -1893,10 +1895,11 @@ document.getElementById('pe-iframe').addEventListener('load', () => {
       <div class="divider"></div>
       <p class="section-label">Photos &amp; Video <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— paste a hosted image/video URL (e.g. from Cloudinary) and add it</span></p>
       <div class="form-group" style="margin-bottom:12px;max-width:380px">
-        <label>Image Host <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— choose where this product's images are stored; all 5 SKU images (W, Y, R, Model, Spot) are linked automatically</span></label>
+        <label>Image Host <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— the 5 SKU images (W, Y, R, Model, Spot) are linked automatically. Pick one host for all of them, or <b>Auto</b> to use whichever host has each image. Each image can also be moved to a different host in the list below.</span></label>
         <select id="f-media-host" class="filter-select" style="width:100%" onchange="applyProductMediaHost(this.value)">
           <option value="cloudinary">Cloudinary</option>
           <option value="imagekit">ImageKit</option>
+          <option value="auto">Auto — find each image on any host</option>
         </select>
       </div>
       <div class="media-list" id="f-media-list"></div>
@@ -2261,6 +2264,7 @@ const CLOUD_PROVIDERS = {
 };
 let activeMediaProvider = localStorage.getItem("vj_media_provider") || "cloudinary";
 function setActiveMediaProvider(p){
+  if(!CLOUD_PROVIDERS[p]) return;
   activeMediaProvider = p;
   try{ localStorage.setItem("vj_media_provider", p); }catch(e){}
   const hostSel = document.getElementById("f-media-host");
@@ -2279,7 +2283,8 @@ function setActiveMediaProvider(p){
     renderProductMedia();
   }
 }
-function CLOUD_BASE(){ return CLOUD_PROVIDERS[activeMediaProvider].base; }
+// "auto" (images may live on any host) generates new SKU image links on Cloudinary first, then finds the real host.
+function CLOUD_BASE(){ return (CLOUD_PROVIDERS[activeMediaProvider] || CLOUD_PROVIDERS.cloudinary).base; }
 
 let allProducts=[], allCategories=[], allMetals=[], allStones=[], allDiamonds=[];
 let allLabour=[], allMargins=[], allSizes=[], allTags=[], allCurrencies=[], allSiteSettings=[], allEnquiries=[];
@@ -3693,8 +3698,9 @@ function openProductModal(id=null){
       .map(m=>({url:m.url||'',media_type:m.media_type||'image',is_primary:!!m.is_primary,alt_text:m.alt_text||''}));
     // Use the host this product's images already point to, so any missing standard
     // images are generated on the same host instead of mixing Cloudinary and ImageKit
-    const detectedHost = detectMediaHost(productMediaRows);
-    if(detectedHost) activeMediaProvider = detectedHost;
+    const detectedHosts = detectMediaHosts(productMediaRows);
+    if(detectedHosts.length > 1) activeMediaProvider = "auto";          // images already come from several hosts
+    else if(detectedHosts.length === 1) activeMediaProvider = detectedHosts[0];
     // Always show the 5 standard SKU images (W, Y, R, Model, Spot) — missing files appear as broken until fixed
     productMediaRows = mergeStdImages(productMediaRows, p.sku);
   } else {
@@ -3753,11 +3759,42 @@ function renderProductMedia(){
         <div style="font-size:11px;color:var(--text-muted);text-transform:capitalize">${esc(m.media_type)}${m.alt_text?" — "+esc(m.alt_text):""}</div>
       </div>
       <div class="media-item-controls">
+        ${m.media_type==="video" ? "" : mediaHostSelectHtml(i, m.url)}
         ${primaryBtn}
         <button class="btn btn-danger btn-sm" onclick="removeProductMedia(${i})">Remove</button>
       </div>
     </div>`;
   }).join("");
+}
+
+// Per-image host picker: shows where this image is hosted now and lets you move just this one
+// image to another host (or let the admin find it on any host) without touching the others.
+function mediaHostSelectHtml(i, url){
+  const cur = mediaUrlHost(url) || "Other";
+  const opts = Object.entries(CLOUD_PROVIDERS)
+    .filter(([,pv])=>pv.label!==cur)
+    .map(([key,pv])=>`<option value="${key}">Move to ${esc(pv.label)}</option>`).join("");
+  return `<select class="media-host-select" title="Where this image is hosted — change it for this image only" onchange="setProductMediaHost(${i},this.value)">
+    <option value="">${esc(cur)}</option>${opts}<option value="auto">Find on any host</option></select>`;
+}
+
+// Re-point ONE image to another host, keeping its file name (the extension is then checked on the new host).
+async function setProductMediaHost(i, choice){
+  const r = productMediaRows[i];
+  if(!r || !choice) return renderProductMedia();
+  r._auto = false;
+  if(choice === "auto"){
+    r._probe = true; r._anyHost = true;
+  } else if(CLOUD_PROVIDERS[choice]){
+    const own = Object.values(CLOUD_PROVIDERS).find(pv=>String(r.url||"").startsWith(pv.base));
+    const rel = own ? String(r.url).slice(own.base.length)
+                    : String(r.url||"").split("?")[0].split("#")[0].split("/").pop();   // unknown host: keep just the file name
+    r.url = CLOUD_PROVIDERS[choice].base + rel;
+    r._probe = true; r._anyHost = false;
+  }
+  renderProductMedia();
+  const res = await smartResolveAutoRows();
+  if(res && !res.stale) toast(res.found ? "Image found." : "Not found on that host yet — shown as broken until uploaded.", res.found ? "success" : "error");
 }
 
 // If an image URL ends in -W.<ext> (jpg, jpeg, png, webp, bmp, gif...), also returns its -Y, -R, -Model and -Spot siblings
@@ -4827,18 +4864,31 @@ function probeImage(url, ms=8000){
   });
 }
 
-async function resolveImageUrl(url){
+// Finds a working URL for an image. Tries the URL as given, then the same file name with other
+// extensions. With anyHost=true it also looks for the same file on every other image host
+// (Cloudinary, ImageKit, …), so one product can use images from several sources.
+async function resolveImageUrl(url, anyHost){
   url = String(url||"");
   if(!url) return null;
-  if(_resolveFound.has(url)) return _resolveFound.get(url);
-  const m = url.match(/^(.*)\.([A-Za-z0-9]+)(\?.*)?$/);
-  const candidates = [url];
-  if(m){
-    const base = m[1], q = m[3]||"";
-    STD_IMG_EXTS.forEach(e=>{ const u = base+"."+e+q; if(!candidates.includes(u)) candidates.push(u); });
+  const cacheKey = (anyHost ? "*" : "") + url;
+  if(_resolveFound.has(cacheKey)) return _resolveFound.get(cacheKey);
+
+  const urls = [url];
+  if(anyHost){
+    const own = Object.values(CLOUD_PROVIDERS).find(pv=>url.startsWith(pv.base));
+    if(own){
+      const rel = url.slice(own.base.length);
+      Object.values(CLOUD_PROVIDERS).forEach(pv=>{ if(pv!==own) urls.push(pv.base + rel); });
+    }
   }
+  const candidates = [...urls];                       // exact link on each host first…
+  urls.forEach(u=>{                                   // …then other file extensions on each host
+    const m = u.match(/^(.*)\.([A-Za-z0-9]+)(\?.*)?$/);
+    if(!m) return;
+    STD_IMG_EXTS.forEach(e=>{ const v = m[1]+"."+e+(m[3]||""); if(!candidates.includes(v)) candidates.push(v); });
+  });
   for(const u of candidates){
-    if(await probeImage(u)){ _resolveFound.set(url, u); return u; }
+    if(await probeImage(u)){ _resolveFound.set(cacheKey, u); return u; }
   }
   return null;
 }
@@ -4850,11 +4900,11 @@ async function smartResolveAutoRows(){
   const token = ++_smartToken;
   const targets = productMediaRows.filter(r=>(r._auto || r._probe) && r.media_type!=="video" && r.url);
   if(!targets.length) return {found:0, missing:0};
-  const results = await Promise.all(targets.map(async r=>({r, url: await resolveImageUrl(r.url)})));
+  const results = await Promise.all(targets.map(async r=>({r, url: await resolveImageUrl(r.url, !!r._anyHost || (r._auto && activeMediaProvider==="auto"))})));
   if(token !== _smartToken) return {found:0, missing:0, stale:true};
   let found = 0, missing = 0;
   results.forEach(({r, url})=>{
-    r._probe = false;
+    r._probe = false; r._anyHost = false;
     if(url){ found++; r.url = url; } else missing++;
   });
   renderProductMedia();
@@ -4864,11 +4914,20 @@ async function smartResolveAutoRows(){
 // Same as missingStdImages(), but each URL is pointed at the extension that really exists
 async function missingStdImagesSmart(rows, sku){
   const missing = missingStdImages(rows, sku);
-  await Promise.all(missing.map(async r=>{ const u = await resolveImageUrl(r.url); if(u) r.url = u; }));
+  await Promise.all(missing.map(async r=>{ const u = await resolveImageUrl(r.url, true); if(u) r.url = u; }));
   return missing;
 }
 
 // Which host (cloudinary / imagekit) a set of media rows already points to, or null
+// Every host (cloudinary / imagekit) that a set of media rows points to
+function detectMediaHosts(rows){
+  const found = new Set();
+  (rows||[]).forEach(r=>{
+    Object.entries(CLOUD_PROVIDERS).forEach(([key, prov])=>{ if(r.url && String(r.url).startsWith(prov.base)) found.add(key); });
+  });
+  return [...found];
+}
+
 function detectMediaHost(rows){
   for(const r of (rows||[])){
     for(const [key, prov] of Object.entries(CLOUD_PROVIDERS)){
@@ -4883,6 +4942,24 @@ function detectMediaHost(rows){
 // videos are left untouched. Files not yet uploaded to that host show as
 // broken until fixed. Nothing is stored until you click Save Product.
 async function applyProductMediaHost(p){
+  if(p === "auto"){
+    const sku0 = gv("f-sku");
+    if(!sku0){ toast("Enter the SKU first.","error"); sv("f-media-host", activeMediaProvider); return; }
+    activeMediaProvider = "auto";
+    try{ localStorage.setItem("vj_media_provider", "auto"); }catch(e){}
+    // Keep every image where it is; any that don't load are looked up on the other hosts.
+    IMG_SUFFIXES.forEach(sx=>{
+      const row = productMediaRows.find(r=>mediaRowSuffix(r)===sx);
+      if(row){ row._probe = true; row._anyHost = true; }
+      else productMediaRows.push({url:stdImageUrl(sku0,sx), media_type:"image", alt_text:sx, is_primary:false, _auto:true});
+    });
+    renderProductMedia();
+    toast("Looking for each image on every host…");
+    const resA = await smartResolveAutoRows();
+    if(resA.stale) return;
+    toast("Auto: "+resA.found+" image(s) found"+(resA.missing?", "+resA.missing+" not found on any host (shown as broken)":"")+". Click Save Product to keep.", resA.missing?"error":"success");
+    return;
+  }
   if(!CLOUD_PROVIDERS[p]) return;
   const sku = gv("f-sku");
   if(!sku){
