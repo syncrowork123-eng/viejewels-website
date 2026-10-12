@@ -438,6 +438,9 @@ async function renderProductGrid() {
   _currentCategorySlug = params.get("category");
   _currentJewelCat = params.get("jewelcat");
   if (_currentJewelCat) _checkedJewelCats.add(_currentJewelCat);
+  // The URL category is now just a ticked sidebar checkbox, so it can be unticked or cleared.
+  // (Kept as a plain heading only on pages with no sidebar.)
+  if (document.querySelector("[data-jewelcat-filters]")) _currentJewelCat = null;
   const _restoredState = _isPaged() ? loadCollectionsState() : null;
   applyRestoredFilters(_restoredState);
 
@@ -646,6 +649,7 @@ async function renderProductGrid() {
   const clearBtn = document.querySelector("[data-clear-filters]");
   if (clearBtn) {
     clearBtn.addEventListener("click", () => {
+      _currentJewelCat = null; _currentCategorySlug = null;
       _checkedJewelCats.clear();
       _checkedJewelSubCats.clear();
       _checkedJewelSubCats2.clear();
