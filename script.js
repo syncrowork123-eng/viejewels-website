@@ -6,39 +6,58 @@
 const SUPABASE_URL = "https://efiajmmxlrvyppdwwfug.supabase.co";
 const SUPABASE_KEY = "sb_publishable_-VEloc-EI4CfRx4K9_si3g_E7QDIpfk";
 
-const PLACEHOLDER_IMG = "https://res.cloudinary.com/demo/image/upload/w_500,h_500,c_fill,b_rgb:f0ece5/sample.jpg";
+// Neutral inline placeholder (no external host needed)
+const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">' +
+  '<rect width="500" height="500" fill="#f0ece5"/>' +
+  '<path d="M190 215l30-45h60l30 45-60 70z" fill="none" stroke="#b9b0a2" stroke-width="3" stroke-linejoin="round"/>' +
+  '</svg>'
+);
 
-// ── IMAGE SHARPNESS HELPER ──────────────────────────────────────────────
-// Product photos are hosted on Cloudinary but were being rendered with no
-// delivery transformations at all — the browser was just stretching
-// whatever pixel size was originally uploaded to fit the card/gallery box.
-// On any high-density (Retina/2x-3x) screen that upscales past the source
-// resolution, which is what reads as "dull" / "soft".
+// ── IMAGE HOSTING: ImageKit ─────────────────────────────────────────────
+// All product photos are hosted on ImageKit.
 //
-// cldImg() asks Cloudinary to deliver a crisp, correctly-sized, best-quality,
-// modern-format version for the *box the image is actually shown in*:
-//   - dpr_auto   → serves 2x/3x pixels on Retina screens automatically
-//   - q_auto:best→ highest-quality compression Cloudinary offers
-//   - f_auto     → serves AVIF/WebP where supported (sharper at same size)
-//   - c_limit    → upscales only if needed, never distorts aspect ratio
-// Non-Cloudinary URLs (e.g. the Supabase placeholder or any external URL)
-// are returned untouched.
+// IMAGEKIT_URL_ENDPOINT: your ImageKit URL endpoint, e.g.
+//   "https://ik.imagekit.io/your_imagekit_id"
+// Any image URL still stored in the database with an old Cloudinary address
+// (https://res.cloudinary.com/<cloud>/image/upload/.../folder/file.jpg) is
+// mapped on the fly to  <IMAGEKIT_URL_ENDPOINT>/folder/file.jpg  — so the
+// folder path and file name must be the same on ImageKit as they were on
+// Cloudinary. Once the product_media.url rows in Supabase have been updated
+// to ImageKit URLs, this mapping is simply never triggered.
+const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/YOUR_IMAGEKIT_ID";
+
+function toImageKitUrl(url) {
+  if (!url || typeof url !== "string") return url;
+  if (url.includes("ik.imagekit.io")) return url;
+  if (!url.includes("res.cloudinary.com") || !url.includes("/upload/")) return url;
+  if (!IMAGEKIT_URL_ENDPOINT || IMAGEKIT_URL_ENDPOINT.includes("YOUR_IMAGEKIT_ID")) return url; // endpoint not configured yet
+
+  let path = url.split("/upload/")[1].split("?")[0];
+  const segs = path.split("/");
+  const vIdx = segs.findIndex((x) => /^v\d+$/.test(x));
+  if (vIdx >= 0) {
+    segs.splice(0, vIdx + 1);                 // drop transformations + version
+  } else {
+    while (segs.length > 1 && /(^[a-z]{1,4}_[^/]*$)|,/.test(segs[0])) segs.shift(); // drop transformation segments
+  }
+  return IMAGEKIT_URL_ENDPOINT.replace(/\/+$/, "") + "/" + segs.join("/");
+}
+
+// cldImg() (name kept so every call site keeps working) returns a correctly
+// sized, high-quality ImageKit URL for the box the image is shown in:
+//   w-<width>   → resize to the display width
+//   q-90        → high-quality compression
+//   f-auto      → AVIF/WebP where supported
+//   c-at_max    → never upscale past the original, never distort
+// Non-ImageKit URLs (e.g. the inline placeholder) are returned untouched.
 function cldImg(url, width) {
   if (!url || typeof url !== "string") return url;
-
-  // ImageKit: resize via ?tr= (ImageKit auto-optimizes the format by default)
-  if (url.includes("ik.imagekit.io")) {
-    if (url.includes("tr=") || url.includes("/tr:")) return url; // already transformed
-    const sep = url.includes("?") ? "&" : "?";
-    return `${url}${sep}tr=w-${width},q-90,c-at_max,f-auto`;
-  }
-
-  // Cloudinary (legacy)
-  if (!url.includes("res.cloudinary.com") || !url.includes("/upload/")) return url;
-  // Already run through this helper (or otherwise carries f_auto) — don't double-wrap
-  if (url.includes("f_auto")) return url;
-  const transform = `f_auto,q_auto:best,dpr_auto,c_limit,w_${width}`;
-  return url.replace("/upload/", `/upload/${transform}/`);
+  url = toImageKitUrl(url);
+  if (!url.includes("ik.imagekit.io")) return url;
+  if (url.includes("tr=") || url.includes("/tr:")) return url; // already transformed
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}tr=w-${width},q-90,c-at_max,f-auto`;
 }
 
 async function sbGet(path) {
@@ -163,7 +182,7 @@ function primaryImage(product) {
   }
 
   const primary = images.find((m) => m.is_primary) || images[0] || media[0];
-  return primary?.url || PLACEHOLDER_IMG;
+  return toImageKitUrl(primary?.url) || PLACEHOLDER_IMG;
 }
 
 function categoryLabel(p) {
