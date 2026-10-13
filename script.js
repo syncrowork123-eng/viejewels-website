@@ -123,7 +123,7 @@ const METAL_COLOR_SUFFIXES = {
   "white":          ["-w"],
   "yellow":         ["-y"],
   "rose":           ["-r", "-rose"],
-  "multi-tone":     ["-multi"],
+  "multi-tone":     ["-mt", "_mt", "-multi", "_multi"],
   "model showcase": ["-model"],
   "spotlight view": ["-spot"],
 };
@@ -134,6 +134,19 @@ function _imageMatchesColor(url, colorKey) {
   // Strip query-string and extension, compare end of path case-insensitively
   const base = url.split("?")[0].toLowerCase().replace(/\.[a-z0-9]+$/, "");
   return suffixes.some((s) => base.endsWith(s));
+}
+
+// True if the product has at least one (non-video) image tagged for this metal
+// color — either via the admin metal_color field or the file-name suffix
+// (e.g. SKU-MT.jpg for Multi-Tone).
+function productHasColorImage(product, colorKey) {
+  if (!product || !colorKey) return false;
+  const key = colorKey.toLowerCase();
+  return (product.product_media || []).some((m) =>
+    m.media_type !== "video" &&
+    m.url &&
+    ((m.metal_color || "").toLowerCase() === key || _imageMatchesColor(m.url, key))
+  );
 }
 
 function primaryImage(product) {
@@ -1061,6 +1074,12 @@ function applyFilters() {
         .toLowerCase();
       return hay.includes(term);
     });
+  }
+
+  // Metal Color = Multi-Tone: only show products that actually have a
+  // Multi-Tone (-MT) image. Their tile shows that image (see primaryImage).
+  if (_selectedMetalColor && _selectedMetalColor.toLowerCase() === "multi-tone") {
+    list = list.filter((p) => productHasColorImage(p, "multi-tone"));
   }
 
   // Tag / theme filter
