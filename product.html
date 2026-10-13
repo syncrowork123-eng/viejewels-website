@@ -611,7 +611,7 @@
           if (m.media_type === 'video') return false;
           if ((m.metal_color || '').toLowerCase() === 'multi-tone') return true;
           const base = (m.url || '').split('?')[0].toLowerCase().replace(/\.[a-z0-9]+$/, '');
-          return /[-_]multi\d*$/.test(base);
+          return /[-_](multi|mt)\d*$/.test(base);
         });
         multiSwatch.style.display = hasMulti ? '' : 'none';
       }
@@ -1117,7 +1117,7 @@
       if (PD_STD_COLOR_KEYS.includes(mc)) return true;
       if (PD_STD_COLOR_KEYS.some(k => _imageMatchesColor(m.url, k))) return true;
       const base = (m.url || '').split('?')[0].toLowerCase().replace(/\.[a-z0-9]+$/, '');
-      return /[-_]multi\d*$/.test(base);
+      return /[-_](multi|mt)\d*$/.test(base);
     }
 
     function pdExtraLabel(m) {
