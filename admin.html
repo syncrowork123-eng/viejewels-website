@@ -3695,7 +3695,10 @@ function openProductModal(id=null){
     selectedTags=(p.product_tags||[]).map(t=>t.tags?.id).filter(Boolean);
     // Photos / video
     productMediaRows=(p.product_media||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))
-      .map(m=>({url:m.url||'',media_type:m.media_type||'image',is_primary:!!m.is_primary,alt_text:m.alt_text||''}));
+      .map(m=>({url:m.url||'',media_type:m.media_type||'image',is_primary:!!m.is_primary,alt_text:m.alt_text||'',
+        // Check every saved image as the editor opens (same check the host dropdown runs),
+        // so a wrong file extension is fixed automatically instead of needing a re-pick.
+        _probe:(m.media_type||'image')!=='video'}));
     // Use the host this product's images already point to, so any missing standard
     // images are generated on the same host instead of mixing Cloudinary and ImageKit
     const detectedHosts = detectMediaHosts(productMediaRows);
