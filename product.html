@@ -725,8 +725,9 @@
       // Size — works with the new premium selector (aria-selected option)
       const sizeSection = document.querySelector('[data-product-sizes]');
       if (sizeSection && sizeSection.style.display !== 'none') {
-        const picked = document.querySelector('[data-size-options] [aria-selected="true"]');
-        if (!picked) missing.push({ label: 'Size', els: [document.querySelector('[data-size-options]')] });
+        // Use the stored selection so single-size products (disabled trigger,
+        // no option list) count as selected.
+        if (!_selectedSize) missing.push({ label: 'Size', els: [document.querySelector('[data-size-options]')] });
       }
 
       return missing;
@@ -1026,7 +1027,11 @@
         _selectedSizeVariant = opt.isMaster ? null : opt;
         paint();
         if (fire && _lastLoadedProduct) {
-          await runProductPricing(_lastLoadedProduct);
+          try {
+            await runProductPricing(_lastLoadedProduct);
+          } catch (err) {
+            console.error('Pricing failed for size', opt.size_label, err);
+          }
           pdRefreshCartButtonState(_lastLoadedProduct);
         }
       };
