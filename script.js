@@ -25,7 +25,7 @@ const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
 // folder path and file name must be the same on ImageKit as they were on
 // Cloudinary. Once the product_media.url rows in Supabase have been updated
 // to ImageKit URLs, this mapping is simply never triggered.
-const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/YOUR_IMAGEKIT_ID";
+const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/fr43kcknv";
 
 function toImageKitUrl(url) {
   if (!url || typeof url !== "string") return url;
