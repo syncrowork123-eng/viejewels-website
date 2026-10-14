@@ -648,7 +648,7 @@
     }
 
     // ── OPTIONAL EGL CERTIFICATION ─────────────────────────────────────
-    const PD_CERT_LABEL = 'Jewelry certification by EGL gemological laboratories';
+    const PD_CERT_LABEL = 'Jewelry Certification by EGL gemological laboratories';
     let _pdCertSelected = false;   // customer's choice
     let _pdCertInit = false;       // pre-tick once from an existing enquiry item
     let _pdLastCosts = null;       // last costs shown, so ticking re-renders without repricing
@@ -695,7 +695,7 @@
           <div class="price-line-info">
             <span class="pd-cert-check">
               <input type="checkbox" data-pd-cert-toggle ${_pdCertSelected ? 'checked' : ''} />
-              <span class="price-line-label">Jewelry certification</span>
+              <span class="price-line-label">Jewelry Certification</span>
             </span>
             <span class="price-line-sub pd-cert-sub">by EGL gemological laboratories</span>
           </div>
@@ -724,7 +724,7 @@
       if (pdCertActive(_pdLastCosts) && item.priceValue != null) {
         const c = _pdLastCosts;
         item.options = item.options || {};
-        item.options.certification = 'EGL certification';
+        item.options.certification = 'EGL Certification';
         item.options.certificationAmount = c.fmtCert;
         item.priceValue = Math.round((item.priceValue + c.certCost) * 100) / 100;
         item.price = c.symbol + ' ' + _fmtNum(item.priceValue, c.locale, c.decimals);
