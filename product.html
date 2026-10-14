@@ -366,6 +366,7 @@
     /* Optional EGL certification row */
     .pd-cert-option { cursor:pointer; border-top:1px dashed rgba(0,0,0,.15); margin-top:6px; padding-top:10px; }
     .pd-cert-check { display:flex; align-items:flex-start; gap:10px; }
+    .pd-cert-sub { margin-left:26px; }
     .pd-cert-check input { margin-top:3px; accent-color:#111; width:16px; height:16px; flex:none; cursor:pointer; }
 </style>
 </head>
@@ -694,9 +695,9 @@
           <div class="price-line-info">
             <span class="pd-cert-check">
               <input type="checkbox" data-pd-cert-toggle ${_pdCertSelected ? 'checked' : ''} />
-              <span class="price-line-label">${esc(PD_CERT_LABEL)}</span>
+              <span class="price-line-label">Jewelry certification</span>
             </span>
-            <span class="price-line-sub">Optional &middot; ${esc(costs.totalStoneCtWt ? Number(costs.totalStoneCtWt).toFixed(3) + ' ct' : '')}</span>
+            <span class="price-line-sub pd-cert-sub">by EGL gemological laboratories</span>
           </div>
           <span class="price-line-value">+ ${esc(costs.fmtCert)}</span>
         </label>` : '') +
