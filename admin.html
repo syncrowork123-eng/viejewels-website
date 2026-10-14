@@ -517,10 +517,10 @@
                 <th>Metal</th>
                 <th>Base P/Oz</th>
                 <th class="derived-col">Pure ($/g)<br><span class="derived-sub">÷ 31.10348</span></th>
-                <th class="derived-col">18K Gold<br><span class="derived-sub">× 75%</span></th>
-                <th class="derived-col">14K Gold<br><span class="derived-sub">× 58.3%</span></th>
-                <th class="derived-col">10K Gold<br><span class="derived-sub">× 41.7%</span></th>
-                <th class="derived-col">925 Silver<br><span class="derived-sub">× 92.5%</span></th>
+                <th class="derived-col">18K Gold<br><span class="derived-sub" data-derived-pct="18K">× 76%</span></th>
+                <th class="derived-col">14K Gold<br><span class="derived-sub" data-derived-pct="14K">× 59%</span></th>
+                <th class="derived-col">10K Gold<br><span class="derived-sub" data-derived-pct="10K">× 42%</span></th>
+                <th class="derived-col">925 Silver<br><span class="derived-sub" data-derived-pct="925">× 93%</span></th>
               </tr>
             </thead>
             <tbody id="metal-derived-tbody">
@@ -7065,14 +7065,18 @@ async function importDiamSizesXlsx(e){
 // ── METAL MARKET RATES ───────────────────────────────────────────────────
 const TROY_OZ_GRAMS = 31.10348;
 // Purity multipliers for gold karats and silver
+// Rate formula: each derived $/g rate = pure $/g (base P/Oz ÷ 31.10348) × this percentage.
+// Change a number here and the table, its column headings and "Save Rates to DB" all follow.
+const METAL_RATE_PCT = { '18K':0.76, '14K':0.59, '10K':0.42, '925':0.93 };
 const METAL_PURITIES = {
   '24K Gold':  1.0,
   '22K Gold':  22/24,
-  '18K Gold':  18/24,   // 0.75
-  '14K Gold':  14/24,   // ~0.5833
-  '10K Gold':  10/24,   // ~0.4167
-  '925 Silver': 0.925,
+  '18K Gold':  METAL_RATE_PCT['18K'],
+  '14K Gold':  METAL_RATE_PCT['14K'],
+  '10K Gold':  METAL_RATE_PCT['10K'],
+  '925 Silver': METAL_RATE_PCT['925'],
 };
+const fmtPct = n => (Math.round(n*10000)/100).toString().replace(/\.0+$/,'') + '%';
 
 // Called on page load and whenever allMetals changes, to restore saved base prices
 function initMetalMarketInputs(){
@@ -7154,10 +7158,16 @@ function deriveMetalRates(){
     silverOz ? `Pure rate: $ ${fmt6(silverPure)} / g (${silverOz} ÷ ${TROY})` : 'Pure rate: —';
 
   // Derived values
-  const g18k = goldPure * (18/24);
-  const g14k = goldPure * (14/24);
-  const g10k = goldPure * (10/24);
-  const s925 = silverPure * 0.925;
+  const g18k = goldPure * METAL_RATE_PCT['18K'];
+  const g14k = goldPure * METAL_RATE_PCT['14K'];
+  const g10k = goldPure * METAL_RATE_PCT['10K'];
+  const s925 = silverPure * METAL_RATE_PCT['925'];
+
+  // Keep the column headings in step with the formula
+  document.querySelectorAll('[data-derived-pct]').forEach(el=>{
+    const k = el.getAttribute('data-derived-pct');
+    if(METAL_RATE_PCT[k] != null) el.textContent = '× ' + fmtPct(METAL_RATE_PCT[k]);
+  });
 
   const fmtUSD = n => n ? `$ ${n.toFixed(6)}` : '—';
   const na = `<td class="rate-na">—</td>`;
@@ -7209,12 +7219,12 @@ async function saveMetalRates(){
   const rateMap = [
     { keywords:['24k','pure gold','999.9'],    rate: goldPure },
     { keywords:['22k'],                         rate: goldPure*(22/24) },
-    { keywords:['18k'],                         rate: goldPure*(18/24) },
-    { keywords:['14k'],                         rate: goldPure*(14/24) },
-    { keywords:['10k'],                         rate: goldPure*(10/24) },
+    { keywords:['18k'],                         rate: goldPure*METAL_RATE_PCT['18K'] },
+    { keywords:['14k'],                         rate: goldPure*METAL_RATE_PCT['14K'] },
+    { keywords:['10k'],                         rate: goldPure*METAL_RATE_PCT['10K'] },
     { keywords:['9k'],                          rate: goldPure*(9/24) },
     { keywords:['pure silver','999','fine silver'], rate: silverPure },
-    { keywords:['925','sterling'],              rate: silverPure*0.925 },
+    { keywords:['925','sterling'],              rate: silverPure*METAL_RATE_PCT['925'] },
   ];
 
   let updated=0, failed=0;
