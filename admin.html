@@ -299,6 +299,7 @@
   .labour-making-field label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text-muted);}
   .labour-making-field input{border:1px solid var(--border);border-radius:4px;padding:7px 12px;font-size:13px;width:140px;text-align:right;background:var(--surface);color:var(--text);}
   .labour-making-field input:focus{outline:none;border-color:var(--accent);}
+  .labour-usd-note{font-size:11px;color:var(--text-muted);text-align:right;}
   .labour-making-hint{font-size:11px;color:var(--text-muted);padding:0 18px 14px;}
 
     /* ── JEWELRY SIZE CHART PANEL ─────────────────────────── */
@@ -688,15 +689,17 @@
         </div>
         <div class="labour-making-row">
           <div class="labour-making-field">
-            <label>Rate (USD / gram)</label>
-            <input type="number" id="making-rate" step="0.01" placeholder="0" onchange="saveMakingRate()" />
+            <label>Rate (INR / gram)</label>
+            <input type="number" id="making-rate" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveMakingRate()" />
+            <div class="labour-usd-note" id="making-rate-usd">= — USD / gram</div>
           </div>
           <div class="labour-making-field">
-            <label>Minimum Flat Charge (USD)</label>
-            <input type="number" id="making-min" step="0.01" placeholder="0" onchange="saveMakingMin()" />
+            <label>Minimum Flat Charge (INR)</label>
+            <input type="number" id="making-min" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveMakingMin()" />
+            <div class="labour-usd-note" id="making-min-usd">= — USD</div>
           </div>
         </div>
-        <div class="labour-making-hint">Cost = Rate × Net Weight (g) — if result is less than Minimum Flat Charge, Minimum is applied instead</div>
+        <div class="labour-making-hint">Enter rates in INR — they are divided by the USD currency rate to give USD. Cost = Rate × Net Weight (g) — if result is less than Minimum Flat Charge, Minimum is applied instead</div>
       </div>
 
       <!-- CERTIFICATION CHARGES -->
@@ -709,11 +712,17 @@
         </div>
         <div class="labour-making-row">
           <div class="labour-making-field">
-            <label>Rate (USD / carat)</label>
-            <input type="number" id="cert-rate" step="0.01" placeholder="0" onchange="saveCertRate()" />
+            <label>Rate (INR / carat)</label>
+            <input type="number" id="cert-rate" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveCertRate()" />
+            <div class="labour-usd-note" id="cert-rate-usd">= — USD / carat</div>
           </div>
-          <div class="labour-making-hint" style="align-self:center;margin:0">Cost = Rate × Total Diamond Ct Wt</div>
+          <div class="labour-making-field">
+            <label>Minimum Flat Charge (INR)</label>
+            <input type="number" id="cert-min" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveCertMin()" />
+            <div class="labour-usd-note" id="cert-min-usd">= — USD</div>
+          </div>
         </div>
+        <div class="labour-making-hint">Enter rates in INR — they are divided by the USD currency rate to give USD. Cost = Rate × Total Diamond Ct Wt — if result is less than Minimum Flat Charge, Minimum is applied instead</div>
       </div>
 
     </div>
@@ -4359,17 +4368,10 @@ function calcUpdate(){
   // Making charges: rate × net metal weight, min flat charge applied if lower
   const usdCur2=allCurrencies.find(c=>c.code==="USD");
   const usdRateINR2=usdCur2?.rate_to_inr||0; // INR per USD (e.g. 83)
-  const makingRateUSD=allLabour.find(r=>r.category===LC_MAKING_RATE)?.charge||0;
-  const makingMinUSD=allLabour.find(r=>r.category===LC_MAKING_MIN)?.charge||0;
   const netWtG=parseFloat(gv("calc-metal-weight"))||0;
-  const makingCalcUSD=makingRateUSD*netWtG;
-  const makingUSD=makingCalcUSD>0?Math.max(makingCalcUSD,makingMinUSD):0;
-  const makingCostINR=usdRateINR2>0?makingUSD*usdRateINR2:0;
-  // Certification charges: rate × total diamond ct wt
-  const certRateUSD=allLabour.find(r=>r.category===LC_CERT_RATE)?.charge||0;
+  // Certification charges: rate × total diamond ct wt (rates entered in INR, ÷ USD rate → USD)
   const totalDiamondCt=calcDiamonds.reduce((s,i)=>s+(i.weight||0),0);
-  const certUSD=certRateUSD*totalDiamondCt;
-  const certCostINR=usdRateINR2>0?certUSD*usdRateINR2:0;
+  const {makingUSD, certUSD, makingCostINR, certCostINR} = calcMakingCert(netWtG,totalDiamondCt);
   const totalCost=metalCost+stoneCost+diamondCost+labourCost+makingCostINR+certCostINR;
   const marginPct=parseFloat(document.getElementById("calc-margin").value)||0;
   const marginAmt=totalCost*(marginPct/100);
@@ -4446,14 +4448,9 @@ function calcGetTotalCost(){
   const labourCost=calcLabourItems.reduce((s,i)=>s+i.cost,0);
   const usdCur3=allCurrencies.find(c=>c.code==="USD");
   const usdRateINR3b=usdCur3?.rate_to_inr||0;
-  const makingRateUSD2=allLabour.find(r=>r.category===LC_MAKING_RATE)?.charge||0;
-  const makingMinUSD2=allLabour.find(r=>r.category===LC_MAKING_MIN)?.charge||0;
   const netWtG2=parseFloat(gv("calc-metal-weight"))||0;
-  const makingCalcUSD2=makingRateUSD2*netWtG2;
-  const makingCostINR2=usdRateINR3b>0?Math.max(makingCalcUSD2,makingCalcUSD2>0?makingMinUSD2:0)*usdRateINR3b:0;
-  const certRateUSD2=allLabour.find(r=>r.category===LC_CERT_RATE)?.charge||0;
   const totalDiamondCt2=calcDiamonds.reduce((s,i)=>s+(i.weight||0),0);
-  const certCostINR2=usdRateINR3b>0?certRateUSD2*totalDiamondCt2*usdRateINR3b:0;
+  const {makingCostINR:makingCostINR2, certCostINR:certCostINR2} = calcMakingCert(netWtG2,totalDiamondCt2);
   return metalCost+stoneCost+diamondCost+labourCost+makingCostINR2+certCostINR2;
 }
 
@@ -5567,9 +5564,47 @@ function getStoneDerivedRates(rateINR){
 // ── LABOUR RATES PANEL ───────────────────────────────────────────────────────
 
 // Category constants stored in labour_charges table
-const LC_MAKING_RATE = "__making_rate__";
-const LC_MAKING_MIN  = "__making_min__";
-const LC_CERT_RATE   = "__cert_rate__";
+// Making / certification rates are entered and stored in INR; USD is derived (INR ÷ USD currency rate).
+const LC_MAKING_RATE = "__making_rate_inr__";
+const LC_MAKING_MIN  = "__making_min_inr__";
+const LC_CERT_RATE   = "__cert_rate_inr__";
+const LC_CERT_MIN    = "__cert_min_inr__";
+// Legacy USD-entered keys — no longer used, kept only so old rows stay hidden from the setting list
+const LC_LEGACY_KEYS = ["__making_rate__","__making_min__","__cert_rate__"];
+
+// INR→USD helper: usdRate = INR per 1 USD
+function labourUsdRate(){ return parseFloat(allCurrencies.find(c=>c.code==="USD")?.rate_to_inr)||0; }
+function labourInr(cat){ return parseFloat(allLabour.find(r=>r.category===cat)?.charge)||0; }
+
+// Making + certification charges. Rates are INR; each is divided by the USD rate to get USD.
+// Cost = Rate × qty, and if that is below the Minimum Flat Charge the minimum is applied instead.
+function calcMakingCert(netWtG, totalDiamondCt){
+  const fx = labourUsdRate();
+  const toUsd = v => fx>0 ? v/fx : 0;
+  const makingRateUSD = toUsd(labourInr(LC_MAKING_RATE));
+  const makingMinUSD  = toUsd(labourInr(LC_MAKING_MIN));
+  const certRateUSD   = toUsd(labourInr(LC_CERT_RATE));
+  const certMinUSD    = toUsd(labourInr(LC_CERT_MIN));
+  const makingCalc = makingRateUSD*netWtG;
+  const certCalc   = certRateUSD*totalDiamondCt;
+  const makingUSD  = makingCalc>0 ? Math.max(makingCalc,makingMinUSD) : 0;
+  const certUSD    = certCalc>0 ? Math.max(certCalc,certMinUSD) : 0;
+  return { makingUSD, certUSD, makingCostINR: makingUSD*fx, certCostINR: certUSD*fx };
+}
+
+function labourUsdPreview(){
+  const fx = labourUsdRate();
+  const set=(inp,out,suffix)=>{
+    const i=document.getElementById(inp), o=document.getElementById(out);
+    if(!i||!o) return;
+    const v=parseFloat(i.value);
+    o.textContent = (fx>0 && !isNaN(v)) ? "= "+(v/fx).toFixed(4)+" "+suffix : "= — "+suffix;
+  };
+  set("making-rate","making-rate-usd","USD / gram");
+  set("making-min","making-min-usd","USD");
+  set("cert-rate","cert-rate-usd","USD / carat");
+  set("cert-min","cert-min-usd","USD");
+}
 
 // Reserved metal_types.quality keys used to persist the raw troy-oz base
 // prices entered in the Metal Market panel, so they survive reload instead
@@ -5580,7 +5615,7 @@ const METAL_BASE_SILVER_KEY = "__base_troy_oz_silver__";
 
 function renderLabourPanel(){
   // Setting rows = all labour_charges except reserved singleton keys
-  const reserved = [LC_MAKING_RATE, LC_MAKING_MIN, LC_CERT_RATE];
+  const reserved = [LC_MAKING_RATE, LC_MAKING_MIN, LC_CERT_RATE, LC_CERT_MIN, ...LC_LEGACY_KEYS];
   const settingRows = allLabour.filter(r => !reserved.includes(r.category));
   const tbody = document.getElementById("setting-tbody");
   if(!tbody) return;
@@ -5609,6 +5644,9 @@ function renderLabourPanel(){
   if(el("making-rate")) el("making-rate").value = makingRate?.charge ?? "";
   if(el("making-min"))  el("making-min").value  = makingMin?.charge  ?? "";
   if(el("cert-rate"))   el("cert-rate").value   = certRate?.charge   ?? "";
+  const certMin = allLabour.find(r=>r.category===LC_CERT_MIN);
+  if(el("cert-min"))    el("cert-min").value    = certMin?.charge    ?? "";
+  labourUsdPreview();
 }
 
 async function addSettingRow(){
@@ -5646,7 +5684,7 @@ async function saveSingleton(category, charge){
       await sb("labour_charges?id=eq."+existing.id,"PATCH",{charge});
       existing.charge = charge;
     } else {
-      const r = await sb("labour_charges","POST",{category,description:category,charge,currency:"USD"});
+      const r = await sb("labour_charges","POST",{category,description:category,charge,currency:"INR"});
       allLabour.push(Array.isArray(r)?r[0]:r);
     }
     toast("Saved.");
@@ -5656,6 +5694,7 @@ async function saveSingleton(category, charge){
 function saveMakingRate(){ const v=parseFloat(document.getElementById("making-rate").value)||0; saveSingleton(LC_MAKING_RATE,v); }
 function saveMakingMin(){  const v=parseFloat(document.getElementById("making-min").value)||0;  saveSingleton(LC_MAKING_MIN,v); }
 function saveCertRate(){   const v=parseFloat(document.getElementById("cert-rate").value)||0;   saveSingleton(LC_CERT_RATE,v); }
+function saveCertMin(){    const v=parseFloat(document.getElementById("cert-min").value)||0;    saveSingleton(LC_CERT_MIN,v); }
 
 // ── END LABOUR RATES PANEL ───────────────────────────────────────────────────
 
