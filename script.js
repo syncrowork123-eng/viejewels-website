@@ -1785,6 +1785,7 @@ function cartItemRowHtml(item) {
     opts.metalColor,
     opts.stoneType,
     opts.diamond,
+    opts.certification ? opts.certification + (opts.certificationAmount ? " (" + opts.certificationAmount + " included)" : "") : null,
     opts.size || item.size ? "Size: " + (opts.size || item.size) : null,
   ].filter(Boolean);
   const summaryLine = summaryParts.length
@@ -2137,22 +2138,34 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   const makingMinRec  = metalIsSilver
     ? (labour.find(l => l.category === "__making_min_silver__")  || labour.find(l => l.category === "__making_min__"))
     : (labour.find(l => l.category === "__making_min_gold__")    || labour.find(l => l.category === "__making_min__"));
-  const makingRateUSD = Number(makingRateRec?.charge || 0);
-  const makingMinUSD  = Number(makingMinRec?.charge  || 0);
+  // Admin now stores making rate / minimum in INR (__making_rate_inr__ / __making_min_inr__);
+  // INR ÷ USD rate gives USD. Falls back to the legacy USD-entered keys if INR ones are not set yet.
+  const makingRateInrRec = labour.find(l => l.category === "__making_rate_inr__");
+  const makingMinInrRec  = labour.find(l => l.category === "__making_min_inr__");
+  const makingRateUSD = makingRateInrRec
+    ? Number(makingRateInrRec.charge || 0) / inrPerUSD
+    : Number(makingRateRec?.charge || 0);
+  const makingMinUSD  = makingMinInrRec
+    ? Number(makingMinInrRec.charge || 0) / inrPerUSD
+    : Number(makingMinRec?.charge  || 0);
   const makingCalc    = makingRateUSD * netWeightG;
   const makingCostUSD = makingCalc > 0 ? Math.max(makingCalc, makingMinUSD) : 0;
 
-  // 3c. Certification: rate × total diamond ct weight
-  const certRateRec  = labour.find(l => l.category === "__cert_rate__");
-  const certRateUSD  = Number(certRateRec?.charge || 0);
-  const certCostUSD  = certRateUSD * totalStoneCtWt;
+  // 3c. Certification (EGL) is an OPTIONAL add-on the customer ticks on the product page,
+  // so it is NOT part of labour or the base total. Rate and minimum are stored in INR;
+  // INR ÷ USD rate = USD. Cost = rate × total diamond ct, raised to the minimum if lower.
+  const certRateInr = Number(labour.find(l => l.category === "__cert_rate_inr__")?.charge || 0);
+  const certMinInr  = Number(labour.find(l => l.category === "__cert_min_inr__")?.charge  || 0);
+  const certCalcUSD = (certRateInr / inrPerUSD) * totalStoneCtWt;
+  const certCostUSD = certCalcUSD > 0 ? Math.max(certCalcUSD, certMinInr / inrPerUSD) : 0;
 
-  const labourCostUSD = settingCostUSD + makingCostUSD + certCostUSD;
+  const labourCostUSD = settingCostUSD + makingCostUSD;
 
   // ── 4. TOTALS (convert everything to display currency) ─────────────────
   const metalOut   = _convertFromUsd(metalCostNative, cur);
   const stoneOut   = _convertFromInr(stoneCostINR, cur);
   const labourOut  = _convertFromUsd(labourCostUSD, cur);
+  const certOut    = _convertFromUsd(certCostUSD, cur);
   const totalAmt   = metalOut.amount + stoneOut.amount + labourOut.amount;
   const sym        = metalOut.symbol;
   const locale     = cur === "INR" ? "en-IN" : "en-US";
@@ -2169,6 +2182,11 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     fmtMetal:   sym + " " + _fmtNum(metalOut.amount, locale, decimals),
     fmtStone:   sym + " " + _fmtNum(stoneOut.amount, locale, decimals),
     fmtLabour:  sym + " " + _fmtNum(labourOut.amount, locale, decimals),
+    // optional EGL certification (not included in total)
+    certAvailable: certCostUSD > 0,
+    certCost:      certOut.amount,
+    fmtCert:       sym + " " + _fmtNum(certOut.amount, locale, decimals),
+    locale, decimals,
     fmtTotal:   sym + " " + _fmtNum(totalAmt, locale, decimals),
     // raw data for detail display
     netWeightG,
