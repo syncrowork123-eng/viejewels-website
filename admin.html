@@ -385,6 +385,7 @@
       <div style="display:flex;gap:8px;">
         <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products with no working image (missing or all broken)">📷 No Images Only</button>
         <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
+        <button class="btn btn-secondary" onclick="fixImageExtensionsForAllProducts()" title="Checks every saved image link and corrects the file extension (jpg / png / webp / bmp...) where the file on its host has a different one">🛠 Fix Image Extensions</button>
         <button class="btn btn-secondary" id="export-products-btn" onclick="exportProductsXlsx()">⬇ Export Products</button>
         <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
       </div>
@@ -5042,6 +5043,46 @@ async function applyStdImagesToAllProducts(){
     if((i+1)%10===0) toast("Applying… "+(i+1)+" / "+withSku.length);
   }
   toast(imagesAdded+" images added to "+productsUpdated+" products"+(failed?" ("+failed+" failed)":"")+".", failed?"error":"success");
+  await loadProducts();
+}
+
+// Products tab button: check every saved image link in the database and correct the
+// file extension where the file on its host has a different one (jpg / png / webp / bmp...).
+// Same host only. Links that already load are left alone; links not found with any
+// extension are listed so they can be uploaded or fixed by hand.
+async function fixImageExtensionsForAllProducts(){
+  const withImages = allProducts.filter(p=>(p.product_media||[]).some(m=>m.media_type!=="video" && m.url && m.id));
+  if(!withImages.length){ toast("No product images to check.","error"); return; }
+  if(!confirm("Check every image link on "+withImages.length+" products and fix any wrong file extensions (jpg / png / webp / bmp...)?\n\nLinks that already load are not touched. Corrected links are saved straight to the database.\n\nKeep this tab open until it finishes.")) return;
+
+  let checked=0, fixed=0, okAlready=0, notFound=0, failed=0, done=0;
+  const missingList=[];
+
+  const processProduct = async (p)=>{
+    const rows=(p.product_media||[]).filter(m=>m.media_type!=="video" && m.url && m.id);
+    for(const m of rows){
+      checked++;
+      let found=null;
+      try{ found = await resolveImageUrl(m.url, false); }catch(e){ found=null; }
+      if(!found){ notFound++; missingList.push((p.sku||p.name||p.id)+" — "+m.url); continue; }
+      if(found===m.url){ okAlready++; continue; }
+      try{
+        await sb("product_media?id=eq."+m.id,"PATCH",{url:found});
+        fixed++;
+      }catch(e){ failed++; console.error("Fix image extension failed:",p.sku,e.message); }
+    }
+    done++;
+    if(done%10===0) toast("Checking images… "+done+" / "+withImages.length+" products");
+  };
+
+  // A few products at a time keeps it fast without flooding the image host
+  const POOL=5;
+  let next=0;
+  const worker = async ()=>{ while(next<withImages.length){ const p=withImages[next++]; await processProduct(p); } };
+  await Promise.all(Array.from({length:POOL}, worker));
+
+  if(missingList.length) console.warn("Images not found on their host with any extension:\n"+missingList.join("\n"));
+  toast(checked+" images checked: "+fixed+" fixed, "+okAlready+" already fine, "+notFound+" not found"+(failed?", "+failed+" failed to save":"")+(notFound?" (full list in the browser console, F12)":"")+".", (notFound||failed)?"error":"success");
   await loadProducts();
 }
 
