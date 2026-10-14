@@ -3803,10 +3803,14 @@ async function setProductMediaHost(i, choice){
 
 // If an image URL ends in -W.<ext> (jpg, jpeg, png, webp, bmp, gif...), also returns its -Y, -R, -Model and -Spot siblings
 function expandImageVariants(url){
-  const m = url.match(/^(.*)-W(\.(?:jpe?g|png|webp|bmp|gif|avif|tiff?))(?:\?.*)?$/i);
+  const m = url.match(/^(.*)-(W)(\.(?:jpe?g|png|webp|bmp|gif|avif|tiff?))(?:\?.*)?$/i);
   if(!m) return [{url, suffix:null}];
-  const [, base, ext] = m;
-  return [{url: base + "-W" + ext, suffix:"W"}, ...["Y","R","Model","Spot"].map(s=>({url:`${base}-${s}${ext}`, suffix:s}))];
+  const [, base, w, ext] = m;
+  // Mirror the letter case of the pasted link: ...-w.jpg -> -y / -r / -model / -spot,
+  // ...-W.jpg -> -Y / -R / -Model / -Spot, ...-WHITE style not used. (Wrong guesses are
+  // corrected afterwards by the case-insensitive file lookup.)
+  const style = (sx)=> w===w.toLowerCase() ? sx.toLowerCase() : sx;
+  return [{url, suffix:"W"}, ...["Y","R","Model","Spot"].map(s=>({url:`${base}-${style(s)}${ext}`, suffix:s}))];
 }
 
 function addProductMedia(){
@@ -4853,7 +4857,46 @@ function mediaRowSuffix(r){
 // image URL we try the URL as-is first, then the same file name with each of
 // these extensions, and keep the first one that actually loads. If none load,
 // the default URL stays and shows as broken so you can see what's missing.
-const STD_IMG_EXTS = ["jpg","jpeg","png","webp","bmp","gif","JPG","JPEG","PNG","BMP"];
+const STD_IMG_EXTS = ["jpg","jpeg","png","webp","bmp","gif","JPG","JPEG","PNG","BMP"];   // (kept for older callers)
+
+// ── CASE-INSENSITIVE FILE LOOKUP ─────────────────────────────────────────
+// Image hosts treat file names as case-sensitive, so VR1311-W.jpg, VR1311-w.JPG
+// and vr1311-W.Jpg are three different files. For a link that doesn't load, these
+// are the other spellings to try, best guesses first:
+//   - the file extension in any case (jpg, JPG, Jpg, png, PNG, Png, webp ... )
+//   - the ending -W / -Y / -R / -Model / -Spot in lower, UPPER or Capitalised case
+//   - the SKU part of the name as-is, UPPER or lower case
+const _EXT_BASE = ["jpg","jpeg","png","webp","bmp","gif"];
+function _extCases(e){ const l=String(e).toLowerCase(); return [l, l.toUpperCase(), l.charAt(0).toUpperCase()+l.slice(1)]; }
+function _uniq(a){ return a.filter((v,i)=>a.indexOf(v)===i); }
+function caseVariantUrls(url){
+  url = String(url||"");
+  const m = url.match(/^(.*\/)?([^\/?#]+?)(?:-(W|Y|R|Model|Spot))?\.([A-Za-z0-9]+)(\?.*)?$/i);
+  if(!m) return [url];
+  const dir=m[1]||"", sku=m[2], sx=m[3]||"", ext=m[4], q=m[5]||"";
+  const exts = _uniq([ext, ..._extCases(ext), ..._EXT_BASE.flatMap(_extCases)]);
+  const sxs  = sx ? _uniq([sx, sx.toLowerCase(), sx.toUpperCase(), sx.charAt(0).toUpperCase()+sx.slice(1).toLowerCase()]) : [""];
+  const skus = _uniq([sku, sku.toUpperCase(), sku.toLowerCase()]);
+  const out=[];
+  // 1) the name exactly as saved, with every extension
+  exts.forEach(e=>out.push(dir+sku+(sx?"-"+sx:"")+"."+e+q));
+  // 2) other upper/lower spellings of the ending and the SKU
+  skus.forEach(k=>sxs.forEach(x=>{
+    if(k===sku && x===sx) return;
+    exts.forEach(e=>out.push(dir+k+(x?"-"+x:"")+"."+e+q));
+  }));
+  return _uniq(out);
+}
+// Probe candidates in small parallel batches; the first working one in list order wins
+async function probeInOrder(list, chunk=20){
+  for(let i=0;i<list.length;i+=chunk){
+    const part=list.slice(i,i+chunk);
+    const ok=await Promise.all(part.map(u=>probeImage(u,6000)));
+    const k=ok.findIndex(Boolean);
+    if(k>=0) return part[k];
+  }
+  return null;
+}
 const _resolveFound = new Map();   // only successful lookups are cached
 
 function probeImage(url, ms=8000){
@@ -4877,24 +4920,23 @@ async function resolveImageUrl(url, anyHost){
   const cacheKey = (anyHost ? "*" : "") + url;
   if(_resolveFound.has(cacheKey)) return _resolveFound.get(cacheKey);
 
-  const urls = [url];
+  const bases = [url];                                // the link as given, then (optionally) the same file on other hosts
   if(anyHost){
     const own = Object.values(CLOUD_PROVIDERS).find(pv=>url.startsWith(pv.base));
     if(own){
       const rel = url.slice(own.base.length);
-      Object.values(CLOUD_PROVIDERS).forEach(pv=>{ if(pv!==own) urls.push(pv.base + rel); });
+      Object.values(CLOUD_PROVIDERS).forEach(pv=>{ if(pv!==own) bases.push(pv.base + rel); });
     }
   }
-  const candidates = [...urls];                       // exact link on each host first…
-  urls.forEach(u=>{                                   // …then other file extensions on each host
-    const m = u.match(/^(.*)\.([A-Za-z0-9]+)(\?.*)?$/);
-    if(!m) return;
-    STD_IMG_EXTS.forEach(e=>{ const v = m[1]+"."+e+(m[3]||""); if(!candidates.includes(v)) candidates.push(v); });
-  });
-  for(const u of candidates){
-    if(await probeImage(u)){ _resolveFound.set(cacheKey, u); return u; }
+  let hit = await probeInOrder(bases);                // exact link on each host first…
+  if(!hit){
+    for(const b of bases){                            // …then every upper/lower-case + extension spelling per host
+      hit = await probeInOrder(caseVariantUrls(b));
+      if(hit) break;
+    }
   }
-  return null;
+  if(hit) _resolveFound.set(cacheKey, hit);
+  return hit;
 }
 
 // Fixes the file extension of every auto-generated / just-derived image row
@@ -5048,8 +5090,8 @@ async function applyStdImagesToAllProducts(){
 
 // Products tab button: repairs broken image links for every product in one run.
 // For each saved image that does not load, it looks for the real file:
-//   1. same host, other file extensions (jpg / png / webp / bmp ...)
-//   2. same host, other upper/lower-case of the -W / -Y / -R / -Model / -Spot ending
+//   1. same host, any extension in any case (jpg / JPG / Jpg / png / webp ...)
+//   2. same host, other upper/lower-case of the SKU and of the -W / -Y / -R / -Model / -Spot ending
 //   3. (optional) the same file on the other host (Cloudinary <-> ImageKit)
 // Links that already load are not touched. A fix is saved to the database and then
 // checked, so a blocked save is reported instead of silently counted as fixed.
@@ -5059,44 +5101,7 @@ async function fixImageExtensionsForAllProducts(){
   if(!confirm("Check every image link on "+withImages.length+" products and repair the ones that don't load?\n\nLinks that already load are not touched. Repaired links are saved straight to the database.\n\nKeep this tab open until it finishes.")) return;
   const tryOtherHost = confirm("If an image can't be found on its own host, also look for the same file on the other host (Cloudinary / ImageKit) and use that link?\n\nOK = yes, look on both hosts\nCancel = stay on the current host only");
 
-  const parseUrl = (u)=>{ const m=String(u).match(/^(.*)\.([A-Za-z0-9]+)(\?.*)?$/); return m?{stem:m[1],ext:m[2],q:m[3]||""}:null; };
-  const extList = (ext)=>[ext, ...STD_IMG_EXTS].filter((e,i,a)=>a.indexOf(e)===i);
-  const withExts = (stem,q,ext)=>extList(ext).map(e=>stem+"."+e+q);
-  const suffixCases = (stem)=>{                      // ...-W  ->  ...-w, ...-Y -> ...-y, -Model -> -model ...
-    const m = stem.match(/^(.*-)(W|Y|R|Model|Spot)$/i);
-    if(!m) return [];
-    const sx=m[2];
-    return [sx.toLowerCase(), sx.toUpperCase(), sx.charAt(0).toUpperCase()+sx.slice(1).toLowerCase()]
-      .filter((v,i,a)=>v!==sx && a.indexOf(v)===i).map(v=>m[1]+v);
-  };
-  const probeFirst = async (list)=>{                 // all at once, first working one in list order wins
-    const uniq=[...new Set(list)];
-    const ok = await Promise.all(uniq.map(u=>probeImage(u,6000)));
-    const i = ok.findIndex(Boolean);
-    return i>=0 ? uniq[i] : null;
-  };
-  const otherHostStems = (stem)=>{
-    const own = Object.values(CLOUD_PROVIDERS).find(pv=>stem.startsWith(pv.base));
-    if(!own) return [];
-    const rel = stem.slice(own.base.length);
-    return Object.values(CLOUD_PROVIDERS).filter(pv=>pv!==own).map(pv=>pv.base+rel);
-  };
-  const findWorking = async (url)=>{
-    const u = parseUrl(url);
-    if(!u) return (await probeImage(url,6000)) ? url : null;
-    let hit = await probeFirst(withExts(u.stem,u.q,u.ext));                       // 1
-    if(hit) return hit;
-    hit = await probeFirst(suffixCases(u.stem).flatMap(st=>withExts(st,u.q,u.ext)));   // 2
-    if(hit) return hit;
-    if(tryOtherHost){                                                              // 3
-      const stems = otherHostStems(u.stem);
-      for(const st of stems){
-        hit = await probeFirst([st, ...suffixCases(st)].flatMap(x=>withExts(x,u.q,u.ext)));
-        if(hit) return hit;
-      }
-    }
-    return null;
-  };
+  const findWorking = (url)=>resolveImageUrl(url, tryOtherHost);   // same case-insensitive lookup as the editor
 
   let checked=0, fixed=0, okAlready=0, notFound=0, failed=0, done=0, movedHost=0;
   const missingList=[], failList=[];
