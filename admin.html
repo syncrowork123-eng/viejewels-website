@@ -2263,6 +2263,15 @@ const CLOUD_PROVIDERS = {
   cloudinary: { label: "Cloudinary", base: "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/" },
   imagekit:   { label: "ImageKit",   base: "https://ik.imagekit.io/fr43kcknv/viejewels/products/" }
 };
+// Any ik.imagekit.io link that carries a wrong account ID (e.g. the placeholder
+// YOUR_IMAGEKIT_ID that an earlier SQL update saved) is re-pointed to the real ImageKit ID.
+const IMAGEKIT_REAL_ID = (CLOUD_PROVIDERS.imagekit.base.match(/ik\.imagekit\.io\/([^\/]+)\//)||[])[1];
+function normalizeMediaUrl(u){
+  u = String(u||"");
+  if(!IMAGEKIT_REAL_ID) return u;
+  const m = u.match(/^(https?:\/\/ik\.imagekit\.io\/)([^\/]+)(\/.*)$/i);
+  return (m && m[2] !== IMAGEKIT_REAL_ID) ? m[1] + IMAGEKIT_REAL_ID + m[3] : u;
+}
 let activeMediaProvider = localStorage.getItem("vj_media_provider") || "cloudinary";
 function setActiveMediaProvider(p){
   if(!CLOUD_PROVIDERS[p]) return;
@@ -2861,6 +2870,13 @@ async function loadProducts(){
       "product_set_links!product_set_links_product_id_fkey(id,linked_product_id)"
     ].join(",");
     allProducts=await sb("products?select="+SELECT+"&order=sort_order.asc,name.asc");
+    // Show every image with the correct ImageKit ID straight away (no re-picking needed).
+    // _dbUrl keeps what is actually stored, so "Fix Image Extensions" can write the repaired link back.
+    allProducts.forEach(p=>(p.product_media||[]).forEach(m=>{
+      if(!m.url) return;
+      m._dbUrl = m.url;
+      m.url = normalizeMediaUrl(m.url);
+    }));
     renderProductsTable(allProducts);
     populateMasterDropdowns();
     renderStoneReport();
@@ -5123,7 +5139,13 @@ async function fixImageExtensionsForAllProducts(){
     const rows=(p.product_media||[]).filter(m=>m.media_type!=="video" && m.url && m.id);
     for(const m of rows){
       checked++;
-      if(await probeImage(m.url,6000)){ okAlready++; continue; }
+      if(await probeImage(m.url,6000)){
+        if(m._dbUrl && m._dbUrl!==m.url){            // loads fine, but the stored link has the wrong ID: write it back
+          if(await saveUrl(p,m,m.url)) fixed++;
+          else { failed++; failList.push((p.sku||p.name||p.id)+"  —  "+m._dbUrl); }
+        } else okAlready++;
+        continue;
+      }
       const found = await findWorking(m.url);
       if(!found){ notFound++; missingList.push((p.sku||p.name||p.id)+"  —  "+m.url); continue; }
       if(await saveUrl(p,m,found)){
