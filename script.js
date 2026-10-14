@@ -29,6 +29,8 @@ const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/fr43kcknv";
 
 function toImageKitUrl(url) {
   if (!url || typeof url !== "string") return url;
+  // Safety net: links saved with the placeholder ID get the real ImageKit ID
+  if (url.includes("YOUR_IMAGEKIT_ID")) url = url.replace("YOUR_IMAGEKIT_ID", IMAGEKIT_URL_ENDPOINT.split("/").pop());
   if (url.includes("ik.imagekit.io")) return url;
   if (!url.includes("res.cloudinary.com") || !url.includes("/upload/")) return url;
   if (!IMAGEKIT_URL_ENDPOINT || IMAGEKIT_URL_ENDPOINT.includes("YOUR_IMAGEKIT_ID")) return url; // endpoint not configured yet
