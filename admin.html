@@ -3390,7 +3390,14 @@ function renderProductsTable(products){
       : hostInfo.label==="ImageKit" ? "#1a407a"
       : hostInfo.label==="Mixed" ? "var(--accent)"
       : "var(--text-muted)";
-    const hostCell = `<span style="font-size:11px;font-weight:700;color:${hostColor}" title="${esc(hostInfo.title)}">${esc(hostInfo.label)}</span>`;
+    // Dropdown: shows where this product's images live now; picking another host moves them right here,
+    // without opening the product. (Images that don't exist on the chosen host are left unchanged.)
+    const hostOpts = Object.entries(CLOUD_PROVIDERS)
+      .filter(([,pv])=>pv.label!==hostInfo.label)
+      .map(([key,pv])=>`<option value="${key}">Move to ${esc(pv.label)}</option>`).join("");
+    const hostCell = hostInfo.hosts.length || (p.product_media||[]).some(m=>m.media_type!=="video")
+      ? `<select class="media-host-select" style="font-size:11px;font-weight:700;color:${hostColor}" title="${esc(hostInfo.title)}" onchange="setProductRowHost('${esc(String(p.id))}',this.value,this)"><option value="">${esc(hostInfo.label)}</option>${hostOpts}<option value="auto">Find on any host</option></select>`
+      : `<select class="media-host-select" style="font-size:11px;font-weight:700;color:var(--text-muted)" title="No images yet — pick a host to add this SKU's W / Y / R / Model / Spot images" onchange="setProductRowHost('${esc(String(p.id))}',this.value,this)"><option value="">—</option>${Object.entries(CLOUD_PROVIDERS).map(([key,pv])=>`<option value="${key}">Add from ${esc(pv.label)}</option>`).join("")}<option value="auto">Find on any host</option></select>`;
     const badge=p.is_active?`<span class="badge badge-active">Active</span>`:`<span class="badge badge-inactive">Hidden</span>`;
     // data-sort="-1" so the Media column parses as numeric from the very first
     // render (unchecked products briefly sort as "less than zero" until their
@@ -5102,6 +5109,86 @@ async function applyStdImagesToAllProducts(){
   }
   toast(imagesAdded+" images added to "+productsUpdated+" products"+(failed?" ("+failed+" failed)":"")+".", failed?"error":"success");
   await loadProducts();
+}
+
+// Saves a new link for one product_media row and checks that it really changed
+// (a blocked update returns no rows), falling back to replacing the row.
+async function saveMediaRowUrl(p, m, url){
+  let res=null;
+  try{ res = await sb("product_media?id=eq."+m.id,"PATCH",{url}); }catch(e){ res=null; }
+  if(Array.isArray(res) && res.length) return true;
+  try{
+    await sb("product_media?id=eq."+m.id,"DELETE");
+    const ins = await sb("product_media","POST",{product_id:p.id,url,media_type:m.media_type||"image",is_primary:!!m.is_primary,alt_text:m.alt_text||null,sort_order:m.sort_order||0});
+    if(Array.isArray(ins) && ins[0] && ins[0].id) m.id = ins[0].id;
+    return true;
+  }catch(e){ console.error("Save failed:",p.sku,e.message); return false; }
+}
+
+// Products table "Host" dropdown: move ONE product's images to another host (or find each on any
+// host) directly in the list. Each image is looked up on the target host first (any extension /
+// upper-lower case); only images that really exist there are switched and saved. Images that
+// aren't there are left exactly as they were. Missing standard images (W / Y / R / Model / Spot)
+// are added when their SKU file exists on that host.
+async function setProductRowHost(pid, choice, sel){
+  if(!choice) return;
+  const p = allProducts.find(x=>String(x.id)===String(pid));
+  if(!p){ return; }
+  const anyHost = choice==="auto";
+  if(!anyHost && !CLOUD_PROVIDERS[choice]) return;
+  const target = anyHost ? null : CLOUD_PROVIDERS[choice];
+  const targetLabel = anyHost ? "any host" : target.label;
+  if(sel) sel.disabled = true;
+  toast("Checking "+(p.sku||p.name)+" on "+targetLabel+"…");
+
+  let moved=0, kept=0, notFound=0, added=0, failed=0;
+  const rows = (p.product_media||[]).filter(m=>m.media_type!=="video" && m.url && m.id);
+
+  await Promise.all(rows.map(async m=>{
+    let wanted = m.url;
+    if(!anyHost){
+      const own = Object.values(CLOUD_PROVIDERS).find(pv=>String(m.url).startsWith(pv.base));
+      if(own !== target){
+        const rel = own ? String(m.url).slice(own.base.length)
+                        : String(m.url).split("?")[0].split("#")[0].split("/").pop();   // unknown host: keep the file name
+        wanted = target.base + rel;
+      }
+    }
+    const found = await resolveImageUrl(wanted, anyHost);
+    if(!found){ notFound++; return; }
+    if(found === m.url){ kept++; return; }
+    if(await saveMediaRowUrl(p, m, found)){ m.url = found; m._dbUrl = found; moved++; }
+    else failed++;
+  }));
+
+  // Standard images this product has no row for yet: add them if the file exists
+  const sku = String(p.sku||"").trim();
+  if(sku){
+    const have = new Set((p.product_media||[]).map(mediaRowSuffix).filter(Boolean));
+    const base = (target || CLOUD_PROVIDERS.imagekit || Object.values(CLOUD_PROVIDERS)[0]).base;
+    let order = (p.product_media||[]).reduce((mx,r)=>Math.max(mx,r.sort_order||0),-1)+1;
+    for(const sx of IMG_SUFFIXES.filter(x=>!have.has(x))){
+      const url = base + encodeURIComponent(sku) + "-" + sx + ".jpg";
+      const found = await resolveImageUrl(url, anyHost);
+      if(!found) continue;
+      try{
+        const hasPrimary = (p.product_media||[]).some(r=>r.media_type!=="video" && r.is_primary);
+        const ins = await sb("product_media","POST",{product_id:p.id,url:found,media_type:"image",is_primary:!hasPrimary && sx==="W",alt_text:sx,sort_order:order++});
+        (p.product_media = p.product_media||[]).push(Array.isArray(ins)&&ins[0] ? ins[0] : {url:found,media_type:"image",alt_text:sx,sort_order:order});
+        added++;
+      }catch(e){ failed++; console.error("Add image failed:",sku,sx,e.message); }
+    }
+  }
+
+  productMediaStatus.delete(p.id);       // re-check this product's images in the Media column
+  filterProducts();                       // redraw the list (keeps the current search)
+  const parts = [];
+  if(moved)    parts.push(moved+" moved to "+targetLabel);
+  if(added)    parts.push(added+" added");
+  if(kept)     parts.push(kept+" already there");
+  if(notFound) parts.push(notFound+" not found there (left unchanged)");
+  if(failed)   parts.push(failed+" could not be saved");
+  toast((p.sku||p.name)+": "+(parts.join(", ")||"nothing to change")+".", (notFound||failed)?"error":"success");
 }
 
 // Products tab button: repairs broken image links for every product in one run.
