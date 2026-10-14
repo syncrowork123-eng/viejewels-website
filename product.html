@@ -362,7 +362,12 @@
       .pd-badges { grid-template-columns: repeat(2, 1fr); }
       .pd-page { padding-top: 24px; padding-bottom: 56px; }
     }
-  </style>
+  
+    /* Optional EGL certification row */
+    .pd-cert-option { cursor:pointer; border-top:1px dashed rgba(0,0,0,.15); margin-top:6px; padding-top:10px; }
+    .pd-cert-check { display:flex; align-items:flex-start; gap:10px; }
+    .pd-cert-check input { margin-top:3px; accent-color:#111; width:16px; height:16px; flex:none; cursor:pointer; }
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -641,9 +646,25 @@
       sync();
     }
 
+    // ── OPTIONAL EGL CERTIFICATION ─────────────────────────────────────
+    const PD_CERT_LABEL = 'Jewelry certification by EGL gemological laboratories';
+    let _pdCertSelected = false;   // customer's choice
+    let _pdCertInit = false;       // pre-tick once from an existing enquiry item
+    let _pdLastCosts = null;       // last costs shown, so ticking re-renders without repricing
+
+    function pdCertActive(costs) { return !!(_pdCertSelected && costs && costs.certAvailable); }
+
+    // Total shown to the customer = base total + certification (if ticked), same currency/format
+    function pdTotalWithCert(costs) {
+      if (!pdCertActive(costs)) return { amount: costs.total, fmt: costs.fmtTotal };
+      const amount = costs.total + costs.certCost;
+      return { amount, fmt: costs.symbol + ' ' + _fmtNum(amount, costs.locale, costs.decimals) };
+    }
+
     function renderPriceBreakdown(costs) {
       const el = document.querySelector('[data-price-breakdown]');
       if (!el) return;
+      _pdLastCosts = costs;
       const ctaPriceEl = document.querySelector('[data-pd-cta-price]');
 
       if (!costs || costs.total === 0) {
@@ -668,12 +689,47 @@
         row('Metal Charges', metalSub, costs.fmtMetal) +
         row('Stone Charges', diamondSub, costs.fmtStone) +
         row('Labour Charges', 'Hand-finished', costs.fmtLabour) +
+        (costs.certAvailable ? `
+        <label class="price-line pd-cert-option">
+          <div class="price-line-info">
+            <span class="pd-cert-check">
+              <input type="checkbox" data-pd-cert-toggle ${_pdCertSelected ? 'checked' : ''} />
+              <span class="price-line-label">${esc(PD_CERT_LABEL)}</span>
+            </span>
+            <span class="price-line-sub">Optional &middot; ${esc(costs.totalStoneCtWt ? Number(costs.totalStoneCtWt).toFixed(3) + ' ct' : '')}</span>
+          </div>
+          <span class="price-line-value">+ ${esc(costs.fmtCert)}</span>
+        </label>` : '') +
         `<div class="price-total-row">
           <span class="price-total-label">Total Price</span>
-          <span class="price-total-value">${esc(costs.fmtTotal)}</span>
+          <span class="price-total-value">${esc(pdTotalWithCert(costs).fmt)}</span>
         </div>`;
 
-      if (ctaPriceEl) ctaPriceEl.textContent = costs.fmtTotal;
+      const toggle = el.querySelector('[data-pd-cert-toggle]');
+      if (toggle) toggle.addEventListener('change', () => {
+        _pdCertSelected = toggle.checked;
+        renderPriceBreakdown(_pdLastCosts);
+      });
+
+      if (ctaPriceEl) ctaPriceEl.textContent = pdTotalWithCert(costs).fmt;
+    }
+
+    // Adds the certification choice to the stored enquiry item (name, amount, and price)
+    function pdApplyCertToCartItem(product) {
+      const list = getStored('vj_cart');
+      const item = list.find((x) => String(x.id) === String(product.id));
+      if (!item) return;
+      if (item.options) { delete item.options.certification; delete item.options.certificationAmount; }
+      if (pdCertActive(_pdLastCosts) && item.priceValue != null) {
+        const c = _pdLastCosts;
+        item.options = item.options || {};
+        item.options.certification = 'EGL certification';
+        item.options.certificationAmount = c.fmtCert;
+        item.priceValue = Math.round((item.priceValue + c.certCost) * 100) / 100;
+        item.price = c.symbol + ' ' + _fmtNum(item.priceValue, c.locale, c.decimals);
+        item.priceSymbol = c.symbol;
+      }
+      setStored('vj_cart', list);
     }
 
     function renderProductPricingForSelection(product, available) {
@@ -685,6 +741,11 @@
         stoneType: _selectedCatalogStoneType || '',
       };
       const currency = _displayCurrency?.code || 'INR';
+      if (!_pdCertInit) {
+        _pdCertInit = true;
+        const existing = getStored('vj_cart').find((x) => String(x.id) === String(product.id));
+        if (existing?.options?.certification) _pdCertSelected = true;
+      }
       const costs = calcProductPrice(product, selectedMetal, selectedDiamond, currency);
       renderProductDetailsGrid(product, selectedMetal, selectedDiamond, costs);
       pdFormatSkuLine(product);
@@ -828,6 +889,7 @@
 
         if (alreadyInCart) updateStoredCartItem(product, notes, options);
         else toggleStored('vj_cart', product, 'cart', notes, options);
+        pdApplyCertToCartItem(product);
 
         updateNavBadges();
         window.location.href = 'cart.html';
