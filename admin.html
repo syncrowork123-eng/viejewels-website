@@ -587,7 +587,7 @@
                 </th>
                 <th class="spl-th-derived">
                   Price / CT (USD)
-                  <div class="spl-sub">Rate USD + (1 − Margin %)</div>
+                  <div class="spl-sub">Price INR ÷ INR Rate × (1 + Margin %)</div>
                 </th>
                 <th style="width:28px;"></th>
               </tr>
@@ -5559,7 +5559,7 @@ function getStoneDerivedRates(rateINR){
   const rate = parseFloat(rateINR)||0;
   const priceINR  = rate>0 ? rate + marginINR : null;
   const rateUSD   = rate>0 && usdRate>0 ? rate / usdRate : null;
-  const priceUSD  = rateUSD!=null ? rateUSD / (1 - marginPct/100) : null;
+  const priceUSD  = (priceINR!=null && usdRate>0) ? (priceINR / usdRate) * (1 + marginPct/100) : null;
   return { priceINR, rateUSD, priceUSD };
 }
 
@@ -5812,7 +5812,7 @@ function exportStonesXlsx(){
 
   const headers=["Type","Shape","Color","Quality","Size Basis","Rate/ct (INR)","Price/ct (INR)","Rate/ct (USD)","Price/ct (USD)"];
   const inrPerUsd=usdRate>0?Math.round(usdRate):0;
-  const subheads=["","","","","",`Rate INR (editable)`,`Rate + ₹${marginINR}/ct`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Rate USD ÷ (1−${marginPct}%)`];
+  const subheads=["","","","","",`Rate INR (editable)`,`Rate + ₹${marginINR}/ct`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+${marginPct}%)`];
   const rows = allStones.map(s=>{
     const d = getStoneDerivedRates(s.rate_inr);
     return [
@@ -5846,7 +5846,7 @@ function exportStonesXlsx(){
     ["CALCULATION FORMULAS"],
     [`Price/ct (INR) = Rate/ct (INR) + ${marginINR} (margin per ct INR)`],
     [`Rate/ct (USD)  = Rate/ct (INR) ÷ ${inrPerUsd} (INR rate)`],
-    [`Price/ct (USD) = Rate/ct (USD) ÷ (1 − ${marginPct}%) (margin ${marginPct}%)`],
+    [`Price/ct (USD) = Price/ct (INR) ÷ ${inrPerUsd} (INR rate) × (1 + ${marginPct}%) (margin ${marginPct}%)`],
   ]);
   XLSX.utils.book_append_sheet(wb, wsI, "Instructions");
   XLSX.writeFile(wb,"viejewels-stone-prices.xlsx");
