@@ -5046,44 +5046,108 @@ async function applyStdImagesToAllProducts(){
   await loadProducts();
 }
 
-// Products tab button: check every saved image link in the database and correct the
-// file extension where the file on its host has a different one (jpg / png / webp / bmp...).
-// Same host only. Links that already load are left alone; links not found with any
-// extension are listed so they can be uploaded or fixed by hand.
+// Products tab button: repairs broken image links for every product in one run.
+// For each saved image that does not load, it looks for the real file:
+//   1. same host, other file extensions (jpg / png / webp / bmp ...)
+//   2. same host, other upper/lower-case of the -W / -Y / -R / -Model / -Spot ending
+//   3. (optional) the same file on the other host (Cloudinary <-> ImageKit)
+// Links that already load are not touched. A fix is saved to the database and then
+// checked, so a blocked save is reported instead of silently counted as fixed.
 async function fixImageExtensionsForAllProducts(){
   const withImages = allProducts.filter(p=>(p.product_media||[]).some(m=>m.media_type!=="video" && m.url && m.id));
   if(!withImages.length){ toast("No product images to check.","error"); return; }
-  if(!confirm("Check every image link on "+withImages.length+" products and fix any wrong file extensions (jpg / png / webp / bmp...)?\n\nLinks that already load are not touched. Corrected links are saved straight to the database.\n\nKeep this tab open until it finishes.")) return;
+  if(!confirm("Check every image link on "+withImages.length+" products and repair the ones that don't load?\n\nLinks that already load are not touched. Repaired links are saved straight to the database.\n\nKeep this tab open until it finishes.")) return;
+  const tryOtherHost = confirm("If an image can't be found on its own host, also look for the same file on the other host (Cloudinary / ImageKit) and use that link?\n\nOK = yes, look on both hosts\nCancel = stay on the current host only");
 
-  let checked=0, fixed=0, okAlready=0, notFound=0, failed=0, done=0;
-  const missingList=[];
+  const parseUrl = (u)=>{ const m=String(u).match(/^(.*)\.([A-Za-z0-9]+)(\?.*)?$/); return m?{stem:m[1],ext:m[2],q:m[3]||""}:null; };
+  const extList = (ext)=>[ext, ...STD_IMG_EXTS].filter((e,i,a)=>a.indexOf(e)===i);
+  const withExts = (stem,q,ext)=>extList(ext).map(e=>stem+"."+e+q);
+  const suffixCases = (stem)=>{                      // ...-W  ->  ...-w, ...-Y -> ...-y, -Model -> -model ...
+    const m = stem.match(/^(.*-)(W|Y|R|Model|Spot)$/i);
+    if(!m) return [];
+    const sx=m[2];
+    return [sx.toLowerCase(), sx.toUpperCase(), sx.charAt(0).toUpperCase()+sx.slice(1).toLowerCase()]
+      .filter((v,i,a)=>v!==sx && a.indexOf(v)===i).map(v=>m[1]+v);
+  };
+  const probeFirst = async (list)=>{                 // all at once, first working one in list order wins
+    const uniq=[...new Set(list)];
+    const ok = await Promise.all(uniq.map(u=>probeImage(u,6000)));
+    const i = ok.findIndex(Boolean);
+    return i>=0 ? uniq[i] : null;
+  };
+  const otherHostStems = (stem)=>{
+    const own = Object.values(CLOUD_PROVIDERS).find(pv=>stem.startsWith(pv.base));
+    if(!own) return [];
+    const rel = stem.slice(own.base.length);
+    return Object.values(CLOUD_PROVIDERS).filter(pv=>pv!==own).map(pv=>pv.base+rel);
+  };
+  const findWorking = async (url)=>{
+    const u = parseUrl(url);
+    if(!u) return (await probeImage(url,6000)) ? url : null;
+    let hit = await probeFirst(withExts(u.stem,u.q,u.ext));                       // 1
+    if(hit) return hit;
+    hit = await probeFirst(suffixCases(u.stem).flatMap(st=>withExts(st,u.q,u.ext)));   // 2
+    if(hit) return hit;
+    if(tryOtherHost){                                                              // 3
+      const stems = otherHostStems(u.stem);
+      for(const st of stems){
+        hit = await probeFirst([st, ...suffixCases(st)].flatMap(x=>withExts(x,u.q,u.ext)));
+        if(hit) return hit;
+      }
+    }
+    return null;
+  };
+
+  let checked=0, fixed=0, okAlready=0, notFound=0, failed=0, done=0, movedHost=0;
+  const missingList=[], failList=[];
+
+  const saveUrl = async (p, m, url)=>{
+    // Normal update, then confirm it really changed (a blocked update returns no rows)
+    let res=null;
+    try{ res = await sb("product_media?id=eq."+m.id,"PATCH",{url}); }catch(e){ res=null; }
+    if(Array.isArray(res) && res.length) return true;
+    // Fallback: replace the row (same data, new link), the way Save Product does
+    try{
+      await sb("product_media?id=eq."+m.id,"DELETE");
+      await sb("product_media","POST",{product_id:p.id,url,media_type:m.media_type||"image",is_primary:!!m.is_primary,alt_text:m.alt_text||null,sort_order:m.sort_order||0});
+      return true;
+    }catch(e){ console.error("Save failed:",p.sku,e.message); return false; }
+  };
 
   const processProduct = async (p)=>{
     const rows=(p.product_media||[]).filter(m=>m.media_type!=="video" && m.url && m.id);
     for(const m of rows){
       checked++;
-      let found=null;
-      try{ found = await resolveImageUrl(m.url, false); }catch(e){ found=null; }
-      if(!found){ notFound++; missingList.push((p.sku||p.name||p.id)+" — "+m.url); continue; }
-      if(found===m.url){ okAlready++; continue; }
-      try{
-        await sb("product_media?id=eq."+m.id,"PATCH",{url:found});
+      if(await probeImage(m.url,6000)){ okAlready++; continue; }
+      const found = await findWorking(m.url);
+      if(!found){ notFound++; missingList.push((p.sku||p.name||p.id)+"  —  "+m.url); continue; }
+      if(await saveUrl(p,m,found)){
         fixed++;
-      }catch(e){ failed++; console.error("Fix image extension failed:",p.sku,e.message); }
+        if(mediaUrlHost(found)!==mediaUrlHost(m.url)) movedHost++;
+      } else { failed++; failList.push((p.sku||p.name||p.id)+"  —  "+m.url); }
     }
     done++;
-    if(done%10===0) toast("Checking images… "+done+" / "+withImages.length+" products");
+    if(done%5===0) toast("Repairing images… "+done+" / "+withImages.length+" products");
   };
 
-  // A few products at a time keeps it fast without flooding the image host
-  const POOL=5;
+  const POOL=4;
   let next=0;
   const worker = async ()=>{ while(next<withImages.length){ const p=withImages[next++]; await processProduct(p); } };
   await Promise.all(Array.from({length:POOL}, worker));
 
-  if(missingList.length) console.warn("Images not found on their host with any extension:\n"+missingList.join("\n"));
-  toast(checked+" images checked: "+fixed+" fixed, "+okAlready+" already fine, "+notFound+" not found"+(failed?", "+failed+" failed to save":"")+(notFound?" (full list in the browser console, F12)":"")+".", (notFound||failed)?"error":"success");
+  if(missingList.length) console.warn("Not found on any host:\n"+missingList.join("\n"));
+  if(failList.length) console.warn("Found but could not be saved:\n"+failList.join("\n"));
   await loadProducts();
+
+  const lines=[
+    checked+" images checked",
+    okAlready+" already loading",
+    fixed+" repaired"+(movedHost?" ("+movedHost+" moved to the other host)":""),
+    notFound+" not found anywhere"+(notFound?" — these files are not on the host under any name/extension tried":""),
+    failed?failed+" found but could not be saved to the database (see console, F12)":""
+  ].filter(Boolean);
+  if(missingList.length) lines.push("","First not-found:",...missingList.slice(0,15));
+  alert(lines.join("\n"));
 }
 
 // ══════════════════════════════════════════════════════════════
