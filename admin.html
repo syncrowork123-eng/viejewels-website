@@ -2595,7 +2595,7 @@ function renderAllMasters(){
         <div class="cc-name">${esc(getCurrencyName(r.code))}</div>
         <div class="cc-rate-row">
           <span class="cc-rate-label">1 INR =</span>
-          <input class="cc-rate-val" type="number" value="${r.rate_to_inr||''}" step="0.0001" title="Rate: 1 INR = X ${esc(r.code)}" onchange="quickUpdateCurrencyRate(${r.id},this.value)" />
+          <input class="cc-rate-val" type="number" value="${r.rate_to_inr||''}" step="0.0001" title="${r.code==='USD'?'INR per 1 USD':'1 INR = X '+esc(r.code)}" onchange="quickUpdateCurrencyRate(${r.id},this.value)" />
           <span class="cc-rate-unit">${esc(r.symbol)} ${esc(r.code)}</span>
         </div>
         <div class="cc-actions">
@@ -2735,9 +2735,9 @@ const masterConfigs={
       <div class="form-group"><label>Code *</label><input type="text" id="mf-code" placeholder="e.g. USD" style="text-transform:uppercase" /></div>
       <div class="form-group"><label>Symbol *</label><input type="text" id="mf-symbol" placeholder="e.g. $" /></div>
       <div class="form-group full"><label>Name</label><input type="text" id="mf-cur-name" placeholder="e.g. US Dollar" /></div>
-      <div class="form-group full"><label>Rate — 1 INR = ? <span style="font-weight:400;color:var(--text-muted)">(e.g. 0.012 for USD when 1 USD = 83 INR)</span></label><input type="number" id="mf-rate" step="0.000001" placeholder="e.g. 0.012" /></div>
+      <div class="form-group full"><label>Rate <span style="font-weight:400;color:var(--text-muted)">(USD: enter INR per 1 USD, e.g. 90 · other currencies: units per 1 INR, e.g. 0.0408)</span></label><input type="number" id="mf-rate" step="0.000001" placeholder="USD: 90 · others: 0.0408" /></div>
       <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-        <span style="font-size:12px;color:var(--text-muted)">💡 Formula: Rate = 1 ÷ (currency value in INR). Example: 1 USD = 83 INR → rate = 1/83 ≈ 0.01205</span>
+        <span style="font-size:12px;color:var(--text-muted)">💡 USD is entered as INR per 1 USD (1 USD = 90 INR → 90). The calculator, stone prices and the website all rely on this.</span>
       </div>
     </div>`,
     payload:()=>({code:gv("mf-code").toUpperCase(),symbol:gv("mf-symbol"),rate_to_inr:gn("mf-rate")||null}),
@@ -4282,11 +4282,10 @@ function updateCalcRate(type){
   const sel=document.getElementById(selMap[type]);
   const opt=sel.options[sel.selectedIndex];
   if(type==="stone"){
-    // Stone rate in INR = website price/ct (USD) ÷ rate_to_inr (which is USD per 1 INR)
-    const usdCur=allCurrencies.find(c=>c.code==="USD");
-    const usdRatePerINR=usdCur?.rate_to_inr||0.012; // default ~83 INR per USD
+    // Stone rate in INR = website price/ct (USD) × INR per 1 USD (USD's rate_to_inr, e.g. 90)
+    const inrPerUsd=labourUsdRate();
     const priceUSD=parseFloat(opt?.dataset?.rateUsd)||0;
-    sv("calc-stone-rate", priceUSD>0&&usdRatePerINR>0?(priceUSD/usdRatePerINR).toFixed(2):"");
+    sv("calc-stone-rate", priceUSD>0&&inrPerUsd>0?(priceUSD*inrPerUsd).toFixed(2):"");
   } else {
     sv(rateMap[type],opt?.dataset?.rate||"");
   }
@@ -4318,13 +4317,12 @@ function addCalcItem(type){
     const avgWt=parseFloat(gv("calc-stone-avgwt"))||0;
     const ctWt=parseFloat(gv("calc-stone-weight"))||0;
     const rateINR=parseFloat(gv("calc-stone-rate"))||0;
-    const usdCur3=allCurrencies.find(c=>c.code==="USD");
-    const usdRatePerINR3=usdCur3?.rate_to_inr||0.012; // 1 INR = X USD
+    const inrPerUsd3=labourUsdRate(); // INR per 1 USD
     const settingSel=document.getElementById("calc-stone-setting");
     const settingOpt=settingSel.options[settingSel.selectedIndex];
     const settingLabel=settingOpt?.value ? settingOpt.text : "";
     const settingRateUSD=parseFloat(gv("calc-stone-setting-rate"))||0;
-    const settingCostINR=usdRatePerINR3>0?pcs*settingRateUSD/usdRatePerINR3:0;
+    const settingCostINR=pcs*settingRateUSD*inrPerUsd3;
     const stoneCostINR=ctWt*rateINR;
     const totalCost=stoneCostINR+settingCostINR;
     const label=`${opt.text} ${ctWt?ctWt.toFixed(4)+"ct":""}${pcs?" ("+pcs+"pcs)":""}${settingLabel?" + "+settingLabel:""}`;
@@ -4339,7 +4337,7 @@ function addCalcItem(type){
     const pcs=parseInt(gv("calc-diamond-pcs"))||1;
     const rate=parseFloat(gv("calc-diamond-rate"))||0;
     const size=parseFloat(opt.dataset.size)||0;
-    calcDiamonds.push({label:pcs+"x "+opt.dataset.size+"ct",pcs,size,rate,cost:pcs*size*rate});
+    calcDiamonds.push({label:pcs+"x "+opt.dataset.size+"ct",pcs,size,rate,weight:pcs*size,cost:pcs*size*rate});
     renderCalcList("calc-diamonds-list",calcDiamonds);
   } else if(type==="labour"){
     const sel=document.getElementById("calc-labour-type");
@@ -4390,10 +4388,9 @@ function calcUpdate(){
   const marginPct=parseFloat(document.getElementById("calc-margin").value)||0;
   const marginAmt=totalCost*(marginPct/100);
   const selling=totalCost+marginAmt;
-  // USD conversion: rate_to_inr = how many USD per 1 INR (e.g. 0.012)
-  const usdCur=allCurrencies.find(c=>c.code==="USD");
-  const usdRatePerINR=usdCur?.rate_to_inr||null; // e.g. 0.012 means 1 INR = 0.012 USD
-  const sellingUSD=usdRatePerINR?Math.round(selling*usdRatePerINR*100)/100:null;
+  // USD conversion: USD's rate_to_inr = INR per 1 USD (e.g. 90), so USD = INR ÷ rate
+  const inrPerUsd=labourUsdRate();
+  const sellingUSD=inrPerUsd>0?Math.round(selling/inrPerUsd*100)/100:null;
   document.getElementById("sum-metal").textContent=fmtINR(metalCost);
   document.getElementById("sum-stones").textContent=fmtINR(stoneCost);
   document.getElementById("sum-diamonds").textContent=fmtINR(diamondCost);
@@ -4413,9 +4410,8 @@ async function saveCalcToProduct(){
   const totalCost=calcGetTotalCost();
   const marginPct=parseFloat(document.getElementById("calc-margin").value)||0;
   const selling=totalCost*(1+marginPct/100);
-  const usdCur=allCurrencies.find(c=>c.code==="USD");
-  const usdRatePerINR=usdCur?.rate_to_inr||null;
-  const sellingUSD=usdRatePerINR?Math.round(selling*usdRatePerINR*100)/100:null;
+  const inrPerUsd=labourUsdRate(); // INR per 1 USD
+  const sellingUSD=inrPerUsd>0?Math.round(selling/inrPerUsd*100)/100:null;
   const currency=gv("calc-save-currency")||"INR";
   const jewel_cat_id=document.getElementById("calc-save-jewelcat").value||null;
 
