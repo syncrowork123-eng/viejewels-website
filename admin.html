@@ -46,6 +46,17 @@
     .search-input { padding:9px 14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:13px; width:240px; outline:none; }
     .search-input:focus { border-color:var(--accent); }
     select.filter-select { padding:9px 14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:13px; outline:none; cursor:pointer; }
+    .sr-matrix thead th { position:sticky; top:0; z-index:2; background:var(--surface); text-align:center; line-height:1.25; }
+    .sr-matrix thead th.sr-sortable { cursor:pointer; user-select:none; }
+    .sr-matrix thead th.sr-sortable:hover { color:var(--text); background:var(--surface2); }
+    .sr-matrix th:first-child, .sr-matrix td:first-child { position:sticky; left:0; z-index:1; background:var(--surface); text-align:left; box-shadow:1px 0 0 var(--border); }
+    .sr-matrix thead th:first-child { z-index:3; }
+    .sr-matrix td { text-align:center; font-variant-numeric:tabular-nums; }
+    .sr-matrix td.sr-empty { color:var(--border); }
+    .sr-matrix td.sr-total, .sr-matrix th.sr-total { background:var(--surface2); font-weight:600; }
+    .sr-h-shape { display:block; }
+    .sr-h-size { display:block; font-weight:700; color:var(--text); letter-spacing:0; text-transform:none; font-size:12px; }
+    .sr-arrow { font-size:9px; margin-left:3px; color:var(--accent); }
     .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:auto; }
     table { width:100%; border-collapse:collapse; font-size:13px; }
     thead th { padding:12px 16px; text-align:left; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap; }
@@ -1031,6 +1042,13 @@
       <select class="filter-select" id="sr-type" onchange="renderStoneReport()">
         <option value="">All Stone Types</option>
       </select>
+      <select class="filter-select" id="sr-shape" onchange="srOnShapeChange()">
+        <option value="">All Shapes</option>
+      </select>
+      <select class="filter-select" id="sr-size" onchange="renderStoneReport()">
+        <option value="">All Sizes</option>
+      </select>
+      <button class="btn btn-secondary" onclick="srClearFilters()">✕ Clear</button>
       <span id="sr-note" style="font-size:12px;color:var(--text-muted)"></span>
     </div>
     <div style="display:flex;gap:8px;">
@@ -1040,17 +1058,13 @@
   </div>
 
   <div class="section-label">Style-wise Stone Report</div>
-  <div class="table-wrap" style="margin-bottom:28px">
-    <table>
-      <thead>
-        <tr>
-          <th>SKU</th><th>Design Name</th><th>Total Shapes</th><th>Total Sizes</th>
-          <th>Total Stones (pcs)</th><th>Shapes (pcs)</th><th>Sizes (pcs)</th>
-        </tr>
-      </thead>
-      <tbody id="sr-style-tbody"><tr><td colspan="7" class="state-msg">Loading...</td></tr></tbody>
+  <div class="table-wrap sr-matrix-wrap" style="margin-bottom:28px;max-height:70vh">
+    <table class="sr-matrix">
+      <thead id="sr-style-thead"><tr><th>SKU</th></tr></thead>
+      <tbody id="sr-style-tbody"><tr><td class="state-msg">Loading...</td></tr></tbody>
     </table>
   </div>
+  <div style="font-size:11px;color:var(--text-muted);margin:-20px 0 24px">Each cell = total stones (pcs) of that shape &amp; size in that SKU. Click a column heading to sort.</div>
 
   <div class="calc-layout">
     <div>
@@ -7499,6 +7513,7 @@ function buildStoneReport(){
       const sk = shape + " " + size;
       sizes.set(sk, {
         label: (s.shape ? shape + " " : "") + size + (basis ? " (" + basis + ")" : ""),
+        shape, size, basis,
         pcs: (sizes.get(sk)?.pcs || 0) + pcs
       });
 
@@ -7515,21 +7530,90 @@ function buildStoneReport(){
   return { styles, shapeMaster, sizeMaster, withoutStones };
 }
 
+// ── Style-wise matrix: rows = SKU, columns = shape + mm size, cell = total pcs ──
+let srSort = { key: "sku", dir: 1 };   // key: "sku" | "total" | "<shape> <size>"
+
+function srNum(size){ const n = parseFloat(size); return isNaN(n) ? Infinity : n; }
+
+// Fills the Shape / Size dropdowns from the data (keeps the current choice if still valid)
+function srFillFilters(r){
+  const shapeEl = document.getElementById("sr-shape"), sizeEl = document.getElementById("sr-size");
+  const shapes = [...r.shapeMaster.keys()].sort((a,b) => a.localeCompare(b));
+  if(shapeEl.value && !shapes.includes(shapeEl.value)) shapeEl.value = "";
+  const curShape = shapeEl.value;
+  shapeEl.innerHTML = '<option value="">All Shapes</option>' +
+    shapes.map(x => `<option value="${esc(x)}"${x === curShape ? " selected" : ""}>${esc(x)}</option>`).join("");
+
+  const sizes = [...r.sizeMaster].filter(([k,z]) => !curShape || z.shape === curShape)
+    .sort((a,b) => a[1].shape.localeCompare(b[1].shape) || srNum(a[1].size) - srNum(b[1].size));
+  const curSize = sizes.some(([k]) => k === sizeEl.value) ? sizeEl.value : "";
+  sizeEl.innerHTML = '<option value="">All Sizes</option>' +
+    sizes.map(([k,z]) => `<option value="${esc(k)}"${k === curSize ? " selected" : ""}>${esc((curShape ? "" : z.shape + " ") + z.size)}</option>`).join("");
+}
+
+function srOnShapeChange(){
+  document.getElementById("sr-size").value = "";   // size list depends on shape
+  renderStoneReport();
+}
+
+function srClearFilters(){
+  ["sr-search","sr-type","sr-shape","sr-size"].forEach(id => { const el = document.getElementById(id); if(el) el.value = ""; });
+  srSort = { key: "sku", dir: 1 };
+  renderStoneReport();
+}
+
+function srSortBy(key){
+  srSort = srSort.key === key ? { key, dir: -srSort.dir } : { key, dir: key === "sku" ? 1 : -1 };
+  renderStoneReport();
+}
+
+// Builds the visible matrix (columns + rows) from the report data, current filters and sort
+function srMatrix(r){
+  const shapeSel = document.getElementById("sr-shape")?.value || "";
+  const sizeSel  = document.getElementById("sr-size")?.value  || "";
+
+  let cols = [...r.sizeMaster].map(([key,z]) => ({ key, shape: z.shape, size: z.size, basis: z.basis }));
+  if(shapeSel) cols = cols.filter(c => c.shape === shapeSel);
+  if(sizeSel)  cols = cols.filter(c => c.key === sizeSel);
+  cols.sort((a,b) => a.shape.localeCompare(b.shape) || srNum(a.size) - srNum(b.size));
+
+  let rows = r.styles.map(st => {
+    const cells = new Map(); let total = 0;
+    cols.forEach(c => { const z = st.sizes.get(c.key); if(z){ cells.set(c.key, z.pcs); total += z.pcs; } });
+    return { sku: st.sku, name: st.name, cells, total };
+  }).filter(row => row.cells.size > 0);
+
+  const { key, dir } = srSort;
+  const skuCmp = (a,b) => (a.sku || "").localeCompare(b.sku || "", undefined, { numeric: true, sensitivity: "base" });
+  rows.sort((a,b) => {
+    if(key === "sku") return dir * skuCmp(a,b);
+    const av = key === "total" ? a.total : (a.cells.get(key) || 0);
+    const bv = key === "total" ? b.total : (b.cells.get(key) || 0);
+    return (av - bv) * dir || skuCmp(a,b);
+  });
+  return { cols, rows };
+}
+
 function renderStoneReport(){
   if(!document.getElementById("sr-style-tbody")) return;
   const r = srCache = buildStoneReport();
+  srFillFilters(r);
+  const m = srMatrix(r);
 
-  document.getElementById("sr-style-tbody").innerHTML = r.styles.length
-    ? r.styles.map(s => `<tr>
-        <td><strong>${esc(s.sku || "—")}</strong></td>
-        <td>${esc(s.name)}</td>
-        <td>${s.shapes.size}</td>
-        <td>${s.sizes.size}</td>
-        <td data-sort="${s.total}"><strong>${s.total}</strong></td>
-        <td style="font-size:12px">${[...s.shapes].map(([k,v]) => `<span class="jc-line">${esc(k)} (${v})</span>`).join("")}</td>
-        <td style="font-size:12px">${[...s.sizes.values()].map(z => `<span class="jc-line">${esc(z.label)} (${z.pcs})</span>`).join("")}</td>
-      </tr>`).join("")
-    : "<tr><td colspan='7' class='state-msg'>No styles with stone details found.</td></tr>";
+  const arrow = k => srSort.key === k ? `<span class="sr-arrow">${srSort.dir === 1 ? "▲" : "▼"}</span>` : "";
+  document.getElementById("sr-style-thead").innerHTML = "<tr>" +
+    `<th class="sr-sortable" data-key="sku">SKU${arrow("sku")}</th>` +
+    m.cols.map(c => `<th class="sr-sortable" data-key="${esc(c.key)}" title="${esc(c.basis || "")}">` +
+      `<span class="sr-h-shape">${esc(c.shape)}</span><span class="sr-h-size">${esc(c.size)}${arrow(c.key)}</span></th>`).join("") +
+    `<th class="sr-sortable sr-total" data-key="total">Total${arrow("total")}</th></tr>`;
+
+  document.getElementById("sr-style-tbody").innerHTML = m.rows.length
+    ? m.rows.map(row => `<tr>
+        <td title="${esc(row.name)}"><strong>${esc(row.sku || "—")}</strong></td>` +
+        m.cols.map(c => row.cells.has(c.key)
+          ? `<td>${row.cells.get(c.key)}</td>` : `<td class="sr-empty">·</td>`).join("") +
+        `<td class="sr-total">${row.total}</td></tr>`).join("")
+    : `<tr><td colspan="${m.cols.length + 2}" class="state-msg">No styles match the current filters.</td></tr>`;
 
   document.getElementById("sr-shape-tbody").innerHTML =
     [...r.shapeMaster].sort((a,b) => a[0].localeCompare(b[0]))
@@ -7543,13 +7627,19 @@ function renderStoneReport(){
     || "<tr><td colspan='5' class='state-msg'>No data.</td></tr>";
 
   document.getElementById("sr-note").textContent =
-    `${r.styles.length} styles with stones · ${r.shapeMaster.size} shapes · ${r.sizeMaster.size} sizes` +
+    `${m.rows.length} of ${r.styles.length} styles · ${m.cols.length} shape/size columns` +
     (r.withoutStones ? ` · ${r.withoutStones} styles have no stone details` : "");
 }
 
+// Click a column heading to sort by it (click again to reverse)
+document.getElementById("sr-style-thead")?.addEventListener("click", e => {
+  const th = e.target.closest("th[data-key]");
+  if(th) srSortBy(th.dataset.key);
+});
+
 function exportStoneReportXlsx(){
   const r = srCache || buildStoneReport();
-  if(!r.styles.length){ toast("Nothing to export.", "error"); return; }
+  if(!srMatrix(r).rows.length){ toast("Nothing to export.", "error"); return; }
 
   const wb = XLSX.utils.book_new();
   const add = (name, head, rows, wch) => {
@@ -7558,14 +7648,11 @@ function exportStoneReportXlsx(){
     XLSX.utils.book_append_sheet(wb, ws, name);
   };
 
+  const m = srMatrix(r);   // same columns, filters and sort as on screen
   add("Style Report",
-    ["SKU", "Design Name", "Total Shapes", "Total Sizes", "Total Stones (pcs)", "Shapes (pcs)", "Sizes (pcs)"],
-    r.styles.map(s => [
-      s.sku, s.name, s.shapes.size, s.sizes.size, s.total,
-      [...s.shapes].map(([k,v]) => `${k} (${v})`).join("; "),
-      [...s.sizes.values()].map(z => `${z.label} (${z.pcs})`).join("; ")
-    ]),
-    [16, 24, 13, 13, 17, 40, 60]);
+    ["SKU", ...m.cols.map(c => `${c.shape} ${c.size}`), "Total"],
+    m.rows.map(row => [row.sku, ...m.cols.map(c => row.cells.get(c.key) ?? ""), row.total]),
+    [16, ...m.cols.map(() => 13), 10]);
 
   add("Shapes Used",
     ["Shape", "Styles", "Total Stones (pcs)"],
