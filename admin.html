@@ -56,6 +56,9 @@
     .sr-matrix td.sr-total, .sr-matrix th.sr-total { background:var(--surface2); font-weight:600; }
     .sr-h-shape { display:block; }
     .sr-h-size { display:block; font-weight:700; color:var(--text); letter-spacing:0; text-transform:none; font-size:12px; }
+    .sr-missing { color:#e5484d; font-weight:700; }
+    .sr-price-line { white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .sr-price-line small { color:var(--text-muted); }
     .sr-arrow { font-size:9px; margin-left:3px; color:var(--accent); }
     .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:auto; }
     table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -988,6 +991,15 @@
       </div>
     </div>
   </div>
+
+  <div class="section-label" style="margin-top:28px">Stone Prices by Size — Natural &amp; Lab Grown</div>
+  <div class="table-wrap" style="max-height:70vh">
+    <table>
+      <thead><tr><th>Shape</th><th>Size (mm)</th><th>Natural (per ct)</th><th>Lab Grown (per ct)</th></tr></thead>
+      <tbody id="sr-price-tbody"><tr><td colspan="4" class="state-msg">Loading...</td></tr></tbody>
+    </table>
+  </div>
+  <div style="font-size:11px;color:var(--text-muted);margin:8px 0 0">Prices come from the Stone Price List (Masters → Stone Prices), matched on stone type, shape and size basis. Rate shown is the base rate per carat; where several colour/quality grades exist, each is listed. <span class="sr-missing">missing</span> = no price set.</div>
 </div>
 
 
@@ -6260,6 +6272,59 @@ function srMatrix(r){
   return { cols, rows };
 }
 
+// ── Stone prices per size (Natural vs Lab Grown) ─────────────────────────
+function srKind(t){ t = String(t||"").toLowerCase(); return /lab/.test(t) ? "lab" : /natural/.test(t) ? "natural" : ""; }
+
+// Size basis for a shape + mm size within the Diamond Sizes master, for one kind (natural / lab)
+function srBasisFor(kind, shape, size){
+  const mm = parseFloat(size); if(isNaN(mm)) return "";
+  const hit = (allDiamonds || []).find(d => srKind(d.stone_type) === kind &&
+    (d.shape || "").toLowerCase() === (shape || "").toLowerCase() &&
+    d.mm_length != null && Math.abs(Number(d.mm_length) - mm) < 0.005);
+  return hit ? (hit.size_basis || "") : "";
+}
+
+// All price-list rows for a kind + shape + size basis
+function srPricesFor(kind, shape, basis){
+  if(!basis) return [];
+  return (allStones || []).filter(p => srKind(p.type) === kind &&
+    (p.shape || "").toLowerCase() === (shape || "").toLowerCase() &&
+    (p.size_basis || "") === basis && p.rate_inr != null && Number(p.rate_inr) > 0);
+}
+
+function srPriceRows(r){
+  const shapeSel = document.getElementById("sr-shape")?.value || "";
+  const sizeSel  = document.getElementById("sr-size")?.value  || "";
+  return [...r.sizeMaster].filter(([k,z]) => (!shapeSel || z.shape === shapeSel) && (!sizeSel || k === sizeSel))
+    .map(([k,z]) => z)
+    .sort((a,b) => a.shape.localeCompare(b.shape) || srNum(a.size) - srNum(b.size))
+    .map(z => {
+      const out = { shape: z.shape, size: z.size };
+      ["natural","lab"].forEach(kind => {
+        const basis = srBasisFor(kind, z.shape, z.size);
+        out[kind] = { basis, prices: srPricesFor(kind, z.shape, basis).map(p => {
+          const d = getStoneDerivedRates(p.rate_inr);
+          return { grade: [p.color, p.quality].filter(Boolean).join(" "), inr: Number(p.rate_inr), usd: d.rateUSD };
+        }) };
+      });
+      return out;
+    });
+}
+
+function srPriceCell(c){
+  if(!c.prices.length) return `<span class="sr-missing">missing</span>`;
+  return c.prices.map(p => `<div class="sr-price-line">${p.grade ? `<small>${esc(p.grade)}:</small> ` : ""}₹${p.inr.toLocaleString("en-IN",{maximumFractionDigits:2})}` +
+    (p.usd != null ? ` <small>/ $${p.usd.toFixed(2)}</small>` : "") + `</div>`).join("");
+}
+
+function renderStonePrices(r){
+  const tb = document.getElementById("sr-price-tbody"); if(!tb) return;
+  const rows = srPriceRows(r);
+  tb.innerHTML = rows.length
+    ? rows.map(x => `<tr><td>${esc(x.shape)}</td><td><strong>${esc(x.size)}</strong></td><td>${srPriceCell(x.natural)}</td><td>${srPriceCell(x.lab)}</td></tr>`).join("")
+    : "<tr><td colspan='4' class='state-msg'>No data.</td></tr>";
+}
+
 function renderStoneReport(){
   if(!document.getElementById("sr-style-tbody")) return;
   const r = srCache = buildStoneReport();
@@ -6291,6 +6356,8 @@ function renderStoneReport(){
       .sort((a,b) => a.shape.localeCompare(b.shape) || parseFloat(a.size) - parseFloat(b.size))
       .map(z => `<tr><td>${esc(z.shape)}</td><td><strong>${esc(z.size)}</strong></td><td>${esc(z.basis || "—")}</td><td>${z.skus.size}</td><td>${z.pcs}</td></tr>`).join("")
     || "<tr><td colspan='5' class='state-msg'>No data.</td></tr>";
+
+  renderStonePrices(r);
 
   document.getElementById("sr-note").textContent =
     `${m.rows.length} of ${r.styles.length} styles · ${m.cols.length} shape/size columns` +
@@ -6331,6 +6398,14 @@ function exportStoneReportXlsx(){
       .sort((a,b) => a.shape.localeCompare(b.shape) || parseFloat(a.size) - parseFloat(b.size))
       .map(z => [z.shape, z.size, z.basis, z.skus.size, z.pcs]),
     [18, 16, 14, 10, 18]);
+
+  const fmtP = c => c.prices.length
+    ? c.prices.map(p => (p.grade ? p.grade + ": " : "") + p.inr + " INR" + (p.usd != null ? " / " + p.usd.toFixed(2) + " USD" : "")).join("; ")
+    : "missing";
+  add("Stone Prices",
+    ["Shape", "Size (mm)", "Natural (per ct)", "Lab Grown (per ct)"],
+    srPriceRows(r).map(x => [x.shape, x.size, fmtP(x.natural), fmtP(x.lab)]),
+    [18, 16, 40, 40]);
 
   XLSX.writeFile(wb, "viejewels-stone-report-" + new Date().toISOString().slice(0,10) + ".xlsx");
   toast("Stone report exported.");
