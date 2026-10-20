@@ -61,6 +61,20 @@
     .spl-issues { color:#e5484d; font-weight:700; font-size:12px; margin-left:10px; }
     .schema-warn { background:#fff4e5; border:1px solid #f0c27b; color:#7a4a00; border-radius:8px; padding:10px 14px; margin:0 0 12px; font-size:12px; line-height:1.5; }
     .schema-warn code { background:rgba(0,0,0,.06); padding:1px 5px; border-radius:4px; }
+    .spl-why { font-size:10.5px; color:#e5484d; margin-top:3px; line-height:1.3; }
+    .spl-row-draft td { background:rgba(80,140,255,.08); }
+    .spl-row-draft td:first-child { box-shadow: inset 3px 0 0 #4c8dff; }
+    .spl-issues a { color:#e5484d; text-decoration:underline; cursor:pointer; margin-left:6px; font-weight:600; }
+    .spl-draft-btns { display:flex; gap:6px; }
+    .spl-draft-btns button { border:none; border-radius:6px; padding:5px 9px; font-size:12px; font-weight:700; cursor:pointer; }
+    .sm-grid { grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
+    .sm-chip { display:inline-flex; align-items:center; gap:4px; background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:3px 4px 3px 11px; margin:0 6px 6px 0; font-size:12px; }
+    .sm-chip small { color:var(--text-muted); font-size:10px; }
+    .sm-chip button { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:13px; padding:0 4px; line-height:1; }
+    .sm-chip button:hover { color:var(--text); } .sm-chip button.sm-x:hover { color:#e5484d; }
+    .sm-add { display:flex; gap:6px; margin-top:6px; }
+    .sm-add input { flex:1; padding:6px 9px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px; outline:none; }
+    .sm-dirty { font-size:12px; color:#e5a000; font-weight:700; }
     .class-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
     .class-card { border:1px solid var(--border); border-radius:8px; padding:12px 14px; background:var(--surface); }
     .class-card h4 { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px; }
@@ -459,6 +473,7 @@
       <button class="sub-tab-btn active" data-sub="currencies">Currencies</button>
       <button class="sub-tab-btn" data-sub="margins">Margins</button>
       <button class="sub-tab-btn" data-sub="metals">Metal Prices</button>
+      <button class="sub-tab-btn" data-sub="stonemaster">Stone Master</button>
       <button class="sub-tab-btn" data-sub="diamonds">Stone Sizes</button>
       <button class="sub-tab-btn" data-sub="stones">Stone Prices</button>
       <button class="sub-tab-btn" data-sub="labour">Labour Charges</button>
@@ -614,7 +629,7 @@
                   Price / CT (USD)
                   <div class="spl-sub">Price INR ÷ INR Rate × (1 + Margin %)</div>
                 </th>
-                <th style="width:28px;"></th>
+                <th style="width:78px;"></th>
               </tr>
             </thead>
             <tbody id="spl-tbody"></tbody>
@@ -630,8 +645,30 @@
           </button>
           <div class="lookup-body" id="lookup-body" style="display:none">
             <div id="stone-class-body"></div>
-            <p style="font-size:12px;color:var(--text-muted);margin:12px 0 0">Fixed list shared by the admin and the website, so a price can never be saved under a spelling the website won't find. To add a type, shape, color or quality, add it to <code>stone-pricing.js</code> (top of the file) — it then appears in every dropdown.</p>
+            <p style="font-size:12px;color:var(--text-muted);margin:12px 0 0">Read-only view of the lists shared by the admin and the website, so a price can never be saved under a spelling the website won't find. To add, reorder or remove a type, shape, color or quality, use <b>Masters &rarr; Stone Master</b>.</p>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="sub-panel" id="sub-stonemaster">
+      <div class="spl-outer">
+        <div class="spl-header">
+          <span class="metal-market-title">Stone Master</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <span id="sm-dirty" class="sm-dirty"></span>
+            <button class="btn btn-secondary" onclick="smReset()">Reset to defaults</button>
+            <button class="btn btn-secondary" onclick="smDiscard()">Discard changes</button>
+            <button class="btn spl-btn-add" onclick="saveStoneMaster()">Save Stone Master</button>
+          </div>
+        </div>
+        <div style="padding:16px 20px">
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;line-height:1.55">
+            The lists below feed every Stone dropdown in the admin (Stone Sizes, Stone Prices, product stone rows, imports) and the website.
+            Add a value, reorder with ‹ ›, or remove one that is no longer used. A value that is still used by a price, size or product stone
+            cannot be removed (its usage count is shown) — move those rows to another value first. Nothing in <code>stone-pricing.js</code> needs editing.
+            Remember: <b>Pearl</b> is the gem stone type; <b>Pear</b> is only a shape.
+          </p>
+          <div id="sm-body" class="class-grid sm-grid"></div>
         </div>
       </div>
     </div>
@@ -1517,8 +1554,20 @@ function gv(id){ return (document.getElementById(id)||{}).value?.trim()||""; }
 function gn(id){ const v=parseFloat(gv(id)); return isNaN(v)?null:v; }
 function sv(id,val){ const el=document.getElementById(id); if(el) el.value=val; }
 
+async function loadStoneTaxonomy(){
+  try{
+    const r = await sb("site_settings?key=eq."+VJ_STONE.TAXONOMY_SETTING_KEY+"&select=value");
+    if(r && r[0] && r[0].value){
+      let v = r[0].value; if(typeof v==="string") v = JSON.parse(v);
+      VJ_STONE.configure(v);
+    }
+  }catch(e){ console.warn("Stone Master: using default lists —", e.message); }
+  if(!smDraft || !smIsDirty()){ smSaved = VJ_STONE.getTaxonomy(); smDraft = JSON.parse(JSON.stringify(smSaved)); }
+}
+
 async function loadMasters(){
   try {
+    await loadStoneTaxonomy();
     [allMetals,allStones,allDiamonds,allLabour,allMargins,allSizes,allTags,allCurrencies,allLookups]=await Promise.all([
       sb("metal_types?order=name.asc"),
       sb("stone_types?order=type.asc,shape.asc,size_basis.asc,color.asc,quality.asc"),
@@ -1533,6 +1582,7 @@ async function loadMasters(){
     await probeStoneSchema();
     renderAllMasters();
     renderLookupTable();
+    renderStoneMaster();
     populateMasterDropdowns();
   } catch(e){ toast("Failed to load masters: "+e.message,"error"); }
 }
@@ -2389,7 +2439,7 @@ function stoneWidthFollowsLength(row,newLength){
 }
 // stone rows
 function ceRenderStones(){
-  const types=VJ_STONE.typesOf();            // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pear
+  const types=VJ_STONE.typesOf();            // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pearl (live list: Masters > Stone Master)
   const settings=settingTypeNames();
   const shapes=[...VJ_STONE.SHAPES];
   const rows=cellEd.rows, cols="1.3fr 1.3fr 1fr 60px 70px 70px 28px";
@@ -2748,7 +2798,7 @@ function renderStoneDetailRows(){
     tbody.innerHTML='<tr><td colspan="7" class="state-msg" style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No stones added yet.</td></tr>';
     return;
   }
-  const stoneTypes  = VJ_STONE.typesOf();   // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pear
+  const stoneTypes  = VJ_STONE.typesOf();   // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pearl (live list: Masters > Stone Master)
   const settingTypes= settingTypeNames();
   const shapes      = [...VJ_STONE.SHAPES];
 
@@ -3317,7 +3367,7 @@ function svmRenderStoneRows(){
     tbody.innerHTML='<tr><td colspan="7" class="state-msg" style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">No stones added yet.</td></tr>';
     return;
   }
-  const stoneTypes  = VJ_STONE.typesOf();   // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pear
+  const stoneTypes  = VJ_STONE.typesOf();   // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pearl (live list: Masters > Stone Master)
   const settingTypes= settingTypeNames();
   const shapes      = [...VJ_STONE.SHAPES];
 
@@ -4631,6 +4681,9 @@ async function probeStoneSchema(){
   });
 }
 
+let _splDraft = null;          // unsaved "new price row" (nothing is written to the database until Save)
+let _splIssuesOnly = false;
+
 function renderStoneGrid(){
   const tbody = document.getElementById('spl-tbody');
   if(!tbody) return;
@@ -4660,33 +4713,45 @@ function renderStoneGrid(){
   const keyCount = {};
   allStones.forEach(s=>{ const k=V.priceKey(s); keyCount[k]=(keyCount[k]||0)+1; });
   const issueOf = s => V.checkPriceRow(s) || (keyCount[V.priceKey(s)]>1 ? "Duplicate combination" : "");
-  const issueTotal = allStones.filter(s=>issueOf(s)).length;
+  const reasons = {}; let issueTotal = 0, fixable = 0;
+  allStones.forEach(s=>{
+    const i = issueOf(s); if(!i) return;
+    issueTotal++; reasons[i] = (reasons[i]||0)+1;
+    if(Object.keys(V.normalizePriceRow(s)).length) fixable++;
+  });
+  if(!issueTotal) _splIssuesOnly = false;
   const iss = f('spl-issues');
-  if(iss) iss.textContent = issueTotal ? `⚠ ${issueTotal} row${issueTotal>1?'s':''} need attention (highlighted red)` : '';
+  if(iss) iss.innerHTML = issueTotal
+    ? `⚠ ${issueTotal} row${issueTotal>1?'s need':' needs'} attention: ${Object.entries(reasons).map(([r,n])=>`${n} × ${esc(r)}`).join('; ')}`
+      + ` <a onclick="splToggleIssuesOnly()">${_splIssuesOnly?'Show all rows':'Show only these'}</a>`
+      + (fixable ? ` <a onclick="splAutoFix()">Auto-fix spellings (${fixable})</a>` : '')
+    : '';
 
   let rows = allStones.filter(s=>
     (!selCat     || stoneCat(s)===selCat) &&
-    (!selType    || s.type===selType) &&
-    (!selShape   || s.shape===selShape) &&
-    (!selColor   || s.color===selColor) &&
-    (!selQuality || s.quality===selQuality)
+    (!selType    || V.typeKey(s.type)===V.typeKey(selType)) &&
+    (!selShape   || V.norm(s.shape)===V.norm(selShape)) &&
+    (!selColor   || V.norm(s.color)===V.norm(selColor)) &&
+    (!selQuality || V.norm(s.quality)===V.norm(selQuality)) &&
+    (!_splIssuesOnly || issueOf(s))
   );
   const cnt = f('spl-count');
   if(cnt) cnt.textContent = `${rows.length} of ${allStones.length} entries`;
 
-  if(!rows.length){
-    tbody.innerHTML = `<tr><td colspan="11" class="state-msg">No stone records yet. Click + Add Row to begin.</td></tr>`;
+  const cell = (id, field, list, val, ph) => `<td><select class="spl-cell-input" onchange="splUpdate(${id},'${field}',this.value)">${optList(list, val, ph)}</select></td>`;
+  const fmt2 = n => n!=null ? Number(n).toFixed(2) : '';
+  const fmtD = (n, prefix='') => n!=null ? `<span class="spl-derived has-val">${prefix}${Number(n).toFixed(2)}</span>` : `<span class="spl-derived">—</span>`;
+
+  let html = _splDraft ? splDraftRowHtml() : '';
+  if(!rows.length && !_splDraft){
+    tbody.innerHTML = `<tr><td colspan="11" class="state-msg">${allStones.length?'No rows match the filters.':'No stone records yet. Click + Add Row to begin.'}</td></tr>`;
     return;
   }
-
-  const cell = (id, field, list, val, ph) => `<td><select class="spl-cell-input" onchange="splUpdate(${id},'${field}',this.value)">${optList(list, val, ph)}</select></td>`;
-  tbody.innerHTML = rows.map(s => {
+  html += rows.map(s => {
     const d = getStoneDerivedRates(s.rate_inr);
-    const fmt2 = n => n!=null ? Number(n).toFixed(2) : '';
-    const fmtD = (n, prefix='') => n!=null ? `<span class="spl-derived has-val">${prefix}${Number(n).toFixed(2)}</span>` : `<span class="spl-derived">—</span>`;
     const cat = stoneCat(s), issue = issueOf(s);
     return `<tr data-id="${s.id}"${issue?` class="spl-row-bad" title="${esc(issue)}"`:''}>
-      ${cell(s.id,'category',V.categoryNames(),cat,'Category')}
+      <td><select class="spl-cell-input" onchange="splUpdate(${s.id},'category',this.value)">${optList(V.categoryNames(),cat,'Category')}</select>${issue?`<div class="spl-why">${esc(issue)}</div>`:''}</td>
       ${cell(s.id,'type',V.typesOf(cat),s.type||'','Type')}
       ${cell(s.id,'shape',V.SHAPES,s.shape||'','Shape')}
       ${cell(s.id,'color',V.colorsOf(cat),s.color||'','Color')}
@@ -4699,6 +4764,112 @@ function renderStoneGrid(){
       <td><button class="spl-del-btn" onclick="splDelete(${s.id})" title="Delete">✕</button></td>
     </tr>`;
   }).join('');
+  tbody.innerHTML = html;
+}
+
+function splToggleIssuesOnly(){ _splIssuesOnly = !_splIssuesOnly; renderStoneGrid(); }
+
+// Rewrites spellings that differ from the Stone Master (e.g. type "Pear" -> "Pearl", "lab grown" -> "Lab Grown")
+function splAutoFix(){
+  const V = VJ_STONE;
+  const todo = allStones.map(s=>({s, fix:V.normalizePriceRow(s)})).filter(x=>Object.keys(x.fix).length);
+  if(!todo.length){ toast('Nothing to fix.'); return; }
+  openConfirm(`Rewrite the spelling of ${todo.length} price row${todo.length>1?'s':''} to match the Stone Master? Rates are not changed.`, async()=>{
+    let ok=0, fail=0, lastErr='';
+    for(const {s,fix} of todo){
+      const patch = {...fix}; if(!STONE_CAT_COL) delete patch.category;
+      const merged = {...s, ...fix};
+      patch.name = [merged.type,merged.shape,merged.size_basis,merged.color,merged.quality].filter(Boolean).join(' ');
+      try{ await sb('stone_types?id=eq.'+s.id,'PATCH',patch); Object.assign(s,patch); ok++; }
+      catch(e){ fail++; lastErr=e.message||String(e); console.error('auto-fix',s.id,e); }
+    }
+    renderStoneGrid();
+    toast(`${ok} row${ok!==1?'s':''} fixed${fail?`, ${fail} failed (${lastErr} — usually a duplicate of an existing row)`:''}.`, fail?'error':'success');
+  });
+}
+
+// ── Add a new price row: built as a draft, saved only when complete ─────
+function splDraftRowHtml(){
+  const V = VJ_STONE, d = _splDraft;
+  const sel = (field, list, val, ph) => `<td><select class="spl-cell-input" onchange="splDraftSet('${field}',this.value)">${optList(list,val,ph)}</select></td>`;
+  const dr = getStoneDerivedRates(parseFloat(d.rate));
+  return `<tr class="spl-row-draft">
+    ${sel('category',V.categoryNames(),d.category,'Category')}
+    ${sel('type',V.typesOf(d.category),d.type,'Type')}
+    ${sel('shape',V.SHAPES,d.shape,'Shape')}
+    ${sel('color',V.colorsOf(d.category),d.color,'Color')}
+    ${sel('quality',V.QUALITIES,d.quality,'Quality')}
+    <td><input id="spl-d-sb" class="spl-cell-input" list="spl-sb-list" value="${esc(d.size_basis)}" oninput="splDraftSet('size_basis',this.value,true)" placeholder="-2" /></td>
+    <td><input id="spl-d-rate" class="spl-cell-input rate-input" type="number" step="0.01" value="${esc(d.rate)}" oninput="splDraftRate(this.value)" placeholder="0.00" /></td>
+    <td id="spl-d-p1">${dr.priceINR!=null?`<span class="spl-derived has-val">${Number(dr.priceINR).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
+    <td id="spl-d-p2">${dr.rateUSD!=null?`<span class="spl-derived has-val">${Number(dr.rateUSD).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
+    <td id="spl-d-p3">${dr.priceUSD!=null?`<span class="spl-derived has-val">${Number(dr.priceUSD).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
+    <td><div class="spl-draft-btns"><button style="background:var(--accent);color:#0f0f0f" onclick="splDraftSave()" title="Save row">Save</button><button style="background:var(--surface2);color:var(--text-muted)" onclick="splDraftCancel()" title="Cancel">✕</button></div></td>
+  </tr>`;
+}
+function addStoneRow(){
+  const V = VJ_STONE, g = id => document.getElementById(id)?.value||'';
+  const category = g('spl-f-category') || 'Diamond';
+  _splIssuesOnly = false;
+  _splDraft = {
+    category,
+    type:    g('spl-f-type')    || V.typesOf(category)[0] || '',
+    shape:   g('spl-f-shape')   || V.SHAPES[0] || '',
+    color:   g('spl-f-color')   || '',
+    quality: g('spl-f-quality') || '',
+    size_basis:'', rate:''
+  };
+  renderStoneGrid();
+  document.getElementById('spl-d-sb')?.focus();
+}
+function splDraftSet(field, val, quiet){
+  const V = VJ_STONE, d = _splDraft; if(!d) return;
+  d[field] = val;
+  if(field==='category'){
+    if(d.type && V.categoryOf(d.type)!==val) d.type = V.typesOf(val)[0]||'';
+    if(d.color && !V.canon('color', d.color, val)) d.color = '';
+  } else if(field==='type'){
+    const c = V.categoryOf(val); if(c){ d.category = c; if(d.color && !V.canon('color', d.color, c)) d.color = ''; }
+  }
+  if(!quiet){
+    const sb0 = document.getElementById('spl-d-sb')?.value, r0 = document.getElementById('spl-d-rate')?.value;
+    if(sb0!=null) d.size_basis = sb0; if(r0!=null) d.rate = r0;
+    renderStoneGrid();
+  }
+}
+function splDraftRate(val){
+  if(!_splDraft) return; _splDraft.rate = val;
+  const dr = getStoneDerivedRates(parseFloat(val));
+  const put = (id,n) => { const el=document.getElementById(id); if(el) el.innerHTML = n!=null?`<span class="spl-derived has-val">${Number(n).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'; };
+  put('spl-d-p1',dr.priceINR); put('spl-d-p2',dr.rateUSD); put('spl-d-p3',dr.priceUSD);
+}
+function splDraftCancel(){ _splDraft = null; renderStoneGrid(); }
+async function splDraftSave(){
+  const V = VJ_STONE, d = _splDraft; if(!d) return;
+  const rec = { category:d.category, type:d.type, shape:d.shape, color:d.color||null, quality:d.quality||null, size_basis:String(d.size_basis||'').trim() };
+  const why = V.checkPriceRow(rec);
+  if(why){ toast(why+' — complete the highlighted row.','error'); return; }
+  const rate = parseFloat(d.rate);
+  if(!(rate>0)){ toast('Enter a Rate / CT (INR) greater than 0.','error'); return; }
+  if(allStones.some(s=>V.priceKey(s)===V.priceKey(rec))){ toast('A price for this Category / Type / Shape / Color / Quality / Size Basis already exists — edit that row instead.','error'); return; }
+  const der = getStoneDerivedRates(rate);
+  const body = withCat({
+    name:[rec.type,rec.shape,rec.size_basis,rec.color,rec.quality].filter(Boolean).join(' '),
+    type:rec.type, shape:rec.shape, color:rec.color, quality:rec.quality, size_basis:rec.size_basis,
+    rate_inr:rate, price_inr:der.priceINR,
+    rate_usd:der.rateUSD?Math.round(der.rateUSD*10000)/10000:null,
+    price_usd:der.priceUSD?Math.round(der.priceUSD*10000)/10000:null,
+  }, rec.category);
+  try{
+    const res = await sb('stone_types','POST',body);
+    const row = Array.isArray(res)?res[0]:res;
+    _splDraft = null;
+    if(row) allStones.unshift(row); else { await loadMasters(); toast('Stone price added.'); return; }
+    renderStoneGrid(); toast('Stone price added.');
+  }catch(e){
+    console.error('splDraftSave',e);
+    toast('Could not add row: '+(e.message||e),'error');
+  }
 }
 
 // Debounce map for rate changes
@@ -4786,19 +4957,6 @@ async function splDelete(id){
       toast('Stone deleted.');
     } catch(e){ toast('Error: '+e.message,'error'); }
   });
-}
-
-async function addStoneRow(){
-  try{
-    const res = await sb('stone_types','POST',withCat({name:'New Stone',type:'Natural',shape:'Round',color:null,quality:null,size_basis:null,rate_inr:0,price_inr:null,rate_usd:null,price_usd:null},'Diamond'));
-    const newRow = Array.isArray(res)?res[0]:res;
-    if(newRow){ allStones.unshift(newRow); }
-    else { await loadMasters(); return; }
-    renderStoneGrid();
-    // Focus first cell of new row
-    const firstInput = document.querySelector('#spl-tbody tr:first-child input');
-    if(firstInput){ firstInput.focus(); firstInput.select(); }
-  } catch(e){ console.error('addStoneRow',e); toast('Error adding row: '+(e.message||e)+' — if this mentions a constraint or duplicate, run the stone-add-row-fix.sql shown in the notes.','error'); }
 }
 
 function exportStonesXlsx(){
@@ -4936,6 +5094,105 @@ async function importStonesXlsx(e){
     }catch(err){ console.error("importStonesXlsx:",err); toast("Import error: "+err.message,"error"); }
   };
   reader.readAsArrayBuffer(file);
+}
+
+// ═════════ STONE MASTER (editable classification, stored in site_settings "stone_taxonomy") ═════════
+let smDraft = null, smSaved = null;
+const smIsDirty = () => !!(smDraft && smSaved) && JSON.stringify(smDraft) !== JSON.stringify(smSaved);
+const smList = (kind,cat) => (kind==='shapes'||kind==='qualities') ? smDraft[kind] : smDraft[kind][cat];
+
+// How many existing rows use a value (blocks removal while > 0)
+function smUsage(kind, cat, val){
+  const V = VJ_STONE, n = V.norm, tk = V.typeKey;
+  const pstones = (typeof allProducts!=='undefined' ? allProducts : []).flatMap(p=>p.product_stones||[]);
+  let prices=0, sizes=0, prod=0;
+  if(kind==='types'){
+    prices = allStones.filter(s=>tk(s.type)===tk(val)).length;
+    sizes  = allDiamonds.filter(d=>V.rowType(d) && tk(V.rowType(d))===tk(val)).length;
+    prod   = pstones.filter(s=>tk(s.stone_type)===tk(val)).length;
+  } else if(kind==='colors'){
+    prices = allStones.filter(s=>V.rowCategory(s)===cat && n(s.color)===n(val)).length;
+  } else if(kind==='shapes'){
+    prices = allStones.filter(s=>n(s.shape)===n(val)).length;
+    sizes  = allDiamonds.filter(d=>n(d.shape)===n(val)).length;
+    prod   = pstones.filter(s=>n(s.shape)===n(val)).length;
+  } else if(kind==='qualities'){
+    prices = allStones.filter(s=>n(s.quality)===n(val)).length;
+  }
+  const total = prices+sizes+prod, parts = [];
+  if(prices) parts.push(prices+' price'+(prices>1?'s':'')); if(sizes) parts.push(sizes+' size'+(sizes>1?'s':'')); if(prod) parts.push(prod+' product stone'+(prod>1?'s':''));
+  return { total, text: parts.join(', ') };
+}
+
+function renderStoneMaster(){
+  const el = document.getElementById('sm-body'); if(!el || !smDraft) return;
+  const V = VJ_STONE, saved = smSaved || smDraft;
+  const card = (title, kind, cat, hint) => {
+    const list = smList(kind,cat), key = kind+'|'+(cat||'');
+    const chips = list.map((v,i)=>{
+      const u = smUsage(kind,cat,v);
+      const isNew = !(kind==='shapes'||kind==='qualities' ? saved[kind] : saved[kind][cat]).some(x=>V.norm(x)===V.norm(v));
+      const q = x => JSON.stringify(x).replace(/"/g,'&quot;');
+      return `<span class="sm-chip" title="${u.total?esc('In use: '+u.text):(isNew?'New — not saved yet':'Not used by any row')}">${esc(v)}${u.total?` <small>${u.total}</small>`:(isNew?' <small>new</small>':'')}
+        <button onclick="smMove(${q(kind)},${q(cat||'')},${i},-1)" title="Move left">‹</button><button onclick="smMove(${q(kind)},${q(cat||'')},${i},1)" title="Move right">›</button><button class="sm-x" onclick="smRemove(${q(kind)},${q(cat||'')},${i})" title="Remove">✕</button></span>`;
+    }).join('');
+    const id = 'sm-in-'+kind+'-'+(cat||'').replace(/\W/g,'');
+    const q = x => JSON.stringify(x).replace(/"/g,'&quot;');
+    return `<div class="class-card"><h4>${esc(title)}</h4>${hint?`<div style="font-size:11px;color:var(--text-muted);margin:-4px 0 8px">${hint}</div>`:''}<div class="chips-sm">${chips||'<span style="font-size:12px;color:var(--text-muted)">None</span>'}</div>
+      <div class="sm-add"><input id="${id}" type="text" placeholder="Add ${esc(title.toLowerCase())}…" onkeydown="if(event.key==='Enter'){smAdd(${q(kind)},${q(cat||'')},'${id}')}" /><button class="btn btn-secondary btn-sm" onclick="smAdd(${q(kind)},${q(cat||'')},'${id}')">+ Add</button></div></div>`;
+  };
+  el.innerHTML =
+    V.categoryNames().map(c=>card(c+' — Stone Types','types',c, c==='Gem Stone'?'e.g. Emerald, Ruby, Sapphire, <b>Pearl</b>':'')).join('') +
+    V.categoryNames().map(c=>card(c+' — Colors','colors',c,'')).join('') +
+    card('Shapes','shapes','','Shape names used by Stone Sizes, Stone Prices and product stones (Pear = pear-cut shape)') +
+    card('Qualities','qualities','','');
+  const dirty = document.getElementById('sm-dirty'); if(dirty) dirty.textContent = smIsDirty() ? '● Unsaved changes' : '';
+}
+
+function smAdd(kind, cat, inputId){
+  const inp = document.getElementById(inputId); if(!inp) return;
+  const val = inp.value.trim(); if(!val){ return; }
+  const list = smList(kind,cat), n = VJ_STONE.norm;
+  if(list.some(x=>n(x)===n(val))){ toast(`"${val}" is already in this list.`,'error'); return; }
+  if(kind==='types'){
+    const other = VJ_STONE.categoryNames().find(c=>c!==cat && smDraft.types[c].some(x=>VJ_STONE.typeKey(x)===VJ_STONE.typeKey(val)));
+    if(other){ toast(`"${val}" already exists under ${other}. A stone type can belong to one category only.`,'error'); return; }
+  }
+  list.push(val); renderStoneMaster();
+  document.getElementById(inputId)?.focus();
+}
+function smRemove(kind, cat, i){
+  const list = smList(kind,cat), val = list[i];
+  if(list.length<=1){ toast('At least one value must remain in each list.','error'); return; }
+  const u = smUsage(kind,cat,val);
+  if(u.total){ toast(`"${val}" is still used by ${u.text}. Change those rows to another value first.`,'error'); return; }
+  list.splice(i,1); renderStoneMaster();
+}
+function smMove(kind, cat, i, dir){
+  const list = smList(kind,cat), j = i+dir; if(j<0||j>=list.length) return;
+  [list[i],list[j]] = [list[j],list[i]]; renderStoneMaster();
+}
+function smDiscard(){ if(!smSaved) return; smDraft = JSON.parse(JSON.stringify(smSaved)); renderStoneMaster(); }
+function smReset(){
+  openConfirm('Reset every list to the built-in defaults? (Not saved until you click Save Stone Master.)', ()=>{
+    smDraft = JSON.parse(JSON.stringify(VJ_STONE.DEFAULT_TAXONOMY)); renderStoneMaster();
+  });
+}
+async function saveStoneMaster(){
+  if(!smDraft) return;
+  const key = VJ_STONE.TAXONOMY_SETTING_KEY, value = JSON.stringify(smDraft);
+  try{
+    const ex = await sb("site_settings?key=eq."+encodeURIComponent(key)+"&select=key");
+    if(ex && ex.length) await sb("site_settings?key=eq."+encodeURIComponent(key),"PATCH",{value});
+    else await sb("site_settings","POST",{key,value});
+    VJ_STONE.configure(smDraft);
+    smSaved = VJ_STONE.getTaxonomy(); smDraft = JSON.parse(JSON.stringify(smSaved));
+    renderStoneMaster(); renderStoneGrid(); renderDiamondsTable(); renderLookupTable();
+    toast('Stone Master saved — dropdowns and the website now use these lists.');
+  }catch(e){
+    console.error('saveStoneMaster',e);
+    toast('Could not save Stone Master: '+(e.message||e)+' (needs write access to the site_settings table)','error');
+  }
 }
 
 function toggleLookupSection(){
@@ -5743,7 +6000,7 @@ function exportDiamSizesXlsx(){
     ["Exported: "+new Date().toLocaleString()],
     [""],
     ["HOW TO IMPORT"],
-    ["Category: Diamond or Gem Stone.  Stone Type: leave blank to apply to every type in the category (or Natural / Lab Grown / Emerald / Ruby / Sapphire / Pear)."],
+    ["Category: Diamond or Gem Stone.  Stone Type: leave blank to apply to every type in the category (or Natural / Lab Grown / Emerald / Ruby / Sapphire / Pearl)."],
     ["1. Edit data — do not change column headers"],
     ["2. Add rows at bottom for new records"],
     ["3. Edit rows to update, delete rows to remove"],
