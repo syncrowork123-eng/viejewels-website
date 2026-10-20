@@ -287,7 +287,7 @@ function populateDiamondFilters() {
     if (!sel) return;
     const priced = _pmStoneTypes || [];
     const types = VJ_STONE.typesOf("Diamond")
-      .filter(t => priced.some(s => VJ_STONE.norm(s.type) === VJ_STONE.norm(t) && Number(s.price_inr || s.rate_inr) > 0));
+      .filter(t => priced.some(s => VJ_STONE.typeKey(s.type) === VJ_STONE.typeKey(t) && Number(s.price_inr || s.rate_inr) > 0));
     const cur = sel.value;
     sel.innerHTML = `<option value="">Stone Type</option>` +
       types.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join("");
