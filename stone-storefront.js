@@ -22,6 +22,30 @@
    Category is derived from the stone type, so no extra database column is needed by the website.
 */
 
+/* ═════════════════════════════════════════════════════════════════════════
+   0. Stone Master lists (admin: Masters > Stone Master) are loaded together with the pricing
+      masters, so types / shapes / colours / qualities added in the admin work here with no code edit.
+   ═════════════════════════════════════════════════════════════════════════ */
+(function () {
+  if (typeof loadPricingMasters !== "function" || typeof VJ_STONE === "undefined") return;
+  const _origLoadPricingMasters = loadPricingMasters;
+  let _taxLoaded = false;
+  loadPricingMasters = async function () {
+    const loadTax = async () => {
+      if (_taxLoaded) return;
+      try {
+        const r = await sbGet("site_settings?select=value&key=eq." + VJ_STONE.TAXONOMY_SETTING_KEY);
+        if (r && r[0] && r[0].value) {
+          let v = r[0].value; if (typeof v === "string") v = JSON.parse(v);
+          VJ_STONE.configure(v);
+        }
+      } catch (e) { /* no saved list (or not readable): built-in defaults stay in force */ }
+      _taxLoaded = true;
+    };
+    await Promise.all([_origLoadPricingMasters.apply(this, arguments), loadTax()]);
+  };
+})();
+
 // ── Gem Stone selections (new) ───────────────────────────────────────────
 let _selectedCatalogGemColor = null;
 let _selectedCatalogGemQuality = null;
