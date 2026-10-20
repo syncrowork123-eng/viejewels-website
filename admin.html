@@ -459,11 +459,11 @@
       <button class="sub-tab-btn active" data-sub="currencies">Currencies</button>
       <button class="sub-tab-btn" data-sub="margins">Margins</button>
       <button class="sub-tab-btn" data-sub="metals">Metal Prices</button>
+      <button class="sub-tab-btn" data-sub="diamonds">Stone Sizes</button>
       <button class="sub-tab-btn" data-sub="stones">Stone Prices</button>
       <button class="sub-tab-btn" data-sub="labour">Labour Charges</button>
       <button class="sub-tab-btn" data-sub="jewelcats">Jewelry Categories</button>
       <button class="sub-tab-btn" data-sub="sizes">Jewelry Sizes</button>
-      <button class="sub-tab-btn" data-sub="diamonds">Diamond Sizes</button>
       <button class="sub-tab-btn" data-sub="tags">Tags</button>
       <button class="sub-tab-btn" data-sub="sitesettings">Site Settings</button>
     </div>
@@ -626,7 +626,7 @@
         <div class="lookup-collapsible">
           <button class="lookup-toggle" onclick="toggleLookupSection()">
             <span id="lookup-toggle-icon">▸</span> Stone Classification
-            <span class="lookup-toggle-sub">Category / Type / Shape / Color / Quality used by Stone Prices, Diamond Sizes and the website</span>
+            <span class="lookup-toggle-sub">Category / Type / Shape / Color / Quality used by Stone Prices, Stone Sizes and the website</span>
           </button>
           <div class="lookup-body" id="lookup-body" style="display:none">
             <div id="stone-class-body"></div>
@@ -642,7 +642,7 @@
           <button class="btn btn-secondary" onclick="document.getElementById('diamsizes-file-input').click()">Import .xlsx</button>
           <input type="file" id="diamsizes-file-input" accept=".xlsx" style="display:none" onchange="importDiamSizesXlsx(event)" />
         </div>
-        <button class="btn btn-primary" onclick="openMasterModal('diamond')">+ Add Diamond Size</button>
+        <button class="btn btn-primary" onclick="openMasterModal('diamond')">+ Add Stone Size</button>
       </div>
       <div class="schema-warn-slot"></div>
       <div class="spl-filters" style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;">
@@ -1003,7 +1003,7 @@
       <tbody id="sr-price-tbody"><tr><td colspan="5" class="state-msg">Loading...</td></tr></tbody>
     </table>
   </div>
-  <div style="font-size:11px;color:var(--text-muted);margin:8px 0 0">Prices come from the Stone Price List (Masters → Stone Prices), linked via Diamond Sizes (shape + mm → Size Basis), then matched on stone type + shape + Size Basis — exactly as the website prices stones. Rate shown is the price per carat (including margin); where several colour/quality grades exist, each is listed. <span class="sr-missing">missing</span> = no price set.</div>
+  <div style="font-size:11px;color:var(--text-muted);margin:8px 0 0">Prices come from the Stone Price List (Masters → Stone Prices), linked via Stone Sizes (shape + mm → Size Basis), then matched on stone type + shape + Size Basis — exactly as the website prices stones. Rate shown is the price per carat (including margin); where several colour/quality grades exist, each is listed. <span class="sr-missing">missing</span> = no price set.</div>
 </div>
 
 
@@ -1772,7 +1772,7 @@ const masterConfigs={
       sv("mf-rate-usd",r.rate_usd||"");sv("mf-price-usd",r.price_usd||"");sv("mf-markup-pct","25");
     },
     valid:()=>gv("mf-type")&&gv("mf-shape")},
-  diamond:{table:"diamond_sizes",title:"Diamond Size",
+  diamond:{table:"diamond_sizes",title:"Stone Size",
     fields:()=>`<div class="form-grid">
       <div class="form-group"><label>Category *</label><select id="mf-category" onchange="diamFormCascade()"><option value="">Select...</option>${VJ_STONE.categoryNames().map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
       <div class="form-group"><label>Stone Type <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— blank = every type in the category</span></label><select id="mf-stone-type"><option value="">All types</option></select></div>
@@ -4790,7 +4790,7 @@ async function splDelete(id){
 
 async function addStoneRow(){
   try{
-    const res = await sb('stone_types','POST',withCat({name:'New Stone',type:'Natural',shape:'Round',color:'',quality:'',size_basis:'',rate_inr:0,price_inr:null,rate_usd:null,price_usd:null},'Diamond'));
+    const res = await sb('stone_types','POST',withCat({name:'New Stone',type:'Natural',shape:'Round',color:null,quality:null,size_basis:null,rate_inr:0,price_inr:null,rate_usd:null,price_usd:null},'Diamond'));
     const newRow = Array.isArray(res)?res[0]:res;
     if(newRow){ allStones.unshift(newRow); }
     else { await loadMasters(); return; }
@@ -4798,7 +4798,7 @@ async function addStoneRow(){
     // Focus first cell of new row
     const firstInput = document.querySelector('#spl-tbody tr:first-child input');
     if(firstInput){ firstInput.focus(); firstInput.select(); }
-  } catch(e){ toast('Error adding row: '+e.message,'error'); }
+  } catch(e){ console.error('addStoneRow',e); toast('Error adding row: '+(e.message||e)+' — if this mentions a constraint or duplicate, run the stone-add-row-fix.sql shown in the notes.','error'); }
 }
 
 function exportStonesXlsx(){
@@ -5832,7 +5832,7 @@ async function importDiamSizesXlsx(e){
       try{ existingCount=(await sb("diamond_sizes?select=id"))?.length||0; }catch(err){}
 
       openImportPreview({
-        title: `Import Preview — Diamond Sizes (${rows.length} rows read from file)`,
+        title: `Import Preview — Stone Sizes (${rows.length} rows read from file)`,
         table: "diamond_sizes",
         columns: [
           {key:'sort_order', label:'#'},
@@ -6395,7 +6395,7 @@ function renderStonePrices(r){
   const tb = document.getElementById("sr-price-tbody"); if(!tb) return;
   const rows = srPriceRows(r);
   tb.innerHTML = rows.length
-    ? rows.map(x => `<tr><td>${esc(x.shape)}</td><td><strong>${esc(x.size)}</strong></td><td>${x.bases.length ? esc(x.bases.join(", ")) : `<span class="sr-missing" title="No matching shape/mm in Diamond Sizes">not in Diamond Sizes</span>`}</td><td>${srPriceCell(x.natural)}</td><td>${srPriceCell(x.lab)}</td></tr>`).join("")
+    ? rows.map(x => `<tr><td>${esc(x.shape)}</td><td><strong>${esc(x.size)}</strong></td><td>${x.bases.length ? esc(x.bases.join(", ")) : `<span class="sr-missing" title="No matching shape/mm in Stone Sizes">not in Stone Sizes</span>`}</td><td>${srPriceCell(x.natural)}</td><td>${srPriceCell(x.lab)}</td></tr>`).join("")
     : "<tr><td colspan='5' class='state-msg'>No data.</td></tr>";
 }
 
@@ -6478,7 +6478,7 @@ function exportStoneReportXlsx(){
     : "missing";
   add("Stone Prices",
     ["Shape", "Size (mm)", "Size Basis", "Natural (per ct)", "Lab Grown (per ct)"],
-    srPriceRows(r).map(x => [x.shape, x.size, x.bases.join(", ") || "not in Diamond Sizes", fmtP(x.natural), fmtP(x.lab)]),
+    srPriceRows(r).map(x => [x.shape, x.size, x.bases.join(", ") || "not in Stone Sizes", fmtP(x.natural), fmtP(x.lab)]),
     [18, 16, 14, 40, 40]);
 
   XLSX.writeFile(wb, "viejewels-stone-report-" + new Date().toISOString().slice(0,10) + ".xlsx");
