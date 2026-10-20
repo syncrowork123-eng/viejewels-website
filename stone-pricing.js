@@ -83,6 +83,9 @@ const VJ_STONE = (() => {
   }
   configure(DEFAULT_TAXONOMY);
 
+  // Size Basis values ("-2", "+15", "1/4", "-6½+2") are compared strictly: only case, spaces and ½ are ignored.
+  const sbKey = v => String(v == null ? "" : v).toLowerCase().replace(/\s+/g, "").replace("½", "1/2");
+
   const categoryNames = () => [...CATEGORY_NAMES];
   const typesOf   = cat => CATEGORIES[cat] ? [...CATEGORIES[cat]] : categoryNames().flatMap(c => CATEGORIES[c]);
   const colorsOf  = cat => COLORS[cat] ? [...COLORS[cat]] : categoryNames().flatMap(c => COLORS[c]);
@@ -149,6 +152,28 @@ const VJ_STONE = (() => {
     return { avgWtCt: num(pool[0].avg_weight_ct), sizeBasis: pool[0].size_basis || "", row: pool[0] };
   }
 
+  // Size Basis values that exist in the Stone Sizes master for a category [+ type] + shape (master order kept).
+  // This is the ONLY list a Stone Price row may pick its Size Basis from.
+  function sizeBasisOptions(diamSizes, { category, type, shape }) {
+    const cat = category || categoryOf(type), seen = new Set(), out = [];
+    (diamSizes || []).forEach(d => {
+      const rc = rowCategory(d);
+      if (cat && rc && rc !== cat) return;
+      const rt = rowType(d);
+      if (rt && type && typeKey(rt) !== typeKey(type)) return;
+      if (shape && norm(d.shape) !== norm(shape)) return;
+      const sb = String(d.size_basis == null ? "" : d.size_basis).trim();
+      if (!sb || seen.has(sbKey(sb))) return;
+      seen.add(sbKey(sb)); out.push(sb);
+    });
+    return out;
+  }
+  // The Stone Sizes spelling of a Size Basis ("" if that size does not exist for the category / type / shape)
+  const canonSizeBasis = (diamSizes, ctx, value) => {
+    const k = sbKey(value);
+    return k ? (sizeBasisOptions(diamSizes, ctx).find(o => sbKey(o) === k) || "") : "";
+  };
+
   // ── RATE: Stone Prices master ──────────────────────────────────────────
   const priceOf = s => num(s.price_inr) || num(s.rate_inr);   // margin-inclusive price first
 
@@ -158,7 +183,7 @@ const VJ_STONE = (() => {
     const cat = categoryOf(type);
     return (stoneTypes || []).filter(s =>
       typeKey(s.type) === typeKey(type) && (!cat || !rowCategory(s) || rowCategory(s) === cat) &&
-      norm(s.shape) === norm(shape) && norm(s.size_basis) === norm(sizeBasis) && priceOf(s) > 0);
+      norm(s.shape) === norm(shape) && sbKey(s.size_basis) === sbKey(sizeBasis) && priceOf(s) > 0);
   }
 
   // Picks one row. Color / quality only ever narrow the choice — they never switch type, shape or size.
@@ -231,19 +256,23 @@ const VJ_STONE = (() => {
 
   // ── MASTER DATA CHECKS (used by the admin) ─────────────────────────────
   // Problems in a Stone Prices row against the classification ("" = fine)
-  function checkPriceRow(s) {
+  function checkPriceRow(s, diamSizes) {
     const cat = rowCategory(s);
     if (!cat) return "Type is not in the classification";
-    if (!canon("type", s.type, cat)) return "Type does not belong to " + cat;
+    const type = canon("type", s.type, cat);
+    if (!type) return "Type does not belong to " + cat;
     if (!canon("shape", s.shape)) return "Unknown shape";
     if (s.color && !canon("color", s.color, cat)) return "Color not valid for " + cat;
     if (s.quality && !canon("quality", s.quality)) return "Unknown quality";
     if (!s.size_basis) return "Size Basis missing";
-    if (Object.keys(normalizePriceRow(s)).length) return "Spelling differs from the Stone Master (use Auto-fix)";
+    const useSizes = !!(diamSizes && diamSizes.length);
+    if (useSizes && !canonSizeBasis(diamSizes, { category: cat, type, shape: canon("shape", s.shape) }, s.size_basis))
+      return "Size Basis “" + s.size_basis + "” is not in Stone Sizes for " + canon("shape", s.shape);
+    if (Object.keys(normalizePriceRow(s, diamSizes)).length) return "Spelling differs from the Stone Master (use Auto-fix)";
     return "";
   }
   // Canonical spelling of a Stone Prices row: returns only the fields that must change ({} = already clean)
-  function normalizePriceRow(s) {
+  function normalizePriceRow(s, diamSizes) {
     const cat = rowCategory(s), out = {};
     if (!cat) return out;
     const type = canon("type", s.type, cat), shape = canon("shape", s.shape);
@@ -252,13 +281,17 @@ const VJ_STONE = (() => {
     if (shape && shape !== s.shape) out.shape = shape;
     if (color && color !== s.color) out.color = color;
     if (quality && quality !== s.quality) out.quality = quality;
+    if (diamSizes && diamSizes.length && type && shape && s.size_basis) {
+      const sb = canonSizeBasis(diamSizes, { category: cat, type, shape }, s.size_basis);
+      if (sb && sb !== s.size_basis) out.size_basis = sb;
+    }
     if (s.category !== undefined && cat !== s.category) out.category = cat;
     return out;
   }
-  const priceKey = s => [rowCategory(s), typeKey(s.type), norm(s.shape), norm(s.color), norm(s.quality), norm(s.size_basis)].join("|");
+  const priceKey = s => [rowCategory(s), typeKey(s.type), norm(s.shape), norm(s.color), norm(s.quality), sbKey(s.size_basis)].join("|");
 
   return { CATEGORIES, SHAPES, COLORS, QUALITIES, SIZE_TOLERANCE_MM, DEFAULT_TAXONOMY, TAXONOMY_SETTING_KEY: "stone_taxonomy",
-           configure, getTaxonomy, normalizePriceRow, typeKey,
+           configure, getTaxonomy, normalizePriceRow, typeKey, sbKey, sizeBasisOptions, canonSizeBasis,
            norm, categoryNames, typesOf, colorsOf, categoryOf, rowCategory, rowType, canon,
            findSize, rateCandidates, findRate, calcStoneCharges, checkPriceRow, priceKey };
 })();
