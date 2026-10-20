@@ -2138,10 +2138,18 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   const makingMinRec  = metalIsSilver
     ? (labour.find(l => l.category === "__making_min_silver__")  || labour.find(l => l.category === "__making_min__"))
     : (labour.find(l => l.category === "__making_min_gold__")    || labour.find(l => l.category === "__making_min__"));
-  // Admin now stores making rate / minimum in INR (__making_rate_inr__ / __making_min_inr__);
-  // INR ÷ USD rate gives USD. Falls back to the legacy USD-entered keys if INR ones are not set yet.
-  const makingRateInrRec = labour.find(l => l.category === "__making_rate_inr__");
-  const makingMinInrRec  = labour.find(l => l.category === "__making_min_inr__");
+  // Admin stores making rate / minimum in INR, separately for gold and silver:
+  //   __making_rate_inr_gold__ / __making_rate_inr_silver__
+  //   __making_min_inr_gold__  / __making_min_inr_silver__
+  // INR ÷ USD rate gives USD. Falls back to the old single INR keys (__making_rate_inr__ /
+  // __making_min_inr__), then to the legacy USD-entered keys, so existing data keeps working.
+  const _mk = (suffix) => {
+    const metalKey  = "__making_" + suffix + "_inr_" + (metalIsSilver ? "silver" : "gold") + "__";
+    const sharedKey = "__making_" + suffix + "_inr__";
+    return labour.find(l => l.category === metalKey) || labour.find(l => l.category === sharedKey);
+  };
+  const makingRateInrRec = _mk("rate");
+  const makingMinInrRec  = _mk("min");
   const makingRateUSD = makingRateInrRec
     ? Number(makingRateInrRec.charge || 0) / inrPerUSD
     : Number(makingRateRec?.charge || 0);
