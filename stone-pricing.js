@@ -3,7 +3,11 @@
    Used by admin.html (masters, Stone Report) and by script.js (storefront price).
    Load this file BEFORE script.js / the admin script.
 
-   CLASSIFICATION
+   CLASSIFICATION  (this file only holds the DEFAULTS)
+     The live lists are edited by the admin in  Masters -> Stone Master  and stored in the
+     database (site_settings key "stone_taxonomy"). They are applied at runtime through
+     VJ_STONE.configure(...), so nothing in this file has to be edited to add a type, shape,
+     colour or quality. If the database has no saved list, the defaults below are used.
      Category : Diamond | Gem Stone
      Type     : Diamond   -> Natural, Lab Grown
                 Gem Stone -> Emerald, Ruby, Sapphire, Pearl
@@ -22,29 +26,70 @@
 */
 const VJ_STONE = (() => {
   // ── TAXONOMY (edit here to add a value everywhere) ─────────────────────
-  const CATEGORIES = {
-    "Diamond":   ["Natural", "Lab Grown"],
-    "Gem Stone": ["Emerald", "Ruby", "Sapphire", "Pearl"],
+  // Gem Stone type "Pearl" is the stone; "Pear" is only a SHAPE.
+  const DEFAULT_TAXONOMY = {
+    types: {
+      "Diamond":   ["Natural", "Lab Grown"],
+      "Gem Stone": ["Emerald", "Ruby", "Sapphire", "Pearl"],
+    },
+    colors: {
+      "Diamond":   ["D-F", "G-H", "I-J"],
+      "Gem Stone": ["Black", "Blue", "Green", "Yellow", "Pink"],
+    },
+    shapes:    ["Round", "Emerald", "Princess", "Pear", "Marquise", "Bugget", "Taper", "Heart", "Cushion", "Oval"],
+    qualities: ["IF", "VVS-VS", "SI", "I"],
   };
-  const SHAPES    = ["Round", "Emerald", "Princess", "Pear", "Marquise", "Bugget", "Taper", "Heart", "Cushion", "Oval"];
-  const COLORS    = {
-    "Diamond":   ["D-F", "G-H", "I-J"],
-    "Gem Stone": ["Black", "Blue", "Green", "Yellow", "Pink"],
-  };
-  const QUALITIES = ["IF", "VVS-VS", "SI", "I"];
+  const CATEGORY_NAMES = ["Diamond", "Gem Stone"];   // fixed: the pricing rules treat these two differently
+
+  // Live lists (same object / array identities forever; configure() rewrites their contents in place)
+  const CATEGORIES = {};
+  const COLORS     = {};
+  const SHAPES     = [];
+  const QUALITIES  = [];
 
   const SIZE_TOLERANCE_MM = 0.05;
 
-  const norm = v => String(v == null ? "" : v).toLowerCase().replace(/\s+/g, "").replace("½", "1/2");
+  // Spacing, hyphens, en/em dashes, slashes and underscores are ignored when comparing, so
+  // "Lab-Grown", "lab grown", "D–F", "VVS/VS" and "VVS-VS" all match the stored spelling.
+  const norm = v => String(v == null ? "" : v).toLowerCase().replace(/[\s\-\u2010-\u2015_\/]+/g, "").replace("½", "1/2");
   const num  = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 
-  const categoryNames = () => Object.keys(CATEGORIES);
+  // Old / misspelt STONE TYPE values -> the type they mean ("Pear" as a stone type is the gem "Pearl").
+  const TYPE_ALIASES = { pear:"Pearl", pearls:"Pearl", naturaldiamond:"Natural", labgrowndiamond:"Lab Grown", lab:"Lab Grown",
+    emeralds:"Emerald", rubies:"Ruby", sapphires:"Sapphire" };
+  const typeKey = t => { const n = norm(t); return TYPE_ALIASES[n] ? norm(TYPE_ALIASES[n]) : n; };
+
+  function clean(list) {            // trim, drop blanks and case/spacing duplicates, keep order
+    const seen = new Set(), out = [];
+    (Array.isArray(list) ? list : []).forEach(v => { const s = String(v == null ? "" : v).trim(), k = norm(s); if (s && !seen.has(k)) { seen.add(k); out.push(s); } });
+    return out;
+  }
+  const getTaxonomy = () => ({
+    types:  Object.fromEntries(CATEGORY_NAMES.map(c => [c, [...(CATEGORIES[c] || [])]])),
+    colors: Object.fromEntries(CATEGORY_NAMES.map(c => [c, [...(COLORS[c] || [])]])),
+    shapes: [...SHAPES], qualities: [...QUALITIES],
+  });
+  // Replace the live lists (admin Stone Master / saved database copy). Missing or empty parts fall back to the defaults.
+  function configure(tax) {
+    const t = tax && typeof tax === "object" ? tax : {};
+    CATEGORY_NAMES.forEach(c => {
+      const ty = clean(t.types && t.types[c]), co = clean(t.colors && t.colors[c]);
+      CATEGORIES[c] = ty.length ? ty : [...DEFAULT_TAXONOMY.types[c]];
+      COLORS[c]     = co.length ? co : [...DEFAULT_TAXONOMY.colors[c]];
+    });
+    const sh = clean(t.shapes), qu = clean(t.qualities);
+    SHAPES.splice(0, SHAPES.length, ...(sh.length ? sh : DEFAULT_TAXONOMY.shapes));
+    QUALITIES.splice(0, QUALITIES.length, ...(qu.length ? qu : DEFAULT_TAXONOMY.qualities));
+  }
+  configure(DEFAULT_TAXONOMY);
+
+  const categoryNames = () => [...CATEGORY_NAMES];
   const typesOf   = cat => CATEGORIES[cat] ? [...CATEGORIES[cat]] : categoryNames().flatMap(c => CATEGORIES[c]);
   const colorsOf  = cat => COLORS[cat] ? [...COLORS[cat]] : categoryNames().flatMap(c => COLORS[c]);
 
   // Stone type -> category ("" if the type is not part of the classification)
   function categoryOf(type) {
-    const t = norm(type);
+    const t = typeKey(type);
     if (!t) return "";
     for (const [cat, types] of Object.entries(CATEGORIES)) if (types.some(x => norm(x) === t)) return cat;
     return "";
@@ -71,13 +116,13 @@ const VJ_STONE = (() => {
   // Canonical spelling for a value of a field, or "" if it is not in the classification.
   function canon(field, value, category) {
     const n = norm(value); if (!n) return "";
-    if (field === "shape" && SHAPE_ALIASES[n]) return SHAPE_ALIASES[n];
+    if (field === "shape" && SHAPE_ALIASES[n] && SHAPES.includes(SHAPE_ALIASES[n])) return SHAPE_ALIASES[n];
     const list = field === "category" ? categoryNames()
       : field === "type"    ? typesOf(category)
       : field === "shape"   ? SHAPES
       : field === "color"   ? colorsOf(category)
       : field === "quality" ? QUALITIES : [];
-    return list.find(x => norm(x) === n) || "";
+    return list.find(x => norm(x) === (field === "type" ? typeKey(value) : n)) || "";
   }
 
   // ── SIZE: Diamond Sizes master ─────────────────────────────────────────
@@ -91,7 +136,7 @@ const VJ_STONE = (() => {
       const rc = rowCategory(d);
       if (cat && rc && rc !== cat) return false;
       const rt = rowType(d);
-      if (rt && type && norm(rt) !== norm(type)) return false;
+      if (rt && type && typeKey(rt) !== typeKey(type)) return false;
       return norm(d.shape) === norm(shape) &&
         (len ? Math.abs(num(d.mm_length) - len) < SIZE_TOLERANCE_MM : true) &&
         (wid ? Math.abs(num(d.mm_width)  - wid) < SIZE_TOLERANCE_MM : true);
@@ -112,7 +157,7 @@ const VJ_STONE = (() => {
     if (!sizeBasis) return [];
     const cat = categoryOf(type);
     return (stoneTypes || []).filter(s =>
-      norm(s.type) === norm(type) && (!cat || !rowCategory(s) || rowCategory(s) === cat) &&
+      typeKey(s.type) === typeKey(type) && (!cat || !rowCategory(s) || rowCategory(s) === cat) &&
       norm(s.shape) === norm(shape) && norm(s.size_basis) === norm(sizeBasis) && priceOf(s) > 0);
   }
 
@@ -158,7 +203,7 @@ const VJ_STONE = (() => {
       const category = rowCategory({ stone_type: row.stone_type });
       // Legacy rows may hold only the category word ("Diamond"/"Gem Stone") as type:
       // use the storefront choice, else the category's first type, so price rows can match.
-      let type = row.stone_type;
+      let type = canon("type", row.stone_type, category) || row.stone_type;
       if (category === "Diamond" && overrideIsDiamond) type = overrideType;
       else if (!categoryOf(type) && category) type = CATEGORIES[category][0];
       const sel = category === "Gem Stone" ? { color: gemColor, quality: gemQuality } : { color, quality };
@@ -194,11 +239,26 @@ const VJ_STONE = (() => {
     if (s.color && !canon("color", s.color, cat)) return "Color not valid for " + cat;
     if (s.quality && !canon("quality", s.quality)) return "Unknown quality";
     if (!s.size_basis) return "Size Basis missing";
+    if (Object.keys(normalizePriceRow(s)).length) return "Spelling differs from the Stone Master (use Auto-fix)";
     return "";
   }
-  const priceKey = s => [rowCategory(s), norm(s.type), norm(s.shape), norm(s.color), norm(s.quality), norm(s.size_basis)].join("|");
+  // Canonical spelling of a Stone Prices row: returns only the fields that must change ({} = already clean)
+  function normalizePriceRow(s) {
+    const cat = rowCategory(s), out = {};
+    if (!cat) return out;
+    const type = canon("type", s.type, cat), shape = canon("shape", s.shape);
+    const color = s.color ? canon("color", s.color, cat) : "", quality = s.quality ? canon("quality", s.quality) : "";
+    if (type && type !== s.type) out.type = type;
+    if (shape && shape !== s.shape) out.shape = shape;
+    if (color && color !== s.color) out.color = color;
+    if (quality && quality !== s.quality) out.quality = quality;
+    if (s.category !== undefined && cat !== s.category) out.category = cat;
+    return out;
+  }
+  const priceKey = s => [rowCategory(s), typeKey(s.type), norm(s.shape), norm(s.color), norm(s.quality), norm(s.size_basis)].join("|");
 
-  return { CATEGORIES, SHAPES, COLORS, QUALITIES, SIZE_TOLERANCE_MM,
+  return { CATEGORIES, SHAPES, COLORS, QUALITIES, SIZE_TOLERANCE_MM, DEFAULT_TAXONOMY, TAXONOMY_SETTING_KEY: "stone_taxonomy",
+           configure, getTaxonomy, normalizePriceRow, typeKey,
            norm, categoryNames, typesOf, colorsOf, categoryOf, rowCategory, rowType, canon,
            findSize, rateCandidates, findRate, calcStoneCharges, checkPriceRow, priceKey };
 })();
