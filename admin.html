@@ -376,6 +376,7 @@
   .labour-making-field input{border:1px solid var(--border);border-radius:4px;padding:7px 12px;font-size:13px;width:140px;text-align:right;background:var(--surface);color:var(--text);}
   .labour-making-field input:focus{outline:none;border-color:var(--accent);}
   .labour-usd-note{font-size:11px;color:var(--text-muted);text-align:right;}
+  .labour-making-metal{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--accent);padding:14px 18px 0;}
   .labour-making-hint{font-size:11px;color:var(--text-muted);padding:0 18px 14px;}
 
     /* ── JEWELRY SIZE CHART PANEL ─────────────────────────── */
@@ -782,16 +783,30 @@
             <span class="labour-section-sub">— RATE × NET METAL WEIGHT</span>
           </div>
         </div>
+        <div class="labour-making-metal">GOLD (18K / 14K / 10K)</div>
         <div class="labour-making-row">
           <div class="labour-making-field">
             <label>Rate (INR / gram)</label>
-            <input type="number" id="making-rate" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveMakingRate()" />
-            <div class="labour-usd-note" id="making-rate-usd">= — USD / gram</div>
+            <input type="number" id="making-rate-gold" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveMakingRate('gold')" />
+            <div class="labour-usd-note" id="making-rate-gold-usd">= — USD / gram</div>
           </div>
           <div class="labour-making-field">
             <label>Minimum Flat Charge (INR)</label>
-            <input type="number" id="making-min" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveMakingMin()" />
-            <div class="labour-usd-note" id="making-min-usd">= — USD</div>
+            <input type="number" id="making-min-gold" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveMakingMin('gold')" />
+            <div class="labour-usd-note" id="making-min-gold-usd">= — USD</div>
+          </div>
+        </div>
+        <div class="labour-making-metal">SILVER (925)</div>
+        <div class="labour-making-row">
+          <div class="labour-making-field">
+            <label>Rate (INR / gram)</label>
+            <input type="number" id="making-rate-silver" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveMakingRate('silver')" />
+            <div class="labour-usd-note" id="making-rate-silver-usd">= — USD / gram</div>
+          </div>
+          <div class="labour-making-field">
+            <label>Minimum Flat Charge (INR)</label>
+            <input type="number" id="making-min-silver" step="0.01" placeholder="0" oninput="labourUsdPreview()" onchange="saveMakingMin('silver')" />
+            <div class="labour-usd-note" id="making-min-silver-usd">= — USD</div>
           </div>
         </div>
         <div class="labour-making-hint">Enter rates in INR — they are divided by the USD currency rate to give USD. Cost = Rate × Net Weight (g) — if result is less than Minimum Flat Charge, Minimum is applied instead</div>
@@ -4645,8 +4660,12 @@ function getStoneDerivedRates(rateINR){
 
 // Category constants stored in labour_charges table
 // Making / certification rates are entered and stored in INR; USD is derived (INR ÷ USD currency rate).
-const LC_MAKING_RATE = "__making_rate_inr__";
-const LC_MAKING_MIN  = "__making_min_inr__";
+// Making charges are separate for gold and silver. The old single keys are kept as a fallback
+// (and shown as the starting value) until gold/silver values are saved.
+const LC_MAKING_RATE = "__making_rate_inr__";            // legacy shared key
+const LC_MAKING_MIN  = "__making_min_inr__";             // legacy shared key
+const LC_MAKING_RATE_METAL = { gold:"__making_rate_inr_gold__", silver:"__making_rate_inr_silver__" };
+const LC_MAKING_MIN_METAL  = { gold:"__making_min_inr_gold__",  silver:"__making_min_inr_silver__" };
 const LC_CERT_RATE   = "__cert_rate_inr__";
 const LC_CERT_MIN    = "__cert_min_inr__";
 // Legacy USD-entered keys — no longer used, kept only so old rows stay hidden from the setting list
@@ -4664,8 +4683,10 @@ function labourUsdPreview(){
     const v=parseFloat(i.value);
     o.textContent = (fx>0 && !isNaN(v)) ? "= "+(v/fx).toFixed(4)+" "+suffix : "= — "+suffix;
   };
-  set("making-rate","making-rate-usd","USD / gram");
-  set("making-min","making-min-usd","USD");
+  ["gold","silver"].forEach(m=>{
+    set("making-rate-"+m,"making-rate-"+m+"-usd","USD / gram");
+    set("making-min-"+m,"making-min-"+m+"-usd","USD");
+  });
   set("cert-rate","cert-rate-usd","USD / carat");
   set("cert-min","cert-min-usd","USD");
 }
@@ -4679,7 +4700,7 @@ const METAL_BASE_SILVER_KEY = "__base_troy_oz_silver__";
 
 function renderLabourPanel(){
   // Setting rows = all labour_charges except reserved singleton keys
-  const reserved = [LC_MAKING_RATE, LC_MAKING_MIN, LC_CERT_RATE, LC_CERT_MIN, ...LC_LEGACY_KEYS];
+  const reserved = [LC_MAKING_RATE, LC_MAKING_MIN, ...Object.values(LC_MAKING_RATE_METAL), ...Object.values(LC_MAKING_MIN_METAL), LC_CERT_RATE, LC_CERT_MIN, ...LC_LEGACY_KEYS];
   const settingRows = allLabour.filter(r => !reserved.includes(r.category));
   const tbody = document.getElementById("setting-tbody");
   if(!tbody) return;
@@ -4701,12 +4722,16 @@ function renderLabourPanel(){
   }
 
   // Populate Making / Cert singletons
-  const makingRate = allLabour.find(r=>r.category===LC_MAKING_RATE);
-  const makingMin  = allLabour.find(r=>r.category===LC_MAKING_MIN);
+  const sharedRate = allLabour.find(r=>r.category===LC_MAKING_RATE);
+  const sharedMin  = allLabour.find(r=>r.category===LC_MAKING_MIN);
   const certRate   = allLabour.find(r=>r.category===LC_CERT_RATE);
   const el = id => document.getElementById(id);
-  if(el("making-rate")) el("making-rate").value = makingRate?.charge ?? "";
-  if(el("making-min"))  el("making-min").value  = makingMin?.charge  ?? "";
+  ["gold","silver"].forEach(m=>{
+    const r = allLabour.find(x=>x.category===LC_MAKING_RATE_METAL[m]) || sharedRate;
+    const n = allLabour.find(x=>x.category===LC_MAKING_MIN_METAL[m])  || sharedMin;
+    if(el("making-rate-"+m)) el("making-rate-"+m).value = r?.charge ?? "";
+    if(el("making-min-"+m))  el("making-min-"+m).value  = n?.charge ?? "";
+  });
   if(el("cert-rate"))   el("cert-rate").value   = certRate?.charge   ?? "";
   const certMin = allLabour.find(r=>r.category===LC_CERT_MIN);
   if(el("cert-min"))    el("cert-min").value    = certMin?.charge    ?? "";
@@ -4755,8 +4780,8 @@ async function saveSingleton(category, charge){
   }catch(e){ toast("Save error: "+e.message,"error"); }
 }
 
-function saveMakingRate(){ const v=parseFloat(document.getElementById("making-rate").value)||0; saveSingleton(LC_MAKING_RATE,v); }
-function saveMakingMin(){  const v=parseFloat(document.getElementById("making-min").value)||0;  saveSingleton(LC_MAKING_MIN,v); }
+function saveMakingRate(m){ const v=parseFloat(document.getElementById("making-rate-"+m).value)||0; saveSingleton(LC_MAKING_RATE_METAL[m],v); }
+function saveMakingMin(m){  const v=parseFloat(document.getElementById("making-min-"+m).value)||0;  saveSingleton(LC_MAKING_MIN_METAL[m],v); }
 function saveCertRate(){   const v=parseFloat(document.getElementById("cert-rate").value)||0;   saveSingleton(LC_CERT_RATE,v); }
 function saveCertMin(){    const v=parseFloat(document.getElementById("cert-min").value)||0;    saveSingleton(LC_CERT_MIN,v); }
 
