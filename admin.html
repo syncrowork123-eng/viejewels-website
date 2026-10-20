@@ -56,6 +56,15 @@
     .sr-matrix td.sr-total, .sr-matrix th.sr-total { background:var(--surface2); font-weight:600; }
     .sr-h-shape { display:block; }
     .sr-h-size { display:block; font-weight:700; color:var(--text); letter-spacing:0; text-transform:none; font-size:12px; }
+    .spl-row-bad td { background:rgba(229,72,77,.07); }
+    .spl-row-bad td:first-child { box-shadow: inset 3px 0 0 #e5484d; }
+    .spl-issues { color:#e5484d; font-weight:700; font-size:12px; margin-left:10px; }
+    .schema-warn { background:#fff4e5; border:1px solid #f0c27b; color:#7a4a00; border-radius:8px; padding:10px 14px; margin:0 0 12px; font-size:12px; line-height:1.5; }
+    .schema-warn code { background:rgba(0,0,0,.06); padding:1px 5px; border-radius:4px; }
+    .class-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .class-card { border:1px solid var(--border); border-radius:8px; padding:12px 14px; background:var(--surface); }
+    .class-card h4 { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px; }
+    .class-card .chips span { display:inline-block; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:2px 9px; margin:0 5px 5px 0; font-size:12px; }
     .sr-missing { color:#e5484d; font-weight:700; }
     .sr-price-line { white-space:nowrap; font-variant-numeric:tabular-nums; }
     .sr-price-line small { color:var(--text-muted); }
@@ -277,7 +286,7 @@
     .spl-derived.has-val { color:var(--text); font-weight:500; }
     .spl-del-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:4px 6px; opacity:0.5; }
     .spl-del-btn:hover { color:var(--danger); opacity:1; }
-    .spl-th-type { width:90px; } .spl-th-shape { width:90px; } .spl-th-color { width:110px; }
+    .spl-th-type { width:110px; } .spl-th-shape { width:90px; } .spl-th-color { width:110px; }
     .spl-th-quality { width:80px; } .spl-th-size { width:80px; }
     .spl-th-rate { width:130px; } .spl-th-derived { width:120px; text-align:right; }
     .currency-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:18px 20px; min-width:220px; max-width:260px; flex:1; position:relative; }
@@ -568,14 +577,17 @@
           </div>
         </div>
 
+        <div class="schema-warn-slot"></div>
         <!-- Filters -->
         <div class="spl-filters">
           <span style="font-size:12px;color:var(--text-muted);margin-right:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Filter</span>
+          <select class="spl-filter-sel" id="spl-f-category" onchange="renderStoneGrid()"><option value="">All Categories</option></select>
           <select class="spl-filter-sel" id="spl-f-type" onchange="renderStoneGrid()"><option value="">All Types</option></select>
           <select class="spl-filter-sel" id="spl-f-shape" onchange="renderStoneGrid()"><option value="">All Shapes</option></select>
           <select class="spl-filter-sel" id="spl-f-color" onchange="renderStoneGrid()"><option value="">All Colors</option></select>
           <select class="spl-filter-sel" id="spl-f-quality" onchange="renderStoneGrid()"><option value="">All Qualities</option></select>
           <span id="spl-count" style="font-size:12px;color:var(--text-muted);margin-left:8px;"></span>
+          <span id="spl-issues" class="spl-issues"></span>
         </div>
 
         <!-- Column Headers -->
@@ -583,6 +595,7 @@
           <table class="spl-table">
             <thead>
               <tr>
+                <th class="spl-th-type">Category</th>
                 <th class="spl-th-type">Type</th>
                 <th class="spl-th-shape">Shape</th>
                 <th class="spl-th-color">Color</th>
@@ -606,29 +619,18 @@
             </thead>
             <tbody id="spl-tbody"></tbody>
           </table>
+          <datalist id="spl-sb-list"></datalist>
         </div>
 
-        <!-- Manage Dropdown Options (collapsible) -->
+        <!-- Stone classification (read-only; edit stone-pricing.js to change) -->
         <div class="lookup-collapsible">
           <button class="lookup-toggle" onclick="toggleLookupSection()">
-            <span id="lookup-toggle-icon">▸</span> Manage Dropdown Options
-            <span class="lookup-toggle-sub">Type / Shape / Quality values used above</span>
+            <span id="lookup-toggle-icon">▸</span> Stone Classification
+            <span class="lookup-toggle-sub">Category / Type / Shape / Color / Quality used by Stone Prices, Diamond Sizes and the website</span>
           </button>
           <div class="lookup-body" id="lookup-body" style="display:none">
-            <div class="toolbar">
-              <div class="toolbar-left">
-                <select class="filter-select" id="lookup-field-filter" onchange="renderLookupTable()">
-                  <option value="type">Stone Type</option>
-                  <option value="shape">Shape</option>
-                  <option value="quality">Quality</option>
-                </select>
-              </div>
-              <button class="btn btn-primary" onclick="openLookupModal()">+ Add Option</button>
-            </div>
-            <div class="table-wrap"><table>
-              <thead><tr><th>Field</th><th>Value</th><th>Sort Order</th><th>Actions</th></tr></thead>
-              <tbody id="stonelookups-tbody"><tr><td colspan="4" class="state-msg">Loading...</td></tr></tbody>
-            </table></div>
+            <div id="stone-class-body"></div>
+            <p style="font-size:12px;color:var(--text-muted);margin:12px 0 0">Fixed list shared by the admin and the website, so a price can never be saved under a spelling the website won't find. To add a type, shape, color or quality, add it to <code>stone-pricing.js</code> (top of the file) — it then appears in every dropdown.</p>
           </div>
         </div>
       </div>
@@ -642,8 +644,10 @@
         </div>
         <button class="btn btn-primary" onclick="openMasterModal('diamond')">+ Add Diamond Size</button>
       </div>
+      <div class="schema-warn-slot"></div>
       <div class="spl-filters" style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;">
         <span style="font-size:12px;color:var(--text-muted);margin-right:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Filter</span>
+        <select class="spl-filter-sel" id="diam-f-category" onchange="renderDiamondsTable()"><option value="">All Categories</option></select>
         <select class="spl-filter-sel" id="diam-f-type" onchange="renderDiamondsTable()"><option value="">All Stone Types</option></select>
         <select class="spl-filter-sel" id="diam-f-shape" onchange="renderDiamondsTable()"><option value="">All Shapes</option></select>
         <select class="spl-filter-sel" id="diam-f-sizebasis" onchange="renderDiamondsTable()"><option value="">All Size Basis</option></select>
@@ -661,8 +665,8 @@
         <span id="diam-count" style="font-size:12px;color:var(--text-muted);margin-left:8px;"></span>
       </div>
       <div class="table-wrap"><table>
-        <thead><tr><th style="width:44px">#</th><th>Stone Type</th><th>Shape</th><th>mm L</th><th>mm W</th><th>Sieve From</th><th>Sieve To</th><th>Avg Wt (ct)</th><th>Size Basis</th><th>Actions</th></tr></thead>
-        <tbody id="diamonds-tbody"><tr><td colspan="10" class="state-msg">Loading...</td></tr></tbody>
+        <thead><tr><th style="width:44px">#</th><th>Category</th><th>Stone Type</th><th>Shape</th><th>mm L</th><th>mm W</th><th>Sieve From</th><th>Sieve To</th><th>Avg Wt (ct)</th><th>Size Basis</th><th>Actions</th></tr></thead>
+        <tbody id="diamonds-tbody"><tr><td colspan="11" class="state-msg">Loading...</td></tr></tbody>
       </table></div>
     </div>
     <div class="sub-panel" id="sub-labour">
@@ -995,11 +999,11 @@
   <div class="section-label" style="margin-top:28px">Stone Prices by Size — Natural &amp; Lab Grown</div>
   <div class="table-wrap" style="max-height:70vh">
     <table>
-      <thead><tr><th>Shape</th><th>Size (mm)</th><th>Natural (per ct)</th><th>Lab Grown (per ct)</th></tr></thead>
-      <tbody id="sr-price-tbody"><tr><td colspan="4" class="state-msg">Loading...</td></tr></tbody>
+      <thead><tr><th>Shape</th><th>Size (mm)</th><th>Size Basis</th><th>Natural (per ct)</th><th>Lab Grown (per ct)</th></tr></thead>
+      <tbody id="sr-price-tbody"><tr><td colspan="5" class="state-msg">Loading...</td></tr></tbody>
     </table>
   </div>
-  <div style="font-size:11px;color:var(--text-muted);margin:8px 0 0">Prices come from the Stone Price List (Masters → Stone Prices), matched on stone type, shape and size basis. Rate shown is the base rate per carat; where several colour/quality grades exist, each is listed. <span class="sr-missing">missing</span> = no price set.</div>
+  <div style="font-size:11px;color:var(--text-muted);margin:8px 0 0">Prices come from the Stone Price List (Masters → Stone Prices), linked via Diamond Sizes (shape + mm → Size Basis), then matched on stone type + shape + Size Basis — exactly as the website prices stones. Rate shown is the price per carat (including margin); where several colour/quality grades exist, each is listed. <span class="sr-missing">missing</span> = no price set.</div>
 </div>
 
 
@@ -1389,6 +1393,7 @@
   </div>
 </div>
 
+<script src="stone-pricing.js"></script>
 <script>
 const SUPABASE_URL = "https://efiajmmxlrvyppdwwfug.supabase.co";
 
@@ -1525,6 +1530,7 @@ async function loadMasters(){
       sb("currencies?order=code.asc"),
       sb("stone_types_lookup?order=field.asc,sort_order.asc,value.asc")
     ]);
+    await probeStoneSchema();
     renderAllMasters();
     renderLookupTable();
     populateMasterDropdowns();
@@ -1767,36 +1773,41 @@ const masterConfigs={
     },
     valid:()=>gv("mf-type")&&gv("mf-shape")},
   diamond:{table:"diamond_sizes",title:"Diamond Size",
-    fields:`<div class="form-grid">
-      <div class="form-group"><label>Stone Type *</label><input type="text" id="mf-stone-type" placeholder="e.g. Diamond" /></div>
-      <div class="form-group"><label>Shape *</label><input type="text" id="mf-shape" placeholder="e.g. Round" /></div>
+    fields:()=>`<div class="form-grid">
+      <div class="form-group"><label>Category *</label><select id="mf-category" onchange="diamFormCascade()"><option value="">Select...</option>${VJ_STONE.categoryNames().map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
+      <div class="form-group"><label>Stone Type <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— blank = every type in the category</span></label><select id="mf-stone-type"><option value="">All types</option></select></div>
+      <div class="form-group"><label>Shape *</label><select id="mf-shape"><option value="">Select...</option>${VJ_STONE.SHAPES.map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
+      <div class="form-group"><label>Size Basis *</label><input type="text" id="mf-size-basis" placeholder="e.g. -2, 1/4" /></div>
       <div class="form-group"><label>mm Length</label><input type="number" id="mf-mm-length" step="0.01" placeholder="e.g. 1.0" /></div>
       <div class="form-group"><label>mm Width</label><input type="number" id="mf-mm-width" step="0.01" placeholder="e.g. 1.0" /></div>
       <div class="form-group"><label>Sieve From</label><input type="text" id="mf-sieve-from" placeholder="e.g. -000" /></div>
       <div class="form-group"><label>Sieve To</label><input type="text" id="mf-sieve-to" placeholder="e.g. +0000" /></div>
       <div class="form-group"><label>Avg Weight (ct)</label><input type="number" id="mf-avg-wt" step="0.00001" placeholder="e.g. 0.003" /></div>
-      <div class="form-group"><label>Size Basis *</label><input type="text" id="mf-size-basis" placeholder="e.g. -2, 1/4" /></div>
-      <div class="form-group full"><label>Sort Order <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— matches source sheet's # column</span></label><input type="number" id="mf-sort-order" step="1" placeholder="0" /></div>
+      <div class="form-group"><label>Sort Order <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— matches source sheet's # column</span></label><input type="number" id="mf-sort-order" step="1" placeholder="0" /></div>
     </div>`,
-    payload:()=>({
-      stone_type:gv("mf-stone-type")||null,
-      shape:gv("mf-shape")||null,
-      mm_length:gn("mf-mm-length"),
-      mm_width:gn("mf-mm-width"),
-      sieve_from:gv("mf-sieve-from")||null,
-      sieve_to:gv("mf-sieve-to")||null,
-      avg_weight_ct:gn("mf-avg-wt"),
-      size_basis:gv("mf-size-basis")||null,
-      sort_order:gv("mf-sort-order")!==""?parseInt(gv("mf-sort-order")):null
-    }),
+    payload:()=>{
+      const cat=gv("mf-category"), typ=gv("mf-stone-type");
+      return withCat({
+        stone_type:typ||cat||null,          // blank type = category-wide row, stored as the category name
+        shape:gv("mf-shape")||null,
+        mm_length:gn("mf-mm-length"),
+        mm_width:gn("mf-mm-width"),
+        sieve_from:gv("mf-sieve-from")||null,
+        sieve_to:gv("mf-sieve-to")||null,
+        avg_weight_ct:gn("mf-avg-wt"),
+        size_basis:gv("mf-size-basis")||null,
+        sort_order:gv("mf-sort-order")!==""?parseInt(gv("mf-sort-order")):null
+      }, cat);
+    },
     fill:(r)=>{
-      sv("mf-stone-type",r.stone_type||""); sv("mf-shape",r.shape||"");
+      sv("mf-category",VJ_STONE.rowCategory(r)||""); diamFormCascade(VJ_STONE.rowType(r)||"");
+      sv("mf-shape",r.shape||"");
       sv("mf-mm-length",r.mm_length??""); sv("mf-mm-width",r.mm_width??"");
       sv("mf-sieve-from",r.sieve_from||""); sv("mf-sieve-to",r.sieve_to||"");
       sv("mf-avg-wt",r.avg_weight_ct??""); sv("mf-size-basis",r.size_basis||"");
       sv("mf-sort-order",r.sort_order??"");
     },
-    valid:()=>gv("mf-stone-type")&&gv("mf-shape")&&gv("mf-size-basis")},
+    valid:()=>gv("mf-category")&&gv("mf-shape")&&gv("mf-size-basis")},
   labour:{table:"labour_charges",title:"Labour Charge",
     fields:`<div class="form-grid">
       <div class="form-group full"><label>Category *</label><input type="text" id="mf-category" placeholder="e.g. Rings" /></div>
@@ -1847,11 +1858,16 @@ const masterConfigs={
     valid:()=>gv("mf-code")&&gv("mf-symbol")}
 };
 
+// Diamond Sizes form: Stone Type options follow the chosen Category
+function diamFormCascade(keep){
+  const cat=gv("mf-category"), el=document.getElementById("mf-stone-type"); if(!el) return;
+  el.innerHTML=`<option value="">All types</option>`+(cat?VJ_STONE.typesOf(cat):[]).map(t=>`<option value="${esc(t)}"${t===keep?" selected":""}>${esc(t)}</option>`).join("");
+}
 function openMasterModal(type,id=null){
   currentMasterType=type; editingMasterId=id;
   const cfg=masterConfigs[type];
   document.getElementById("master-modal-title").textContent=(id?"Edit ":"Add ")+cfg.title;
-  document.getElementById("master-modal-fields").innerHTML=cfg.fields;
+  document.getElementById("master-modal-fields").innerHTML=(typeof cfg.fields==="function"?cfg.fields():cfg.fields);
   if(id){
     const store={metal:allMetals,stone:allStones,diamond:allDiamonds,labour:allLabour,margin:allMargins,size:allSizes,tag:allTags,currency:allCurrencies};
     const rec=store[type].find(r=>r.id===id);
@@ -2360,8 +2376,8 @@ function ceRenderJewel(){
 }
 function ceJewelChange(i,f,v){ const r=cellEd.rows[i]; r[f]=v; if(f==="jewel_type"){r.sub_type1="";r.sub_type2="";} if(f==="sub_type1") r.sub_type2=""; cellEd.dirty=true; ceRenderJewel(); }
 // ── Stone row defaults ────────────────────────────────────────────────────
-// Every new stone row starts as Diamond / Round (admin can change either dropdown).
-const DEFAULT_STONE_TYPE = "Diamond", DEFAULT_STONE_SHAPE = "Round";
+// Every new stone row starts as Natural / Round (admin can change either dropdown).
+const DEFAULT_STONE_TYPE = "Natural", DEFAULT_STONE_SHAPE = "Round";
 function newStoneRow(){
   return {stone_type:DEFAULT_STONE_TYPE,setting_type:"",shape:DEFAULT_STONE_SHAPE,pcs:"",length_mm:"",width_mm:""};
 }
@@ -2373,9 +2389,9 @@ function stoneWidthFollowsLength(row,newLength){
 }
 // stone rows
 function ceRenderStones(){
-  const types=[...new Set(allLookups.filter(l=>l.field==="type").map(l=>l.value))].sort();
+  const types=VJ_STONE.typesOf();            // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pear
   const settings=settingTypeNames();
-  const shapes=[...new Set(allLookups.filter(l=>l.field==="shape").map(l=>l.value))].sort();
+  const shapes=[...VJ_STONE.SHAPES];
   const rows=cellEd.rows, cols="1.3fr 1.3fr 1fr 60px 70px 70px 28px";
   const inp=(i,f,v,ph,id)=>`<input ${id?`id="${id}" `:""}class="ce-in" type="number" step="any" min="0" placeholder="${ph}" value="${esc(v)}" oninput="ceStoneChange(${i},'${f}',this.value)" />`;
   const sel=(i,f,list,v)=>`<select class="ce-in" onchange="ceStoneChange(${i},'${f}',this.value)">${ceOpts(list,v)}</select>`;
@@ -2732,9 +2748,9 @@ function renderStoneDetailRows(){
     tbody.innerHTML='<tr><td colspan="7" class="state-msg" style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No stones added yet.</td></tr>';
     return;
   }
-  const stoneTypes  = [...new Set(allLookups.filter(l=>l.field==='type').map(l=>l.value))].sort();
+  const stoneTypes  = VJ_STONE.typesOf();   // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pear
   const settingTypes= settingTypeNames();
-  const shapes      = [...new Set(allLookups.filter(l=>l.field==='shape').map(l=>l.value))].sort();
+  const shapes      = [...VJ_STONE.SHAPES];
 
   const mkSel=(id,opts,val,field,i)=>`<select onchange="stoneDetailRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;">
     <option value="">—</option>${(val&&!opts.includes(val)?[...opts,val]:opts).map(o=>`<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
@@ -3301,9 +3317,9 @@ function svmRenderStoneRows(){
     tbody.innerHTML='<tr><td colspan="7" class="state-msg" style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">No stones added yet.</td></tr>';
     return;
   }
-  const stoneTypes  = [...new Set(allLookups.filter(l=>l.field==='type').map(l=>l.value))].sort();
+  const stoneTypes  = VJ_STONE.typesOf();   // Natural, Lab Grown, Emerald, Ruby, Sapphire, Pear
   const settingTypes= settingTypeNames();
-  const shapes      = [...new Set(allLookups.filter(l=>l.field==='shape').map(l=>l.value))].sort();
+  const shapes      = [...VJ_STONE.SHAPES];
 
   const mkSel=(opts,val,field,i)=>`<select onchange="svmStoneRowChanged(${i},'${field}',this.value)" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;">
     <option value="">—</option>${(val&&!opts.includes(val)?[...opts,val]:opts).map(o=>`<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
@@ -4596,55 +4612,86 @@ function saveCertMin(){    const v=parseFloat(document.getElementById("cert-min"
 
 // ── END LABOUR RATES PANEL ───────────────────────────────────────────────────
 
+// Category / classification helpers (taxonomy lives in stone-pricing.js)
+let STONE_CAT_COL = false;      // true once the `category` column exists in stone_types + diamond_sizes
+const stoneCat   = r => VJ_STONE.rowCategory(r);
+const withCat    = (obj, cat) => { if(STONE_CAT_COL) obj.category = cat || null; return obj; };
+const optList    = (list, val, ph) => {
+  const l = (val && !list.includes(val)) ? [...list, val] : list;      // keep a legacy value visible (flagged red)
+  return `<option value="">${ph}</option>` + l.map(o=>`<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('');
+};
+
+async function probeStoneSchema(){
+  const has = async t => { try{ await sb(t+"?select=category&limit=1"); return true; }catch(e){ return false; } };
+  const [a,b] = await Promise.all([has("stone_types"), has("diamond_sizes")]);
+  STONE_CAT_COL = a && b;
+  document.querySelectorAll(".schema-warn-slot").forEach(el=>{
+    el.innerHTML = STONE_CAT_COL ? "" :
+      `<div class="schema-warn"><strong>One-time database step needed.</strong> The new <code>category</code> column is not in Supabase yet, so Category is being worked out from the Type for now and is not stored. Run <code>stone-masters-migration.sql</code> in the Supabase SQL editor, then reload this page.</div>`;
+  });
+}
+
 function renderStoneGrid(){
   const tbody = document.getElementById('spl-tbody');
   if(!tbody) return;
 
-  // Populate filter dropdowns (unique values)
-  const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
-  const fType = document.getElementById('spl-f-type');
-  const fShape = document.getElementById('spl-f-shape');
-  const fColor = document.getElementById('spl-f-color');
-  const fQuality = document.getElementById('spl-f-quality');
-  const selType = fType?.value||''; const selShape = fShape?.value||'';
-  const selColor = fColor?.value||''; const selQuality = fQuality?.value||'';
+  const uniq = (arr) => [...new Set(arr.filter(Boolean))];
+  const V = VJ_STONE;
+  const f = id => document.getElementById(id);
+  const selCat = f('spl-f-category')?.value||'', selType = f('spl-f-type')?.value||'';
+  const selShape = f('spl-f-shape')?.value||'', selColor = f('spl-f-color')?.value||'', selQuality = f('spl-f-quality')?.value||'';
 
   const repop = (el, arr, cur) => {
     if(!el) return;
-    const prev = cur||el.value;
     el.innerHTML = `<option value="">${el.options[0]?.text||''}</option>` +
-      arr.map(v=>`<option value="${esc(v)}"${v===prev?' selected':''}>${esc(v)}</option>`).join('');
+      arr.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}</option>`).join('');
   };
-  repop(fType,   uniq(allStones.map(s=>s.type)),    selType);
-  repop(fShape,  uniq(allStones.map(s=>s.shape)),   selShape);
-  repop(fColor,  uniq(allStones.map(s=>s.color)),   selColor);
-  repop(fQuality,uniq(allStones.map(s=>s.quality)), selQuality);
+  repop(f('spl-f-category'), V.categoryNames(), selCat);
+  repop(f('spl-f-type'),     V.typesOf(selCat), selType);
+  repop(f('spl-f-shape'),    V.SHAPES, selShape);
+  repop(f('spl-f-color'),    V.colorsOf(selCat), selColor);
+  repop(f('spl-f-quality'),  V.QUALITIES, selQuality);
 
-  // Filter
+  // size-basis suggestions come from the Diamond Sizes master
+  const dl = f('spl-sb-list');
+  if(dl) dl.innerHTML = uniq(allDiamonds.map(d=>d.size_basis)).map(v=>`<option value="${esc(v)}"></option>`).join('');
+
+  // data checks: invalid classification + duplicate combinations
+  const keyCount = {};
+  allStones.forEach(s=>{ const k=V.priceKey(s); keyCount[k]=(keyCount[k]||0)+1; });
+  const issueOf = s => V.checkPriceRow(s) || (keyCount[V.priceKey(s)]>1 ? "Duplicate combination" : "");
+  const issueTotal = allStones.filter(s=>issueOf(s)).length;
+  const iss = f('spl-issues');
+  if(iss) iss.textContent = issueTotal ? `⚠ ${issueTotal} row${issueTotal>1?'s':''} need attention (highlighted red)` : '';
+
   let rows = allStones.filter(s=>
+    (!selCat     || stoneCat(s)===selCat) &&
     (!selType    || s.type===selType) &&
     (!selShape   || s.shape===selShape) &&
     (!selColor   || s.color===selColor) &&
     (!selQuality || s.quality===selQuality)
   );
-  const cnt = document.getElementById('spl-count');
+  const cnt = f('spl-count');
   if(cnt) cnt.textContent = `${rows.length} of ${allStones.length} entries`;
 
   if(!rows.length){
-    tbody.innerHTML = `<tr><td colspan="10" class="state-msg">No stone records yet. Click + Add Row to begin.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="state-msg">No stone records yet. Click + Add Row to begin.</td></tr>`;
     return;
   }
 
+  const cell = (id, field, list, val, ph) => `<td><select class="spl-cell-input" onchange="splUpdate(${id},'${field}',this.value)">${optList(list, val, ph)}</select></td>`;
   tbody.innerHTML = rows.map(s => {
     const d = getStoneDerivedRates(s.rate_inr);
     const fmt2 = n => n!=null ? Number(n).toFixed(2) : '';
     const fmtD = (n, prefix='') => n!=null ? `<span class="spl-derived has-val">${prefix}${Number(n).toFixed(2)}</span>` : `<span class="spl-derived">—</span>`;
-    return `<tr data-id="${s.id}">
-      <td><input class="spl-cell-input" value="${esc(s.type||'')}"       onchange="splUpdate(${s.id},'type',this.value)"       placeholder="Diamond" /></td>
-      <td><input class="spl-cell-input" value="${esc(s.shape||'')}"      onchange="splUpdate(${s.id},'shape',this.value)"      placeholder="Round" /></td>
-      <td><input class="spl-cell-input" value="${esc(s.color||'')}"      onchange="splUpdate(${s.id},'color',this.value)"      placeholder="D-F (White)" /></td>
-      <td><input class="spl-cell-input" value="${esc(s.quality||'')}"    onchange="splUpdate(${s.id},'quality',this.value)"    placeholder="VVS" /></td>
-      <td><input class="spl-cell-input" value="${esc(s.size_basis||'')}" onchange="splUpdate(${s.id},'size_basis',this.value)" placeholder="-2" /></td>
+    const cat = stoneCat(s), issue = issueOf(s);
+    return `<tr data-id="${s.id}"${issue?` class="spl-row-bad" title="${esc(issue)}"`:''}>
+      ${cell(s.id,'category',V.categoryNames(),cat,'Category')}
+      ${cell(s.id,'type',V.typesOf(cat),s.type||'','Type')}
+      ${cell(s.id,'shape',V.SHAPES,s.shape||'','Shape')}
+      ${cell(s.id,'color',V.colorsOf(cat),s.color||'','Color')}
+      ${cell(s.id,'quality',V.QUALITIES,s.quality||'','Quality')}
+      <td><input class="spl-cell-input" list="spl-sb-list" value="${esc(s.size_basis||'')}" onchange="splUpdate(${s.id},'size_basis',this.value)" placeholder="-2" /></td>
       <td><input class="spl-cell-input rate-input" type="number" step="0.01" value="${fmt2(s.rate_inr)}" oninput="splRateChange(${s.id},this.value)" placeholder="0.00" /></td>
       <td>${fmtD(d.priceINR)}</td>
       <td>${fmtD(d.rateUSD)}</td>
@@ -4663,9 +4710,9 @@ function splRateChange(id, val){
     const d = getStoneDerivedRates(val);
     const fmtD = (n) => n!=null ? `<span class="spl-derived has-val">${Number(n).toFixed(2)}</span>` : `<span class="spl-derived">—</span>`;
     const cells = row.querySelectorAll('td');
-    cells[6].innerHTML = fmtD(d.priceINR);
-    cells[7].innerHTML = fmtD(d.rateUSD);
-    cells[8].innerHTML = fmtD(d.priceUSD);
+    cells[7].innerHTML = fmtD(d.priceINR);
+    cells[8].innerHTML = fmtD(d.rateUSD);
+    cells[9].innerHTML = fmtD(d.priceUSD);
   }
   clearTimeout(_splDebounce[id]);
   _splDebounce[id] = setTimeout(()=>splSaveRate(id, val), 700);
@@ -4698,22 +4745,35 @@ const _splFieldDebounce = {};
 async function splUpdate(id, field, value){
   const stone = allStones.find(s=>s.id===id);
   if(!stone) return;
-  stone[field] = value||null;
+  const V = VJ_STONE, patch = {};
+  value = value || null;
+  if(field==='category'){
+    stone.category = value;
+    if(stone.type && V.categoryOf(stone.type)!==value){ stone.type = null; patch.type = null; }          // type must belong to the category
+    if(stone.color && !V.canon('color', stone.color, value)){ stone.color = null; patch.color = null; }  // so must the color
+  } else if(field==='type'){
+    stone.type = value;
+    const cat = V.categoryOf(value);
+    if(cat){
+      stone.category = cat;
+      if(stone.color && !V.canon('color', stone.color, cat)){ stone.color = null; patch.color = null; }
+    }
+  } else {
+    stone[field] = value;
+  }
+  patch[field] = value;
+  patch.category = stone.category || V.rowCategory(stone) || null;
+  if(!STONE_CAT_COL) delete patch.category;
   stone.name = [stone.type,stone.shape,stone.size_basis,stone.color,stone.quality].filter(Boolean).join(' ');
-  clearTimeout(_splFieldDebounce[id+'_'+field]);
-  _splFieldDebounce[id+'_'+field] = setTimeout(async()=>{
+  patch.name = stone.name;
+  clearTimeout(_splFieldDebounce[id]);
+  _splFieldDebounce[id] = setTimeout(async()=>{
     try{
-      await sb('stone_types?id=eq.'+id,'PATCH',{[field]:value||null, name:stone.name});
-      // Refresh filter dropdowns only (not full re-render to avoid losing focus)
-      const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
-      ['type','shape','color','quality'].forEach(f=>{
-        const el = document.getElementById('spl-f-'+f);
-        const cur = el?.value||'';
-        if(el) el.innerHTML = `<option value="">All ${f.charAt(0).toUpperCase()+f.slice(1)}s</option>` +
-          uniq(allStones.map(s=>s[f])).map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}</option>`).join('');
-      });
+      await sb('stone_types?id=eq.'+id,'PATCH',patch);
+      if(field!=='size_basis') renderStoneGrid();   // cascades (type / color options) + duplicate check
+      else renderStoneGrid();
     } catch(e){ toast('Save error: '+e.message,'error'); }
-  }, 600);
+  }, 300);
 }
 
 async function splDelete(id){
@@ -4730,7 +4790,7 @@ async function splDelete(id){
 
 async function addStoneRow(){
   try{
-    const res = await sb('stone_types','POST',{name:'New Stone',type:'Diamond',shape:'Round',color:'',quality:'',size_basis:'',rate_inr:0,price_inr:null,rate_usd:null,price_usd:null});
+    const res = await sb('stone_types','POST',withCat({name:'New Stone',type:'Natural',shape:'Round',color:'',quality:'',size_basis:'',rate_inr:0,price_inr:null,rate_usd:null,price_usd:null},'Diamond'));
     const newRow = Array.isArray(res)?res[0]:res;
     if(newRow){ allStones.unshift(newRow); }
     else { await loadMasters(); return; }
@@ -4747,13 +4807,13 @@ function exportStonesXlsx(){
   const marginPct = parseFloat(allMargins.find(m=>m.name==='margin_pct_usd')?.percentage)||0;
   const usdRate   = parseFloat(allCurrencies.find(c=>c.code==='USD')?.rate_to_inr)||0;
 
-  const headers=["Type","Shape","Color","Quality","Size Basis","Rate/ct (INR)","Price/ct (INR)","Rate/ct (USD)","Price/ct (USD)"];
+  const headers=["Category","Type","Shape","Color","Quality","Size Basis","Rate/ct (INR)","Price/ct (INR)","Rate/ct (USD)","Price/ct (USD)"];
   const inrPerUsd=usdRate>0?Math.round(usdRate):0;
-  const subheads=["","","","","",`Rate INR (editable)`,`Rate + ₹${marginINR}/ct`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+${marginPct}%)`];
+  const subheads=["","","","","","",`Rate INR (editable)`,`Rate + ₹${marginINR}/ct`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+${marginPct}%)`];
   const rows = allStones.map(s=>{
     const d = getStoneDerivedRates(s.rate_inr);
     return [
-      s.type||'', s.shape||'', s.color||'', s.quality||'', s.size_basis||'',
+      stoneCat(s)||'', s.type||'', s.shape||'', s.color||'', s.quality||'', s.size_basis||'',
       s.rate_inr!=null?Number(s.rate_inr).toFixed(2):'',
       d.priceINR!=null?Number(d.priceINR).toFixed(2):'',
       d.rateUSD!=null?Number(d.rateUSD).toFixed(4):'',
@@ -4763,7 +4823,7 @@ function exportStonesXlsx(){
 
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([headers, subheads, ...rows]);
-  ws["!cols"] = [{wch:12},{wch:12},{wch:14},{wch:10},{wch:10},{wch:16},{wch:16},{wch:16},{wch:16}];
+  ws["!cols"] = [{wch:12},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:16},{wch:16},{wch:16},{wch:16}];
   // Style header row bold/accent — limited in xlsx but set row height
   ws["!rows"] = [{hpt:20},{hpt:14},...rows.map(()=>({hpt:18}))];
   XLSX.utils.book_append_sheet(wb, ws, "Stone Prices");
@@ -4808,33 +4868,56 @@ async function importStonesXlsx(e){
       if(!rows.length){ toast("No valid rows found.","error"); return; }
 
       const get=(row,keys)=>{ for(const k of keys){ if(k in row && row[k]!=="") return row[k]; } return ""; };
-      let success=0, skipped=0, failed=0;
+      const V = VJ_STONE;
+      let success=0, updated=0, skipped=0, failed=0, invalid=0;
+      const invalidNotes=[];
       const BATCH=50;
       const payload=[];
+      const byKey = new Map(allStones.map(x=>[V.priceKey(x), x]));
+      const seen = new Set();
 
-      for(const row of rows){
-        const type     = String(get(row,["Type","Stone Type","stone_type","type"])||"").trim();
-        const shape    = String(get(row,["Shape","shape"])||"").trim();
-        const color    = String(get(row,["Color","Color Grade","color"])||"").trim();
-        const quality  = String(get(row,["Quality","quality"])||"").trim();
-        const size_basis=String(get(row,["Size Basis","size_basis","SizeBasis"])||"").trim();
+      rows.forEach((row,ri)=>{
+        const get2=(keys)=>String(get(row,keys)||"").trim();
+        const type0   = get2(["Type","Stone Type","stone_type","type"]);
+        const category= V.canon("category", get2(["Category","Stone Category","category"])) || V.categoryOf(type0) || V.canon("category", type0);
+        const type    = V.canon("type", type0, category);
+        const shape   = V.canon("shape", get2(["Shape","shape"]));
+        const color0  = get2(["Color","Color Grade","color"]);
+        const color   = color0 ? V.canon("color", color0, category) : "";
+        const qual0   = get2(["Quality","quality"]);
+        const quality = qual0 ? V.canon("quality", qual0) : "";
+        const size_basis = get2(["Size Basis","size_basis","SizeBasis"]);
         const rate_inr = parseFloat(get(row,["Rate/ct (INR)","Rate INR","rate_inr","Rate/CT (INR)"]))||null;
-        if(!type && !shape){ skipped++; continue; }
-        const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ")||"Unnamed";
-        // Derive the rest
+        if(!type0 && !shape && !size_basis){ skipped++; return; }
+        const why = !category ? "category/type not recognised" : !type ? `type "${type0}" is not a ${category} type` :
+                    !shape ? "shape not recognised" : (color0 && !color) ? `color "${color0}" is not valid for ${category}` :
+                    (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? "Size Basis missing" : "";
+        if(why){ invalid++; if(invalidNotes.length<8) invalidNotes.push(`row ${ri+2}: ${why}`); return; }
+        const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ");
         const d = getStoneDerivedRates(rate_inr);
-        payload.push({
-          name, type:type||null, shape:shape||null, color:color||null,
-          quality:quality||null, size_basis:size_basis||null,
+        const rec = withCat({
+          name, type, shape, color:color||null, quality:quality||null, size_basis,
           rate_inr, price_inr:d.priceINR, rate_usd:d.rateUSD, price_usd:d.priceUSD,
-        });
-      }
+        }, category);
+        const key = V.priceKey({category, type, shape, color, quality, size_basis});
+        if(seen.has(key)){ skipped++; return; }          // same combination twice in the file
+        seen.add(key);
+        payload.push({rec, existing: byKey.get(key)||null});
+      });
 
-      if(!payload.length){ toast("No valid rows to import.","error"); return; }
+      if(!payload.length){
+        toast(invalid ? `No valid rows. ${invalidNotes.join("; ")}` : "No valid rows to import.","error"); return;
+      }
       toast(`Uploading ${payload.length} rows…`);
 
-      for(let i=0;i<payload.length;i+=BATCH){
-        const batch=payload.slice(i,i+BATCH);
+      // existing combination -> update its rate; new combination -> insert
+      const toInsert = payload.filter(x=>!x.existing).map(x=>x.rec);
+      for(const x of payload.filter(x=>x.existing)){
+        try{ await sb("stone_types?id=eq."+x.existing.id,"PATCH",x.rec); updated++; }
+        catch(err){ failed++; console.error("Update failed:",x.rec.name,err.message); }
+      }
+      for(let i=0;i<toInsert.length;i+=BATCH){
+        const batch=toInsert.slice(i,i+BATCH);
         try{
           await sb("stone_types","POST",batch);
           success+=batch.length;
@@ -4845,8 +4928,9 @@ async function importStonesXlsx(e){
           }
         }
       }
-      const msg=`${success} imported${skipped?" ("+skipped+" skipped)":""}${failed?" ("+failed+" failed)":""}`;
-      toast(msg, failed?"error":"success");
+      if(invalid) console.warn("Stone import — rows rejected:\n"+invalidNotes.join("\n"));
+      const msg=`${success} added, ${updated} updated${skipped?", "+skipped+" skipped":""}${invalid?", "+invalid+" rejected ("+invalidNotes.slice(0,3).join("; ")+")":""}${failed?", "+failed+" failed":""}`;
+      toast(msg, (failed||invalid)?"error":"success");
       document.getElementById("stones-file-input").value="";
       await loadMasters();
     }catch(err){ console.error("importStonesXlsx:",err); toast("Import error: "+err.message,"error"); }
@@ -4863,20 +4947,11 @@ function toggleLookupSection(){
 }
 
 function renderLookupTable(){
-  const field=document.getElementById("lookup-field-filter")?.value||"type";
-  const rows=allLookups.filter(l=>l.field===field);
-  const fieldLabel={type:"Stone Type",shape:"Shape",quality:"Quality"};
-  document.getElementById("stonelookups-tbody").innerHTML=rows.length
-    ? rows.map(r=>`<tr>
-        <td style="color:var(--text-muted);font-size:12px">${esc(fieldLabel[r.field]||r.field)}</td>
-        <td><strong>${esc(r.value)}</strong></td>
-        <td style="color:var(--text-muted)">${r.sort_order}</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-secondary btn-sm" onclick="openLookupModal(${r.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="confirmDeleteLookup(${r.id},'${esc(r.value)}')">Delete</button>
-        </div></td>
-      </tr>`).join("")
-    : "<tr><td colspan='4' class='state-msg'>No options yet for this field.</td></tr>";
+  const el=document.getElementById("stone-class-body"); if(!el) return;
+  const V=VJ_STONE, chips=l=>`<div class="chips">${l.map(x=>`<span>${esc(x)}</span>`).join("")}</div>`;
+  el.innerHTML=`<div class="class-grid">`+
+    V.categoryNames().map(c=>`<div class="class-card"><h4>${esc(c)} — Types</h4>${chips(V.CATEGORIES[c])}<h4 style="margin-top:8px">${esc(c)} — Colors</h4>${chips(V.COLORS[c])}</div>`).join("")+
+    `<div class="class-card"><h4>Shapes</h4>${chips(V.SHAPES)}</div><div class="class-card"><h4>Quality</h4>${chips(V.QUALITIES)}</div></div>`;
 }
 
 function openLookupModal(id=null){
@@ -5599,22 +5674,25 @@ function renderDiamondsTable(){
 
   // Populate filter dropdowns (unique values), preserving current selection
   const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
+  const fCat = document.getElementById('diam-f-category');
   const fType = document.getElementById('diam-f-type');
   const fShape = document.getElementById('diam-f-shape');
   const fSizeBasis = document.getElementById('diam-f-sizebasis');
-  const selType = fType?.value||''; const selShape = fShape?.value||''; const selSB = fSizeBasis?.value||'';
+  const selCat = fCat?.value||''; const selType = fType?.value||''; const selShape = fShape?.value||''; const selSB = fSizeBasis?.value||'';
   const repop = (el, arr, cur, label) => {
     if(!el) return;
     el.innerHTML = `<option value="">${label}</option>` +
       arr.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}</option>`).join('');
   };
-  repop(fType, uniq(allDiamonds.map(d=>d.stone_type)), selType, 'All Stone Types');
-  repop(fShape, uniq(allDiamonds.map(d=>d.shape)), selShape, 'All Shapes');
+  repop(fCat, VJ_STONE.categoryNames(), selCat, 'All Categories');
+  repop(fType, VJ_STONE.typesOf(selCat), selType, 'All Stone Types');
+  repop(fShape, uniq([...VJ_STONE.SHAPES, ...allDiamonds.map(d=>d.shape)]), selShape, 'All Shapes');
   repop(fSizeBasis, uniq(allDiamonds.map(d=>d.size_basis)), selSB, 'All Size Basis');
 
   // Filter
   let rows = allDiamonds.filter(d=>
-    (!selType  || d.stone_type===selType) &&
+    (!selCat   || VJ_STONE.rowCategory(d)===selCat) &&
+    (!selType  || VJ_STONE.rowType(d)===selType) &&
     (!selShape || d.shape===selShape) &&
     (!selSB    || d.size_basis===selSB)
   );
@@ -5639,7 +5717,9 @@ function renderDiamondsTable(){
   tbody.innerHTML = rows.length
     ? rows.map(r=>`<tr>
         <td style="color:var(--text-muted);font-size:12px">${r.sort_order??"–"}</td>
-        <td>${esc(r.stone_type||"-")}</td><td>${esc(r.shape||"-")}</td>
+        <td>${VJ_STONE.rowCategory(r)?esc(VJ_STONE.rowCategory(r)):`<span class="sr-missing" title="Set a Category for this row">set</span>`}</td>
+        <td>${VJ_STONE.rowType(r)?esc(VJ_STONE.rowType(r)):`<span style="color:var(--text-muted)">All ${esc(VJ_STONE.rowCategory(r)||'')} types</span>`}</td>
+        <td${VJ_STONE.canon('shape',r.shape)?'':' style="color:#e5484d;font-weight:700" title="Shape not in the classification"'}>${esc(r.shape||"-")}</td>
         <td>${r.mm_length??"-"}</td><td>${r.mm_width??"-"}</td>
         <td>${esc(r.sieve_from||"-")}</td><td>${esc(r.sieve_to||"-")}</td>
         <td>${r.avg_weight_ct??"-"}</td><td>${esc(r.size_basis||"-")}</td>
@@ -5648,21 +5728,22 @@ function renderDiamondsTable(){
           <button class="btn btn-danger btn-sm" onclick="confirmDeleteMaster('diamond_sizes',${r.id},'${esc((r.stone_type||"")+" "+(r.shape||"")+" "+(r.size_basis||""))}')">Delete</button>
         </div></td>
       </tr>`).join("")
-    : "<tr><td colspan='10' class='state-msg'>No diamond sizes yet.</td></tr>";
+    : "<tr><td colspan='11' class='state-msg'>No diamond sizes yet.</td></tr>";
 }
 
 function exportDiamSizesXlsx(){
   if(!allDiamonds.length){ toast("No diamond sizes to export.","error"); return; }
-  const headers=["#","Stone Type","Shape","mm Length","mm Width","Sieve From","Sieve To","Avg Weight ct","Size Basis"];
+  const headers=["#","Category","Stone Type","Shape","mm Length","mm Width","Sieve From","Sieve To","Avg Weight ct","Size Basis"];
   // allDiamonds is already ordered by sort_order from loadMasters() — export preserves that order
-  const rows=allDiamonds.map(r=>[r.sort_order??"",r.stone_type||"",r.shape||"",r.mm_length??"",r.mm_width??"",r.sieve_from||"",r.sieve_to||"",r.avg_weight_ct??"",r.size_basis||""]);
+  const rows=allDiamonds.map(r=>[r.sort_order??"",VJ_STONE.rowCategory(r)||"",VJ_STONE.rowType(r)||"",r.shape||"",r.mm_length??"",r.mm_width??"",r.sieve_from||"",r.sieve_to||"",r.avg_weight_ct??"",r.size_basis||""]);
   const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-  ws["!cols"]=[{wch:6},{wch:12},{wch:16},{wch:10},{wch:10},{wch:12},{wch:10},{wch:14},{wch:12}];
+  ws["!cols"]=[{wch:6},{wch:12},{wch:12},{wch:16},{wch:10},{wch:10},{wch:12},{wch:10},{wch:14},{wch:12}];
   const wsI=XLSX.utils.aoa_to_sheet([
     ["VIE JEWELS — diamsizes Export"],
     ["Exported: "+new Date().toLocaleString()],
     [""],
     ["HOW TO IMPORT"],
+    ["Category: Diamond or Gem Stone.  Stone Type: leave blank to apply to every type in the category (or Natural / Lab Grown / Emerald / Ruby / Sapphire / Pear)."],
     ["1. Edit data — do not change column headers"],
     ["2. Add rows at bottom for new records"],
     ["3. Edit rows to update, delete rows to remove"],
@@ -5692,6 +5773,7 @@ async function importDiamSizesXlsx(e){
       if(!matrix.length){ toast("No data rows found in sheet: "+sheetName,"error"); return; }
 
       const COLS=[
+        {key:'category',     pos:null, kw:['category','stonecategory']},
         {key:'stone_type',   pos:0, kw:['stonetype']},
         {key:'shape',        pos:1, kw:['shape']},
         {key:'mm_length',    pos:2, kw:['mmlength']},
@@ -5720,15 +5802,19 @@ async function importDiamSizesXlsx(e){
       let skipped=0;
       matrix.slice(detected.headerRow+1).forEach((row,i)=>{
         const cell=idx=>idx!=null?row[idx]:"";
-        const stone_type=_normHeaderCell(cell(detected.map.stone_type));
-        const shape=_normHeaderCell(cell(detected.map.shape));
+        const V=VJ_STONE;
+        const rawType=_normHeaderCell(cell(detected.map.stone_type));
+        const category=V.canon("category",_normHeaderCell(cell(detected.map.category)))||V.categoryOf(rawType)||V.canon("category",rawType);
+        const specificType=category?V.canon("type",rawType,category):"";          // blank / "Diamond" / "Gem Stone" => category-wide row
+        const stone_type=specificType||category;
+        const shape=V.canon("shape",_normHeaderCell(cell(detected.map.shape)));
         const size_basis=_normHeaderCell(cell(detected.map.size_basis));
-        if(!stone_type||!shape||!size_basis){ skipped++; return; }
+        if(!category||!shape||!size_basis){ skipped++; return; }
         const mm_length=parseFloat(_normHeaderCell(cell(detected.map.mm_length)));
         const mm_width=parseFloat(_normHeaderCell(cell(detected.map.mm_width)));
         const avg_weight_ct=parseFloat(_normHeaderCell(cell(detected.map.avg_weight_ct)));
         const rawSort=parseInt(_normHeaderCell(cell(detected.map.sort_order)));
-        rows.push({
+        rows.push(withCat({
           stone_type, shape,
           mm_length:isNaN(mm_length)?null:mm_length,
           mm_width:isNaN(mm_width)?null:mm_width,
@@ -5737,10 +5823,10 @@ async function importDiamSizesXlsx(e){
           avg_weight_ct:isNaN(avg_weight_ct)?null:avg_weight_ct,
           size_basis,
           sort_order:isNaN(rawSort)?i+1:rawSort
-        });
+        }, category));
       });
-      if(!rows.length){ toast("No valid rows found (missing Stone Type / Shape / Size Basis).","error"); return; }
-      if(skipped) toast(`${skipped} row(s) skipped — missing Stone Type / Shape / Size Basis.`,"error");
+      if(!rows.length){ toast("No valid rows found (need a recognised Category/Stone Type, Shape and Size Basis).","error"); return; }
+      if(skipped) toast(`${skipped} row(s) skipped — Category/Stone Type or Shape not in the classification, or Size Basis missing.`,"error");
 
       let existingCount=0;
       try{ existingCount=(await sb("diamond_sizes?select=id"))?.length||0; }catch(err){}
@@ -5750,6 +5836,7 @@ async function importDiamSizesXlsx(e){
         table: "diamond_sizes",
         columns: [
           {key:'sort_order', label:'#'},
+          {key:'category', label:'Category'},
           {key:'stone_type', label:'Stone Type'},
           {key:'shape', label:'Shape'},
           {key:'mm_length', label:'mm L'},
@@ -6198,7 +6285,7 @@ function buildStoneReport(){
       const m = shapeMaster.get(shape) || { pcs: 0, skus: new Set() };
       m.pcs += pcs; m.skus.add(p.id); shapeMaster.set(shape, m);
 
-      const z = sizeMaster.get(sk) || { shape, size, basis, pcs: 0, skus: new Set() };
+      const z = sizeMaster.get(sk) || { shape, size, basis, len: s.length_mm, wid: s.width_mm, pcs: 0, skus: new Set() };
       z.pcs += pcs; z.skus.add(p.id); sizeMaster.set(sk, z);
     });
 
@@ -6273,24 +6360,9 @@ function srMatrix(r){
 }
 
 // ── Stone prices per size (Natural vs Lab Grown) ─────────────────────────
-function srKind(t){ t = String(t||"").toLowerCase(); return /lab/.test(t) ? "lab" : /natural/.test(t) ? "natural" : ""; }
-
-// Size basis for a shape + mm size within the Diamond Sizes master, for one kind (natural / lab)
-function srBasisFor(kind, shape, size){
-  const mm = parseFloat(size); if(isNaN(mm)) return "";
-  const hit = (allDiamonds || []).find(d => srKind(d.stone_type) === kind &&
-    (d.shape || "").toLowerCase() === (shape || "").toLowerCase() &&
-    d.mm_length != null && Math.abs(Number(d.mm_length) - mm) < 0.005);
-  return hit ? (hit.size_basis || "") : "";
-}
-
-// All price-list rows for a kind + shape + size basis
-function srPricesFor(kind, shape, basis){
-  if(!basis) return [];
-  return (allStones || []).filter(p => srKind(p.type) === kind &&
-    (p.shape || "").toLowerCase() === (shape || "").toLowerCase() &&
-    (p.size_basis || "") === basis && p.rate_inr != null && Number(p.rate_inr) > 0);
-}
+// Uses the shared engine (stone-pricing.js) — the same lookups the storefront uses:
+//   product stone (shape + mm) → Diamond Sizes (Size Basis) → Stone Prices (type + shape + Size Basis)
+const SR_KINDS = { natural: "Natural", lab: "Lab Grown" };
 
 function srPriceRows(r){
   const shapeSel = document.getElementById("sr-shape")?.value || "";
@@ -6300,13 +6372,15 @@ function srPriceRows(r){
     .sort((a,b) => a.shape.localeCompare(b.shape) || srNum(a.size) - srNum(b.size))
     .map(z => {
       const out = { shape: z.shape, size: z.size };
-      ["natural","lab"].forEach(kind => {
-        const basis = srBasisFor(kind, z.shape, z.size);
-        out[kind] = { basis, prices: srPricesFor(kind, z.shape, basis).map(p => {
+      Object.entries(SR_KINDS).forEach(([kind, type]) => {
+        const size = VJ_STONE.findSize(allDiamonds, { type, shape: z.shape, length: z.len, width: z.wid });
+        const basis = size ? size.sizeBasis : "";
+        out[kind] = { bases: basis ? [basis] : [], prices: VJ_STONE.rateCandidates(allStones, { type, shape: z.shape, sizeBasis: basis }).map(p => {
           const d = getStoneDerivedRates(p.rate_inr);
-          return { grade: [p.color, p.quality].filter(Boolean).join(" "), inr: Number(p.rate_inr), usd: d.rateUSD };
+          return { type: p.type, basis: p.size_basis, grade: [p.color, p.quality].filter(Boolean).join(" "), inr: Number(p.price_inr) || Number(p.rate_inr), usd: d.rateUSD };
         }) };
       });
+      out.bases = [...new Set([...out.natural.bases, ...out.lab.bases])];
       return out;
     });
 }
@@ -6321,8 +6395,8 @@ function renderStonePrices(r){
   const tb = document.getElementById("sr-price-tbody"); if(!tb) return;
   const rows = srPriceRows(r);
   tb.innerHTML = rows.length
-    ? rows.map(x => `<tr><td>${esc(x.shape)}</td><td><strong>${esc(x.size)}</strong></td><td>${srPriceCell(x.natural)}</td><td>${srPriceCell(x.lab)}</td></tr>`).join("")
-    : "<tr><td colspan='4' class='state-msg'>No data.</td></tr>";
+    ? rows.map(x => `<tr><td>${esc(x.shape)}</td><td><strong>${esc(x.size)}</strong></td><td>${x.bases.length ? esc(x.bases.join(", ")) : `<span class="sr-missing" title="No matching shape/mm in Diamond Sizes">not in Diamond Sizes</span>`}</td><td>${srPriceCell(x.natural)}</td><td>${srPriceCell(x.lab)}</td></tr>`).join("")
+    : "<tr><td colspan='5' class='state-msg'>No data.</td></tr>";
 }
 
 function renderStoneReport(){
@@ -6403,9 +6477,9 @@ function exportStoneReportXlsx(){
     ? c.prices.map(p => (p.grade ? p.grade + ": " : "") + p.inr + " INR" + (p.usd != null ? " / " + p.usd.toFixed(2) + " USD" : "")).join("; ")
     : "missing";
   add("Stone Prices",
-    ["Shape", "Size (mm)", "Natural (per ct)", "Lab Grown (per ct)"],
-    srPriceRows(r).map(x => [x.shape, x.size, fmtP(x.natural), fmtP(x.lab)]),
-    [18, 16, 40, 40]);
+    ["Shape", "Size (mm)", "Size Basis", "Natural (per ct)", "Lab Grown (per ct)"],
+    srPriceRows(r).map(x => [x.shape, x.size, x.bases.join(", ") || "not in Diamond Sizes", fmtP(x.natural), fmtP(x.lab)]),
+    [18, 16, 14, 40, 40]);
 
   XLSX.writeFile(wb, "viejewels-stone-report-" + new Date().toISOString().slice(0,10) + ".xlsx");
   toast("Stone report exported.");
