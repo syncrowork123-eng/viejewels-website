@@ -67,14 +67,53 @@
     .spl-issues a { color:#e5484d; text-decoration:underline; cursor:pointer; margin-left:6px; font-weight:600; }
     .spl-draft-btns { display:flex; gap:6px; }
     .spl-draft-btns button { border:none; border-radius:6px; padding:5px 9px; font-size:12px; font-weight:700; cursor:pointer; }
-    .sm-grid { grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
-    .sm-chip { display:inline-flex; align-items:center; gap:4px; background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:3px 4px 3px 11px; margin:0 6px 6px 0; font-size:12px; }
-    .sm-chip small { color:var(--text-muted); font-size:10px; }
-    .sm-chip button { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:13px; padding:0 4px; line-height:1; }
-    .sm-chip button:hover { color:var(--text); } .sm-chip button.sm-x:hover { color:#e5484d; }
-    .sm-add { display:flex; gap:6px; margin-top:6px; }
-    .sm-add input { flex:1; padding:6px 9px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px; outline:none; }
-    .sm-dirty { font-size:12px; color:#e5a000; font-weight:700; }
+    /* ── Stone Master (premium) ── */
+    .sm-wrap { padding:30px 30px 0; background:radial-gradient(900px 260px at 0% -8%,rgba(184,146,42,.13),transparent 65%); }
+    .sm-hero { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; margin-bottom:26px; }
+    .sm-eyebrow { font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--accent); font-weight:700; }
+    .sm-title { font-family:'Cormorant Garamond','Playfair Display',Georgia,serif; font-size:38px; font-weight:500; line-height:1.05; margin:6px 0 8px; letter-spacing:.005em; }
+    .sm-title em { font-style:italic; color:var(--accent); }
+    .sm-sub { font-size:12.5px; color:var(--text-muted); max-width:560px; line-height:1.65; }
+    .sm-sub b { color:var(--text); font-weight:600; }
+    .sm-stats { display:flex; gap:10px; flex-wrap:wrap; }
+    .sm-stat { min-width:88px; padding:11px 16px 9px; border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,#fff,var(--surface2)); text-align:center; box-shadow:0 8px 20px -16px rgba(60,40,10,.5); }
+    .sm-stat b { display:block; font-family:Georgia,serif; font-size:26px; font-weight:500; color:var(--text); line-height:1.1; }
+    .sm-stat span { font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); }
+    .sm-cat { border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:0 1px 0 #fff inset, 0 18px 40px -26px rgba(60,40,10,.45); margin-bottom:22px; overflow:hidden; }
+    .sm-cat-head { display:flex; align-items:center; gap:14px; padding:18px 24px; background:linear-gradient(90deg,rgba(184,146,42,.16),rgba(184,146,42,0) 72%); border-bottom:1px solid var(--border); }
+    .sm-gem { width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,#ecd58f,#b8922a 70%); color:#fff; font-size:16px; box-shadow:0 6px 14px -6px rgba(184,146,42,.9), inset 0 1px 0 rgba(255,255,255,.5); flex:none; }
+    .sm-cat-title { font-family:'Cormorant Garamond','Playfair Display',Georgia,serif; font-size:24px; font-weight:500; line-height:1.1; }
+    .sm-cat-note { font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+    .sm-cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); }
+    .sm-col { padding:20px 24px 22px; }
+    .sm-col + .sm-col { border-left:1px solid var(--border); }
+    .sm-two { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:22px; }
+    .sm-two .sm-cat { margin-bottom:0; } .sm-two { margin-bottom:22px; }
+    .sm-col-h { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:700; }
+    .sm-col-h small { font-size:11px; letter-spacing:.04em; text-transform:none; color:var(--text-muted); font-weight:500; }
+    .sm-row { display:flex; align-items:center; gap:11px; padding:7px 9px; border-radius:11px; border:1px solid transparent; transition:background .15s, border-color .15s; }
+    .sm-row:hover { background:var(--surface2); border-color:var(--border); }
+    .sm-idx { width:22px; font-family:Georgia,serif; font-size:12px; color:#b9ad9b; text-align:right; flex:none; font-variant-numeric:tabular-nums; }
+    .sm-name { flex:1; min-width:0; font-size:14px; font-weight:500; cursor:text; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sm-edit { flex:1; min-width:0; padding:6px 10px; font-size:14px; font-weight:500; background:#fff; border:1px solid var(--accent); border-radius:8px; outline:none; box-shadow:0 0 0 3px rgba(184,146,42,.18); color:var(--text); }
+    .sm-badge { font-size:10px; font-weight:700; letter-spacing:.04em; padding:2px 9px; border-radius:20px; white-space:nowrap; flex:none; }
+    .sm-b-use { background:rgba(184,146,42,.14); color:#8a6a14; border:1px solid rgba(184,146,42,.35); }
+    .sm-b-new { background:rgba(39,174,96,.12); color:#1e8449; border:1px solid rgba(39,174,96,.35); }
+    .sm-b-ren { background:rgba(76,141,255,.12); color:#2f63c4; border:1px solid rgba(76,141,255,.35); }
+    .sm-act { display:flex; gap:2px; opacity:0; transition:opacity .15s; flex:none; }
+    .sm-row:hover .sm-act, .sm-row:focus-within .sm-act { opacity:1; }
+    @media (hover:none) { .sm-act { opacity:1; } }
+    .sm-act button { width:26px; height:26px; border:none; background:transparent; border-radius:7px; color:var(--text-muted); cursor:pointer; font-size:13px; line-height:1; display:grid; place-items:center; }
+    .sm-act button:hover { background:#fff; color:var(--text); box-shadow:0 1px 4px rgba(60,40,10,.18); }
+    .sm-act button.sm-x:hover { color:#c0392b; }
+    .sm-add { display:flex; gap:8px; margin-top:12px; padding:5px; border:1px dashed #d6c9ae; border-radius:12px; background:rgba(184,146,42,.04); }
+    .sm-add:focus-within { border-color:var(--accent); background:rgba(184,146,42,.08); }
+    .sm-add input { flex:1; min-width:0; padding:8px 11px; background:transparent; border:none; color:var(--text); font-size:13px; outline:none; }
+    .sm-add button { border:none; border-radius:9px; padding:7px 16px; font-size:12px; font-weight:700; letter-spacing:.04em; cursor:pointer; background:linear-gradient(135deg,#d9b955,#b8922a); color:#1a1410; box-shadow:0 6px 14px -8px rgba(184,146,42,.9); }
+    .sm-empty { font-size:12px; color:var(--text-muted); padding:6px 10px; }
+    .sm-savebar { position:sticky; bottom:0; z-index:5; display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:0 -30px; padding:14px 30px; background:rgba(255,255,255,.92); backdrop-filter:blur(8px); border-top:1px solid var(--border); box-shadow:0 -14px 30px -22px rgba(60,40,10,.5); }
+    .sm-savebar.show { display:flex; }
+    .sm-savebar .sm-dirty { font-size:12.5px; color:#8a6a14; font-weight:700; }
     .class-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
     .class-card { border:1px solid var(--border); border-radius:8px; padding:12px 14px; background:var(--surface); }
     .class-card h4 { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px; }
@@ -652,23 +691,28 @@
     </div>
     <div class="sub-panel" id="sub-stonemaster">
       <div class="spl-outer">
-        <div class="spl-header">
-          <span class="metal-market-title">Stone Master</span>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <span id="sm-dirty" class="sm-dirty"></span>
-            <button class="btn btn-secondary" onclick="smReset()">Reset to defaults</button>
-            <button class="btn btn-secondary" onclick="smDiscard()">Discard changes</button>
-            <button class="btn spl-btn-add" onclick="saveStoneMaster()">Save Stone Master</button>
+        <div class="sm-wrap">
+          <div class="sm-hero">
+            <div>
+              <div class="sm-eyebrow">Masters &middot; Classification</div>
+              <h2 class="sm-title">Stone <em>Master</em></h2>
+              <p class="sm-sub">The single source for every stone dropdown across Stone Sizes, Stone Prices, product stones, imports and the website.
+                <b>Click any name to rename it</b> &mdash; prices, sizes and product stones using it are updated automatically when you save.
+                Remember: <b>Pearl</b> is the gem stone; <b>Pear</b> is a shape.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+              <div class="sm-stats" id="sm-stats"></div>
+              <button class="btn btn-secondary btn-sm" onclick="smReset()">Reset to defaults</button>
+            </div>
           </div>
-        </div>
-        <div style="padding:16px 20px">
-          <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;line-height:1.55">
-            The lists below feed every Stone dropdown in the admin (Stone Sizes, Stone Prices, product stone rows, imports) and the website.
-            Add a value, reorder with ‹ ›, or remove one that is no longer used. A value that is still used by a price, size or product stone
-            cannot be removed (its usage count is shown) — move those rows to another value first. Nothing in <code>stone-pricing.js</code> needs editing.
-            Remember: <b>Pearl</b> is the gem stone type; <b>Pear</b> is only a shape.
-          </p>
-          <div id="sm-body" class="class-grid sm-grid"></div>
+          <div id="sm-body"></div>
+          <div class="sm-savebar" id="sm-savebar">
+            <span class="sm-dirty" id="sm-dirty"></span>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-secondary" onclick="smDiscard()">Discard changes</button>
+              <button class="btn btn-primary" onclick="saveStoneMaster()">Save Stone Master</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1562,7 +1606,7 @@ async function loadStoneTaxonomy(){
       VJ_STONE.configure(v);
     }
   }catch(e){ console.warn("Stone Master: using default lists —", e.message); }
-  if(!smDraft || !smIsDirty()){ smSaved = VJ_STONE.getTaxonomy(); smDraft = JSON.parse(JSON.stringify(smSaved)); }
+  if(!smDraft || !smIsDirty()){ smSaved = VJ_STONE.getTaxonomy(); smDraft = JSON.parse(JSON.stringify(smSaved)); smRenames = []; }
 }
 
 async function loadMasters(){
@@ -5097,11 +5141,15 @@ async function importStonesXlsx(e){
 }
 
 // ═════════ STONE MASTER (editable classification, stored in site_settings "stone_taxonomy") ═════════
-let smDraft = null, smSaved = null;
+let smDraft = null, smSaved = null, smRenames = [], smEditing = null;
 const smIsDirty = () => !!(smDraft && smSaved) && JSON.stringify(smDraft) !== JSON.stringify(smSaved);
 const smList = (kind,cat) => (kind==='shapes'||kind==='qualities') ? smDraft[kind] : smDraft[kind][cat];
+const smSavedList = (kind,cat) => (kind==='shapes'||kind==='qualities') ? smSaved[kind] : smSaved[kind][cat];
+const smKindLabel = {types:'Stone Types', colors:'Colors', shapes:'Shapes', qualities:'Qualities'};
+const smRenameOf = (kind,cat,val) => smRenames.find(r=>r.kind===kind && (r.cat||'')===(cat||'') && r.to===val);
+const smOrig = (kind,cat,val) => { const r = smRenameOf(kind,cat,val); return r ? r.from : val; };
 
-// How many existing rows use a value (blocks removal while > 0)
+// How many existing rows use a value (by its SAVED name). Blocks removal while > 0.
 function smUsage(kind, cat, val){
   const V = VJ_STONE, n = V.norm, tk = V.typeKey;
   const pstones = (typeof allProducts!=='undefined' ? allProducts : []).flatMap(p=>p.product_stones||[]);
@@ -5119,80 +5167,207 @@ function smUsage(kind, cat, val){
   } else if(kind==='qualities'){
     prices = allStones.filter(s=>n(s.quality)===n(val)).length;
   }
-  const total = prices+sizes+prod, parts = [];
+  const parts = [];
   if(prices) parts.push(prices+' price'+(prices>1?'s':'')); if(sizes) parts.push(sizes+' size'+(sizes>1?'s':'')); if(prod) parts.push(prod+' product stone'+(prod>1?'s':''));
-  return { total, text: parts.join(', ') };
+  return { total:prices+sizes+prod, text:parts.join(', ') };
 }
 
 function renderStoneMaster(){
   const el = document.getElementById('sm-body'); if(!el || !smDraft) return;
-  const V = VJ_STONE, saved = smSaved || smDraft;
-  const card = (title, kind, cat, hint) => {
-    const list = smList(kind,cat), key = kind+'|'+(cat||'');
-    const chips = list.map((v,i)=>{
-      const u = smUsage(kind,cat,v);
-      const isNew = !(kind==='shapes'||kind==='qualities' ? saved[kind] : saved[kind][cat]).some(x=>V.norm(x)===V.norm(v));
-      const q = x => JSON.stringify(x).replace(/"/g,'&quot;');
-      return `<span class="sm-chip" title="${u.total?esc('In use: '+u.text):(isNew?'New — not saved yet':'Not used by any row')}">${esc(v)}${u.total?` <small>${u.total}</small>`:(isNew?' <small>new</small>':'')}
-        <button onclick="smMove(${q(kind)},${q(cat||'')},${i},-1)" title="Move left">‹</button><button onclick="smMove(${q(kind)},${q(cat||'')},${i},1)" title="Move right">›</button><button class="sm-x" onclick="smRemove(${q(kind)},${q(cat||'')},${i})" title="Remove">✕</button></span>`;
+  const V = VJ_STONE, a = s => esc(s);
+  const column = (kind, cat, heading, note) => {
+    const list = smList(kind,cat), saved = smSavedList(kind,cat);
+    const rows = list.map((v,i)=>{
+      const ren = smRenameOf(kind,cat,v);
+      const isNew = !ren && !saved.some(x=>V.norm(x)===V.norm(v));
+      const u = isNew ? {total:0} : smUsage(kind,cat,smOrig(kind,cat,v));
+      const editing = smEditing && smEditing.kind===kind && (smEditing.cat||'')===(cat||'') && smEditing.i===i;
+      const badge = ren ? `<span class="sm-badge sm-b-ren" title="Rows using “${a(ren.from)}” will be updated when you save">was ${a(ren.from)}</span>`
+                  : isNew ? `<span class="sm-badge sm-b-new">New</span>`
+                  : u.total ? `<span class="sm-badge sm-b-use" title="${a(u.text)}">${u.total} in use</span>` : '';
+      return `<div class="sm-row" data-k="${kind}" data-c="${a(cat||'')}" data-i="${i}">
+        <span class="sm-idx">${String(i+1).padStart(2,'0')}</span>
+        ${editing ? `<input class="sm-edit" id="sm-edit-input" value="${a(v)}" onkeydown="if(event.key==='Enter')smCommitEdit(this);else if(event.key==='Escape')smCancelEdit()" onblur="smCommitEdit(this)" />`
+                  : `<span class="sm-name" title="Click to rename" onclick="smAct('edit',this)">${a(v)}</span>`}
+        ${badge}
+        <span class="sm-act"><button title="Rename" onclick="smAct('edit',this)">✎</button><button title="Move up" onclick="smAct('up',this)">↑</button><button title="Move down" onclick="smAct('down',this)">↓</button><button class="sm-x" title="Remove" onclick="smAct('del',this)">✕</button></span>
+      </div>`;
     }).join('');
-    const id = 'sm-in-'+kind+'-'+(cat||'').replace(/\W/g,'');
-    const q = x => JSON.stringify(x).replace(/"/g,'&quot;');
-    return `<div class="class-card"><h4>${esc(title)}</h4>${hint?`<div style="font-size:11px;color:var(--text-muted);margin:-4px 0 8px">${hint}</div>`:''}<div class="chips-sm">${chips||'<span style="font-size:12px;color:var(--text-muted)">None</span>'}</div>
-      <div class="sm-add"><input id="${id}" type="text" placeholder="Add ${esc(title.toLowerCase())}…" onkeydown="if(event.key==='Enter'){smAdd(${q(kind)},${q(cat||'')},'${id}')}" /><button class="btn btn-secondary btn-sm" onclick="smAdd(${q(kind)},${q(cat||'')},'${id}')">+ Add</button></div></div>`;
+    return `<div class="sm-col" data-k="${kind}" data-c="${a(cat||'')}">
+      <div class="sm-col-h">${a(heading)}<small>${list.length} value${list.length===1?'':'s'}</small></div>
+      ${rows || '<div class="sm-empty">None yet</div>'}
+      <div class="sm-add"><input type="text" placeholder="Add ${a(note||heading.toLowerCase())}…" onkeydown="if(event.key==='Enter')smAddFrom(this)" /><button onclick="smAddFrom(this)">+ Add</button></div>
+    </div>`;
   };
+  const catCard = (c, glyph, note) => `<section class="sm-cat">
+      <div class="sm-cat-head"><span class="sm-gem">${glyph}</span><div><div class="sm-cat-title">${a(c)}</div><div class="sm-cat-note">${a(note)}</div></div></div>
+      <div class="sm-cols">${column('types',c,'Stone Types','a type')}${column('colors',c,'Colors','a color')}</div>
+    </section>`;
+  const simple = (kind, title, glyph, note, ph) => `<section class="sm-cat">
+      <div class="sm-cat-head"><span class="sm-gem">${glyph}</span><div><div class="sm-cat-title">${a(title)}</div><div class="sm-cat-note">${a(note)}</div></div></div>
+      <div class="sm-cols">${column(kind,'',title,ph)}</div></section>`;
   el.innerHTML =
-    V.categoryNames().map(c=>card(c+' — Stone Types','types',c, c==='Gem Stone'?'e.g. Emerald, Ruby, Sapphire, <b>Pearl</b>':'')).join('') +
-    V.categoryNames().map(c=>card(c+' — Colors','colors',c,'')).join('') +
-    card('Shapes','shapes','','Shape names used by Stone Sizes, Stone Prices and product stones (Pear = pear-cut shape)') +
-    card('Qualities','qualities','','');
-  const dirty = document.getElementById('sm-dirty'); if(dirty) dirty.textContent = smIsDirty() ? '● Unsaved changes' : '';
+    catCard('Diamond','◆','Natural & lab grown stones, graded by color and quality') +
+    catCard('Gem Stone','✦','Coloured gemstones and pearls') +
+    `<div class="sm-two">${simple('shapes','Shapes','◇','Cut / outline of the stone (Pear is a shape)','a shape')}${simple('qualities','Qualities','❖','Clarity grades used in Stone Prices','a quality')}</div>`;
+
+  const cnt = c => V.categoryNames().reduce((n,k)=>n+smDraft[c][k].length,0);
+  const stats = document.getElementById('sm-stats');
+  if(stats) stats.innerHTML = [['Types',cnt('types')],['Colors',cnt('colors')],['Shapes',smDraft.shapes.length],['Qualities',smDraft.qualities.length]]
+    .map(([l,n])=>`<div class="sm-stat"><b>${n}</b><span>${l}</span></div>`).join('');
+  const bar = document.getElementById('sm-savebar'), dirty = smIsDirty();
+  if(bar) bar.classList.toggle('show', dirty);
+  const dt = document.getElementById('sm-dirty');
+  if(dt) dt.textContent = dirty ? `● Unsaved changes${smRenames.length?` — ${smRenames.length} rename${smRenames.length>1?'s':''} will update existing rows`:''}` : '';
+  if(smEditing){ const i = document.getElementById('sm-edit-input'); if(i){ i.focus(); i.select(); } }
 }
 
-function smAdd(kind, cat, inputId){
-  const inp = document.getElementById(inputId); if(!inp) return;
-  const val = inp.value.trim(); if(!val){ return; }
-  const list = smList(kind,cat), n = VJ_STONE.norm;
-  if(list.some(x=>n(x)===n(val))){ toast(`"${val}" is already in this list.`,'error'); return; }
+function smAct(action, node){
+  const row = node.closest('.sm-row'); if(!row) return;
+  const kind = row.dataset.k, cat = row.dataset.c, i = parseInt(row.dataset.i), list = smList(kind,cat);
+  if(action==='edit'){ smEditing = {kind,cat,i}; renderStoneMaster(); }
+  else if(action==='up' || action==='down'){
+    const j = i + (action==='up'?-1:1); if(j<0||j>=list.length) return;
+    [list[i],list[j]] = [list[j],list[i]]; renderStoneMaster();
+  } else if(action==='del'){
+    const val = list[i];
+    if(list.length<=1){ toast('At least one value must remain in each list.','error'); return; }
+    const u = smUsage(kind,cat,smOrig(kind,cat,val));
+    if(u.total){ toast(`“${val}” is still used by ${u.text}. Rename it instead, or move those rows to another value first.`,'error'); return; }
+    smRenames = smRenames.filter(r=>!(r.kind===kind && (r.cat||'')===cat && r.to===val));
+    list.splice(i,1); renderStoneMaster();
+  }
+}
+function smCancelEdit(){ smEditing = null; renderStoneMaster(); }
+
+// Rename in the draft. Existing rows are updated when the Stone Master is saved.
+function smCommitEdit(input){
+  if(!smEditing) return;
+  const {kind,cat,i} = smEditing; smEditing = null;
+  const list = smList(kind,cat), old = list[i], val = input.value.trim(), V = VJ_STONE, n = V.norm;
+  if(!val || val===old){ renderStoneMaster(); return; }
+  if(list.some((x,k)=>k!==i && n(x)===n(val))){ toast(`“${val}” already exists in this list.`,'error'); renderStoneMaster(); return; }
   if(kind==='types'){
-    const other = VJ_STONE.categoryNames().find(c=>c!==cat && smDraft.types[c].some(x=>VJ_STONE.typeKey(x)===VJ_STONE.typeKey(val)));
-    if(other){ toast(`"${val}" already exists under ${other}. A stone type can belong to one category only.`,'error'); return; }
+    const other = V.categoryNames().find(c=>c!==cat && smDraft.types[c].some(x=>V.typeKey(x)===V.typeKey(val)));
+    if(other){ toast(`“${val}” already exists under ${other}.`,'error'); renderStoneMaster(); return; }
+  }
+  const existing = smRenameOf(kind,cat,old), wasSaved = smSavedList(kind,cat).some(x=>x===old);
+  if(existing){
+    if(existing.from===val) smRenames = smRenames.filter(r=>r!==existing);   // renamed back to the original
+    else existing.to = val;
+  } else if(wasSaved){
+    smRenames.push({kind,cat,from:old,to:val});
+  }                                                                            // else: a brand-new value, plain replace
+  list[i] = val; renderStoneMaster();
+}
+
+function smAddFrom(node){
+  const col = node.closest('.sm-col'), inp = col.querySelector('.sm-add input');
+  const kind = col.dataset.k, cat = col.dataset.c, val = inp.value.trim(); if(!val) return;
+  const list = smList(kind,cat), V = VJ_STONE, n = V.norm;
+  if(list.some(x=>n(x)===n(val))){ toast(`“${val}” is already in this list.`,'error'); return; }
+  if(kind==='types'){
+    const other = V.categoryNames().find(c=>c!==cat && smDraft.types[c].some(x=>V.typeKey(x)===V.typeKey(val)));
+    if(other){ toast(`“${val}” already exists under ${other}. A stone type can belong to one category only.`,'error'); return; }
   }
   list.push(val); renderStoneMaster();
-  document.getElementById(inputId)?.focus();
+  const again = document.querySelector(`.sm-col[data-k="${kind}"][data-c="${cat}"] .sm-add input`); if(again) again.focus();
 }
-function smRemove(kind, cat, i){
-  const list = smList(kind,cat), val = list[i];
-  if(list.length<=1){ toast('At least one value must remain in each list.','error'); return; }
-  const u = smUsage(kind,cat,val);
-  if(u.total){ toast(`"${val}" is still used by ${u.text}. Change those rows to another value first.`,'error'); return; }
-  list.splice(i,1); renderStoneMaster();
-}
-function smMove(kind, cat, i, dir){
-  const list = smList(kind,cat), j = i+dir; if(j<0||j>=list.length) return;
-  [list[i],list[j]] = [list[j],list[i]]; renderStoneMaster();
-}
-function smDiscard(){ if(!smSaved) return; smDraft = JSON.parse(JSON.stringify(smSaved)); renderStoneMaster(); }
+function smDiscard(){ if(!smSaved) return; smDraft = JSON.parse(JSON.stringify(smSaved)); smRenames = []; smEditing = null; renderStoneMaster(); }
 function smReset(){
-  openConfirm('Reset every list to the built-in defaults? (Not saved until you click Save Stone Master.)', ()=>{
-    smDraft = JSON.parse(JSON.stringify(VJ_STONE.DEFAULT_TAXONOMY)); renderStoneMaster();
+  openConfirm('Reset every list to the built-in defaults? (Nothing is saved until you click Save Stone Master.)', ()=>{
+    smDraft = JSON.parse(JSON.stringify(VJ_STONE.DEFAULT_TAXONOMY)); smRenames = []; smEditing = null; renderStoneMaster();
   });
 }
+
+// ── Rename cascade: update every stored row that uses the old name ──────
+async function smApplyRenames(renames){
+  const V = VJ_STONE, n = V.norm, tk = V.typeKey;
+  const res = {rows:0, fail:0, err:''};
+  const run = async (path, body) => { try{ await sb(path,'PATCH',body); res.rows++; }catch(e){ res.fail++; res.err = e.message||String(e); console.error('rename cascade', path, e); } };
+  const nameOf = s => [s.type,s.shape,s.size_basis,s.color,s.quality].filter(Boolean).join(' ');
+  const pstones = (typeof allProducts!=='undefined' ? allProducts : []).flatMap(p=>p.product_stones||[]);
+  const variants = (vals, match) => [...new Set(vals.filter(v=>v!=null && v!=='' && match(v)))];
+
+  for(const r of renames){
+    const {kind,cat,from,to} = r, q = encodeURIComponent;
+    if(kind==='types' || kind==='shapes'){
+      const col = kind==='types' ? 'type' : 'shape', sizeCol = kind==='types' ? 'stone_type' : 'shape';
+      const same = kind==='types' ? (x=>tk(x)===tk(from)) : (x=>n(x)===n(from));
+      for(const s of allStones.filter(s=>same(s[col]))){
+        const next = {...s, [col]:to};
+        await run('stone_types?id=eq.'+s.id, {[col]:to, name:nameOf(next)});
+        Object.assign(s, {[col]:to, name:nameOf(next)});            // keep memory current for later renames in the same save
+      }
+      const sizeVals = variants(allDiamonds.map(d=>kind==='types' ? V.rowType(d) : d.shape), same).concat([from]);
+      for(const v of [...new Set(sizeVals)]) await run('diamond_sizes?'+sizeCol+'=eq.'+q(v), {[sizeCol]:to});
+      const psVals = variants(pstones.map(s=>kind==='types' ? s.stone_type : s.shape), same).concat([from]);
+      for(const v of [...new Set(psVals)]){
+        await run('product_stones?'+sizeCol+'=eq.'+q(v), {[sizeCol]:to});
+        await run('product_size_variant_stones?'+sizeCol+'=eq.'+q(v), {[sizeCol]:to});
+      }
+      // products.stone summary text ("<type> <shape>")
+      for(const p of (typeof allProducts!=='undefined' ? allProducts : [])){
+        if(!p.stone) continue;
+        const esc2 = from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        const hit = kind==='types' ? new RegExp('^'+esc2+'(\\s|$)','i').test(p.stone) : new RegExp(esc2+'$','i').test(p.stone);
+        if(!hit) continue;
+        const next = kind==='types' ? p.stone.replace(new RegExp('^'+esc2,'i'), to) : p.stone.replace(new RegExp(esc2+'$','i'), to);
+        await run('products?id=eq.'+p.id, {stone:next});
+      }
+    } else {
+      const col = kind==='colors' ? 'color' : 'quality';
+      for(const s of allStones.filter(s=>n(s[col])===n(from) && (kind!=='colors' || V.rowCategory(s)===cat))){
+        const next = {...s, [col]:to};
+        await run('stone_types?id=eq.'+s.id, {[col]:to, name:nameOf(next)});
+        Object.assign(s, {[col]:to, name:nameOf(next)});
+      }
+    }
+  }
+  return res;
+}
+
 async function saveStoneMaster(){
   if(!smDraft) return;
-  const key = VJ_STONE.TAXONOMY_SETTING_KEY, value = JSON.stringify(smDraft);
-  try{
-    const ex = await sb("site_settings?key=eq."+encodeURIComponent(key)+"&select=key");
-    if(ex && ex.length) await sb("site_settings?key=eq."+encodeURIComponent(key),"PATCH",{value});
-    else await sb("site_settings","POST",{key,value});
-    VJ_STONE.configure(smDraft);
-    smSaved = VJ_STONE.getTaxonomy(); smDraft = JSON.parse(JSON.stringify(smSaved));
-    renderStoneMaster(); renderStoneGrid(); renderDiamondsTable(); renderLookupTable();
-    toast('Stone Master saved — dropdowns and the website now use these lists.');
-  }catch(e){
-    console.error('saveStoneMaster',e);
-    toast('Could not save Stone Master: '+(e.message||e)+' (needs write access to the site_settings table)','error');
-  }
+  const V = VJ_STONE, n = V.norm, renamed = r => smRenames.some(x=>x.kind===r.kind && (x.cat||'')===(r.cat||'') && x.from===r.v);
+  // a saved value may only disappear from a list if nothing uses it
+  const lost = [];
+  [['types',true],['colors',true],['shapes',false],['qualities',false]].forEach(([kind,perCat])=>{
+    (perCat ? V.categoryNames() : ['']).forEach(cat=>{
+      smSavedList(kind,cat).forEach(v=>{
+        if(smList(kind,cat).some(x=>n(x)===n(v)) || renamed({kind,cat,v})) return;
+        const u = smUsage(kind,cat,v); if(u.total) lost.push(`${v} (${u.text})`);
+      });
+    });
+  });
+  if(lost.length){ toast('These values are still in use and can’t be dropped: '+lost.join('; ')+'. Re-add or rename them.','error'); return; }
+
+  const go = async()=>{
+    try{
+      let cascade = {rows:0,fail:0,err:''};
+      if(smRenames.length) cascade = await smApplyRenames(smRenames);
+      const key = V.TAXONOMY_SETTING_KEY, value = JSON.stringify(smDraft);
+      const ex = await sb("site_settings?key=eq."+encodeURIComponent(key)+"&select=key");
+      if(ex && ex.length) await sb("site_settings?key=eq."+encodeURIComponent(key),"PATCH",{value});
+      else await sb("site_settings","POST",{key,value});
+      V.configure(smDraft);
+      smSaved = V.getTaxonomy(); smDraft = JSON.parse(JSON.stringify(smSaved));
+      const hadRenames = smRenames.length; smRenames = []; smEditing = null;
+      if(hadRenames){ await loadMasters(); try{ await loadProducts(); }catch(e){} }
+      else { renderStoneGrid(); renderDiamondsTable(); renderLookupTable(); }
+      renderStoneMaster();
+      toast(cascade.fail ? `Saved, but ${cascade.fail} row update(s) failed (${cascade.err}). Check Stone Prices for red rows.` :
+            hadRenames ? `Stone Master saved — ${cascade.rows} update${cascade.rows===1?'':'s'} applied to existing rows.` :
+            'Stone Master saved — dropdowns and the website now use these lists.', cascade.fail?'error':'success');
+    }catch(e){
+      console.error('saveStoneMaster',e);
+      toast('Could not save Stone Master: '+(e.message||e)+' (needs write access to the site_settings table)','error');
+    }
+  };
+  if(smRenames.length){
+    const lines = smRenames.map(r=>{ const u = smUsage(r.kind,r.cat,r.from); return `${r.from} → ${r.to}${u.total?` (${u.text})`:''}`; }).join('; ');
+    openConfirm(`Rename ${smRenames.length} value${smRenames.length>1?'s':''} everywhere they are used? ${lines}`, go);
+  } else await go();
 }
 
 function toggleLookupSection(){
