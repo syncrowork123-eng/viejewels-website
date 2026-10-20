@@ -306,6 +306,8 @@
     .margin-rates-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
     .margin-rates-header { padding:14px 20px; border-bottom:1px solid var(--border); }
     .margin-cards-row { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+    .margin-group-title { font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--accent); padding:18px 28px 0; border-top:1px solid var(--border); margin-top:14px; }
+    .margin-group-title span { font-size:11px; font-weight:400; letter-spacing:0; color:var(--text-muted); margin-left:8px; }
     .margin-card { padding:24px 28px; border-right:1px solid var(--border); }
     .margin-card:last-child { border-right:none; }
     .margin-card-label { font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:16px; }
@@ -842,19 +844,56 @@
           <span class="metal-market-title">Margin Rates</span>
         </div>
         <div style="font-size:12px;color:var(--text-muted);padding:10px 20px 0;">Per-carat margin applied on top of stone cost during pricing calculations.</div>
+        <div class="margin-group-title">NATURAL DIAMONDS <span>Type: Natural</span></div>
         <div class="margin-cards-row">
           <div class="margin-card">
             <div class="margin-card-label">Margin / CT (INR)</div>
             <div class="margin-input-row">
               <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-ct" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-inr-ct-natural" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
               <span class="margin-unit">/ct</span>
             </div>
           </div>
           <div class="margin-card">
             <div class="margin-card-label">Margin % (USD)</div>
             <div class="margin-input-row">
-              <input type="number" id="margin-pct-usd" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-pct-usd-natural" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="margin-group-title">LAB GROWN DIAMONDS <span>Type: Lab Grown</span></div>
+        <div class="margin-cards-row">
+          <div class="margin-card">
+            <div class="margin-card-label">Margin / CT (INR)</div>
+            <div class="margin-input-row">
+              <span class="margin-symbol">₹</span>
+              <input type="number" id="margin-inr-ct-lab" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">/ct</span>
+            </div>
+          </div>
+          <div class="margin-card">
+            <div class="margin-card-label">Margin % (USD)</div>
+            <div class="margin-input-row">
+              <input type="number" id="margin-pct-usd-lab" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="margin-group-title">GEMSTONES <span>Emerald, Ruby, Sapphire, Pearl and other Gem Stone types</span></div>
+        <div class="margin-cards-row">
+          <div class="margin-card">
+            <div class="margin-card-label">Margin / CT (INR)</div>
+            <div class="margin-input-row">
+              <span class="margin-symbol">₹</span>
+              <input type="number" id="margin-inr-ct-gem" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">/ct</span>
+            </div>
+          </div>
+          <div class="margin-card">
+            <div class="margin-card-label">Margin % (USD)</div>
+            <div class="margin-input-row">
+              <input type="number" id="margin-pct-usd-gem" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
               <span class="margin-unit">%</span>
             </div>
           </div>
@@ -4643,10 +4682,9 @@ function calcStoneWebsite(){
   if(el) el.value=base>0?(base*(1+markup/100)).toFixed(4):"";
 }
 
-function getStoneDerivedRates(rateINR){
-  // Get live margin/currency values
-  const marginINR = parseFloat(allMargins.find(m=>m.name==='margin_per_ct_inr')?.percentage)||0;
-  const marginPct = parseFloat(allMargins.find(m=>m.name==='margin_pct_usd')?.percentage)||0;
+function getStoneDerivedRates(rateINR, stone){
+  // Get live margin/currency values — margin depends on the stone group (Natural / Lab Grown / Gemstone)
+  const { inr: marginINR, pct: marginPct } = marginRatesFor(marginGroupOf(stone));
   const usdRate   = parseFloat(allCurrencies.find(c=>c.code==='USD')?.rate_to_inr)||0; // INR per 1 USD (e.g. 83)
   const rate = parseFloat(rateINR)||0;
   const priceINR  = rate>0 ? rate + marginINR : null;
@@ -4873,7 +4911,7 @@ function renderStoneGrid(){
     return;
   }
   html += rows.map(s => {
-    const d = getStoneDerivedRates(s.rate_inr);
+    const d = getStoneDerivedRates(s.rate_inr, s);
     const cat = stoneCat(s), issue = issueOf(s);
     return `<tr data-id="${s.id}"${issue?` class="spl-row-bad" title="${esc(issue)}"`:''}>
       <td><select class="spl-cell-input" onchange="splUpdate(${s.id},'category',this.value)">${optList(V.categoryNames(),cat,'Category')}</select>${issue?`<div class="spl-why">${esc(issue)}</div>`:''}</td>
@@ -4917,7 +4955,7 @@ function splAutoFix(){
 function splDraftRowHtml(){
   const V = VJ_STONE, d = _splDraft;
   const sel = (field, list, val, ph) => `<td><select class="spl-cell-input" onchange="splDraftSet('${field}',this.value)">${optList(list,val,ph)}</select></td>`;
-  const dr = getStoneDerivedRates(parseFloat(d.rate));
+  const dr = getStoneDerivedRates(parseFloat(d.rate), d);
   return `<tr class="spl-row-draft">
     ${sel('category',V.categoryNames(),d.category,'Category')}
     ${sel('type',V.typesOf(d.category),d.type,'Type')}
@@ -4966,7 +5004,7 @@ function splDraftSet(field, val, quiet){
 }
 function splDraftRate(val){
   if(!_splDraft) return; _splDraft.rate = val;
-  const dr = getStoneDerivedRates(parseFloat(val));
+  const dr = getStoneDerivedRates(parseFloat(val), _splDraft);
   const put = (id,n) => { const el=document.getElementById(id); if(el) el.innerHTML = n!=null?`<span class="spl-derived has-val">${Number(n).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'; };
   put('spl-d-p1',dr.priceINR); put('spl-d-p2',dr.rateUSD); put('spl-d-p3',dr.priceUSD);
 }
@@ -4979,7 +5017,7 @@ async function splDraftSave(){
   const rate = parseFloat(d.rate);
   if(!(rate>0)){ toast('Enter a Rate / CT (INR) greater than 0.','error'); return; }
   if(allStones.some(s=>V.priceKey(s)===V.priceKey(rec))){ toast('A price for this Category / Type / Shape / Color / Quality / Size Basis already exists — edit that row instead.','error'); return; }
-  const der = getStoneDerivedRates(rate);
+  const der = getStoneDerivedRates(rate, rec);
   const body = withCat({
     name:[rec.type,rec.shape,rec.size_basis,rec.color,rec.quality].filter(Boolean).join(' '),
     type:rec.type, shape:rec.shape, color:rec.color, quality:rec.quality, size_basis:rec.size_basis,
@@ -5005,7 +5043,7 @@ function splRateChange(id, val){
   // Optimistically update derived cells immediately
   const row = document.querySelector(`tr[data-id="${id}"]`);
   if(row){
-    const d = getStoneDerivedRates(val);
+    const d = getStoneDerivedRates(val, allStones.find(x=>x.id===id));
     const fmtD = (n) => n!=null ? `<span class="spl-derived has-val">${Number(n).toFixed(2)}</span>` : `<span class="spl-derived">—</span>`;
     const cells = row.querySelectorAll('td');
     cells[7].innerHTML = fmtD(d.priceINR);
@@ -5019,7 +5057,7 @@ function splRateChange(id, val){
 async function splSaveRate(id, val){
   const rate = parseFloat(val);
   if(isNaN(rate)) return;
-  const d = getStoneDerivedRates(rate);
+  const d = getStoneDerivedRates(rate, allStones.find(x=>x.id===id));
   const patch = {
     rate_inr: rate,
     price_inr: d.priceINR,
@@ -5088,15 +5126,14 @@ async function splDelete(id){
 
 function exportStonesXlsx(){
   if(!allStones.length){ toast("No stones to export.","error"); return; }
-  const marginINR = parseFloat(allMargins.find(m=>m.name==='margin_per_ct_inr')?.percentage)||0;
-  const marginPct = parseFloat(allMargins.find(m=>m.name==='margin_pct_usd')?.percentage)||0;
+  const mN = marginRatesFor('natural'), mL = marginRatesFor('lab'), mG = marginRatesFor('gem');
   const usdRate   = parseFloat(allCurrencies.find(c=>c.code==='USD')?.rate_to_inr)||0;
 
   const headers=["Category","Type","Shape","Color","Quality","Size Basis","Rate/ct (INR)","Price/ct (INR)","Rate/ct (USD)","Price/ct (USD)"];
   const inrPerUsd=usdRate>0?Math.round(usdRate):0;
-  const subheads=["","","","","","",`Rate INR (editable)`,`Rate + ₹${marginINR}/ct`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+${marginPct}%)`];
+  const subheads=["","","","","","",`Rate INR (editable)`,`Rate + margin ₹/ct (by stone group)`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+margin %)`];
   const rows = allStones.map(s=>{
-    const d = getStoneDerivedRates(s.rate_inr);
+    const d = getStoneDerivedRates(s.rate_inr, s);
     return [
       stoneCat(s)||'', s.type||'', s.shape||'', s.color||'', s.quality||'', s.size_basis||'',
       s.rate_inr!=null?Number(s.rate_inr).toFixed(2):'',
@@ -5126,9 +5163,11 @@ function exportStonesXlsx(){
     ["5. Save as .xlsx and use Import Excel button"],
     [""],
     ["CALCULATION FORMULAS"],
-    [`Price/ct (INR) = Rate/ct (INR) + ${marginINR} (margin per ct INR)`],
+    [`Margin per ct (INR): Natural ${mN.inr} | Lab Grown ${mL.inr} | Gemstone ${mG.inr}`],
+    [`Margin % (USD): Natural ${mN.pct}% | Lab Grown ${mL.pct}% | Gemstone ${mG.pct}%`],
+    [`Price/ct (INR) = Rate/ct (INR) + margin per ct INR of the stone's group`],
     [`Rate/ct (USD)  = Rate/ct (INR) ÷ ${inrPerUsd} (INR rate)`],
-    [`Price/ct (USD) = Price/ct (INR) ÷ ${inrPerUsd} (INR rate) × (1 + ${marginPct}%) (margin ${marginPct}%)`],
+    [`Price/ct (USD) = Price/ct (INR) ÷ ${inrPerUsd} (INR rate) × (1 + margin % of the stone's group)`],
   ]);
   XLSX.utils.book_append_sheet(wb, wsI, "Instructions");
   XLSX.writeFile(wb,"viejewels-stone-prices.xlsx");
@@ -5181,7 +5220,7 @@ async function importStonesXlsx(e){
                     (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
         if(why){ invalid++; if(invalidNotes.length<8) invalidNotes.push(`row ${ri+2}: ${why}`); return; }
         const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ");
-        const d = getStoneDerivedRates(rate_inr);
+        const d = getStoneDerivedRates(rate_inr, {category, type});
         const rec = withCat({
           name, type, shape, color:color||null, quality:quality||null, size_basis,
           rate_inr, price_inr:d.priceINR, rate_usd:d.rateUSD, price_usd:d.priceUSD,
@@ -6579,17 +6618,42 @@ async function saveMetalRates(){
 }
 
 // ── MARGIN RATES ─────────────────────────────────────────────────────────
-// Named records used for the card UI
-const MARGIN_INR_NAME = 'margin_per_ct_inr';
-const MARGIN_PCT_NAME = 'margin_pct_usd';
+// Separate margins for Natural diamonds, Lab Grown diamonds and Gemstones.
+// Stored as named records in the `margins` table (the `percentage` column holds the value):
+//   margin_per_ct_inr_<group>  and  margin_pct_usd_<group>   (group = natural | lab | gem)
+// The old single records (margin_per_ct_inr / margin_pct_usd) are used as a fallback
+// until a group-specific value is saved, so existing prices keep working.
+const MARGIN_GROUPS = ['natural','lab','gem'];
+const MARGIN_INR_NAME = 'margin_per_ct_inr';   // legacy shared record
+const MARGIN_PCT_NAME = 'margin_pct_usd';      // legacy shared record
+const marginInrName = g => MARGIN_INR_NAME+'_'+g;
+const marginPctName = g => MARGIN_PCT_NAME+'_'+g;
+
+// Which margin group a stone belongs to. Accepts a stone row, a draft or {category,type}.
+function marginGroupOf(x){
+  const type = String(x?.type||'').toLowerCase();
+  const cat  = String((x?.category || (x && typeof VJ_STONE!=='undefined' && x.type ? VJ_STONE.rowCategory(x) : '') || '')).toLowerCase();
+  if(type.includes('lab')) return 'lab';
+  if(type==='natural') return 'natural';
+  if(type) return 'gem';                         // Emerald, Ruby, Sapphire, Pearl, ...
+  return cat.includes('gem') ? 'gem' : 'natural';
+}
+function marginRecVal(name){ const r = allMargins.find(m=>m.name===name); return r ? parseFloat(r.percentage) : NaN; }
+function marginRatesFor(group){
+  const inr = marginRecVal(marginInrName(group)), pct = marginRecVal(marginPctName(group));
+  const li = marginRecVal(MARGIN_INR_NAME),        lp = marginRecVal(MARGIN_PCT_NAME);
+  return { inr: !isNaN(inr)?inr:(!isNaN(li)?li:0), pct: !isNaN(pct)?pct:(!isNaN(lp)?lp:0) };
+}
 
 function initMarginCards(){
-  const inrRec = allMargins.find(m=>m.name===MARGIN_INR_NAME);
-  const pctRec = allMargins.find(m=>m.name===MARGIN_PCT_NAME);
-  const inrEl = document.getElementById('margin-inr-ct');
-  const pctEl = document.getElementById('margin-pct-usd');
-  if(inrEl) inrEl.value = inrRec?.percentage ?? '';
-  if(pctEl) pctEl.value = pctRec?.percentage ?? '';
+  MARGIN_GROUPS.forEach(g=>{
+    const inrEl = document.getElementById('margin-inr-ct-'+g);
+    const pctEl = document.getElementById('margin-pct-usd-'+g);
+    const inrRec = allMargins.find(m=>m.name===marginInrName(g)) || allMargins.find(m=>m.name===MARGIN_INR_NAME);
+    const pctRec = allMargins.find(m=>m.name===marginPctName(g)) || allMargins.find(m=>m.name===MARGIN_PCT_NAME);
+    if(inrEl) inrEl.value = inrRec?.percentage ?? '';
+    if(pctEl) pctEl.value = pctRec?.percentage ?? '';
+  });
 }
 
 function marginLiveUpdate(){
@@ -6598,8 +6662,6 @@ function marginLiveUpdate(){
 }
 
 async function saveMarginRates(){
-  const inrVal = parseFloat(document.getElementById('margin-inr-ct')?.value);
-  const pctVal = parseFloat(document.getElementById('margin-pct-usd')?.value);
   const status = document.getElementById('margin-save-status');
 
   const upsert = async (name, value) => {
@@ -6614,8 +6676,10 @@ async function saveMarginRates(){
 
   try {
     if(status) status.textContent = 'Saving…';
-    if(!isNaN(inrVal)) await upsert(MARGIN_INR_NAME, inrVal);
-    if(!isNaN(pctVal)) await upsert(MARGIN_PCT_NAME, pctVal);
+    for(const g of MARGIN_GROUPS){
+      await upsert(marginInrName(g), parseFloat(document.getElementById('margin-inr-ct-'+g)?.value));
+      await upsert(marginPctName(g), parseFloat(document.getElementById('margin-pct-usd-'+g)?.value));
+    }
     toast('Margin rates saved.');
     if(status) status.textContent = '';
     await loadMasters();
