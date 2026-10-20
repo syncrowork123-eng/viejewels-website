@@ -307,7 +307,7 @@ function populateDiamondFilters() {
   }
 
   const hasStoneOfCategory = (product, cat) =>
-    (product?.product_stones || []).some(r => VJ_STONE.categoryOf(r.stone_type) === cat);
+    (product?.product_stones || []).some(r => VJ_STONE.rowCategory({ stone_type: r.stone_type }) === cat);
 
   // 5b. Required-option check: each stone card only matters when the product has that kind of stone.
   if (typeof pdRequiredFieldsStatus === "function") {
