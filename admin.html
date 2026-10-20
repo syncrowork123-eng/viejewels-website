@@ -673,7 +673,6 @@
             </thead>
             <tbody id="spl-tbody"></tbody>
           </table>
-          <datalist id="spl-sb-list"></datalist>
         </div>
 
         <!-- Stone classification (read-only; edit stone-pricing.js to change) -->
@@ -1524,6 +1523,40 @@ let editingProductId=null, editingCategoryId=null, currentMasterType=null, editi
 let selectedTags=[], bulkRows=[];
 let productMediaRows=[];
 
+// ── Remember where the admin was (tab, sub-section, scroll) and return there after a refresh ──
+const NAV_KEY = "vj_admin_nav";
+const navRead  = () => { try{ return JSON.parse(localStorage.getItem(NAV_KEY)) || {}; }catch(e){ return {}; } };
+const navWrite = o => { try{ localStorage.setItem(NAV_KEY, JSON.stringify(o)); }catch(e){} };
+function navCurrent(){
+  const tab = document.querySelector(".tab-btn.active")?.dataset.tab || "products";
+  const sub = document.querySelector("#tab-"+tab+" .sub-tab-btn.active")?.dataset.sub || "";
+  return {tab, sub};
+}
+function navSave(){
+  if(document.getElementById("app").style.display!=="block") return;     // only while the admin is open
+  const {tab,sub} = navCurrent(), n = navRead();
+  n.tab = tab; n.subs = n.subs || {}; n.scroll = n.scroll || {};
+  if(sub) n.subs[tab] = sub;
+  n.scroll[tab+"|"+sub] = Math.round(window.scrollY);
+  navWrite(n);
+  try{ history.replaceState(null,"","#"+tab+(sub?"/"+sub:"")); }catch(e){}
+}
+function navRestoreSelection(){
+  const n = navRead(), h = (location.hash||"").replace("#","").split("/");
+  let tab = n.tab, sub = n.subs && n.subs[tab];
+  if(h[0] && document.getElementById("tab-"+h[0])){ tab = h[0]; sub = h[1] || (n.subs && n.subs[tab]); }
+  if(!tab || !document.getElementById("tab-"+tab)) return;
+  document.querySelector('.tab-btn[data-tab="'+tab+'"]')?.click();
+  if(sub) document.querySelector("#tab-"+tab+" .sub-tab-btn[data-sub=\""+sub+"\"]")?.click();
+}
+function navRestoreScroll(){
+  const {tab,sub} = navCurrent(), y = (navRead().scroll||{})[tab+"|"+sub];
+  if(y) window.scrollTo(0, y);
+}
+document.querySelectorAll(".tab-btn, .sub-tab-btn").forEach(b=>b.addEventListener("click", ()=>setTimeout(navSave,0)));
+let _navT; window.addEventListener("scroll", ()=>{ clearTimeout(_navT); _navT = setTimeout(navSave,250); }, {passive:true});
+window.addEventListener("pagehide", navSave);
+
 function doLogin(){
   const val=document.getElementById("pin-input").value;
   if(val===ADMIN_PASSWORD){ sessionStorage.setItem("vj_admin","1"); showApp(); }
@@ -1531,7 +1564,7 @@ function doLogin(){
 }
 document.getElementById("pin-input").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
 function doLogout(){ sessionStorage.removeItem("vj_admin"); location.reload(); }
-function showApp(){ document.getElementById("login-screen").style.display="none"; document.getElementById("app").style.display="block"; init(); }
+function showApp(){ document.getElementById("login-screen").style.display="none"; document.getElementById("app").style.display="block"; setTimeout(navRestoreSelection,0); init(); }   /* after the tab buttons are wired */
 if(sessionStorage.getItem("vj_admin")==="1") showApp();
 
 async function sbUpsert(table, conflictCol, rows){
@@ -1583,6 +1616,7 @@ async function init(){
   sv("media-provider-select", activeMediaProvider);
   await Promise.all([loadCategories(),loadMasters(),loadJewelCats(),loadRingSizes(),loadBangleSizes(),loadSiteSettings()]);
   await Promise.all([loadProducts(), loadEnquiries()]);
+  setTimeout(navRestoreScroll, 60);          // back to where the admin was scrolled
 }
 
 function toast(msg,type="success"){
@@ -1970,12 +2004,34 @@ function openMasterModal(type,id=null){
   document.getElementById("master-modal").classList.add("open");
 }
 function closeMasterModal(){ document.getElementById("master-modal").classList.remove("open"); currentMasterType=null; editingMasterId=null; }
+// A Size Basis renamed in Stone Sizes is carried over to the Stone Prices that used it
+// (only when no other size of that category + shape still uses the old name).
+async function syncPriceSizeBasis(oldRow, newPayload, id){
+  const V = VJ_STONE;
+  if(V.norm(oldRow.shape)!==V.norm(newPayload.shape)) return 0;
+  const cat = V.rowCategory(oldRow);
+  const same = r => V.rowCategory(r)===cat && V.norm(r.shape)===V.norm(oldRow.shape) && V.sbKey(r.size_basis)===V.sbKey(oldRow.size_basis);
+  if(allDiamonds.some(r=>r.id!==id && same(r))) return 0;
+  let n=0;
+  for(const s of allStones.filter(same)){
+    const merged = {...s, size_basis:newPayload.size_basis};
+    const name = [merged.type,merged.shape,merged.size_basis,merged.color,merged.quality].filter(Boolean).join(' ');
+    try{ await sb('stone_types?id=eq.'+s.id,'PATCH',{size_basis:newPayload.size_basis,name}); n++; }catch(e){ console.error('size basis sync',e); }
+  }
+  return n;
+}
 async function saveMaster(){
   const cfg=masterConfigs[currentMasterType];
   if(!cfg.valid()){ toast("Fill required fields.","error"); return; }
+  let sbSync=null, syncedRows=0;
   try {
     if(editingMasterId){
+      if(currentMasterType==="diamond"){
+        const old=allDiamonds.find(r=>r.id===editingMasterId), np=cfg.payload();
+        if(old && old.size_basis && np.size_basis && VJ_STONE.sbKey(old.size_basis)!==VJ_STONE.sbKey(np.size_basis)) sbSync={old,np};
+      }
       await sb(cfg.table+"?id=eq."+editingMasterId,"PATCH",cfg.payload());
+      if(sbSync) syncedRows = await syncPriceSizeBasis(sbSync.old, sbSync.np, editingMasterId);
     } else if(currentMasterType==="currency"){
       const code=gv("mf-code").toUpperCase();
       const existing=allCurrencies.find(c=>c.code===code);
@@ -1987,7 +2043,7 @@ async function saveMaster(){
     } else {
       await sb(cfg.table,"POST",cfg.payload());
     }
-    toast(cfg.title+(editingMasterId?" updated.":" added."));
+    toast(cfg.title+(editingMasterId?" updated.":" added.")+(syncedRows?` ${syncedRows} Stone Price row${syncedRows>1?'s':''} moved to the new Size Basis.`:""));
     closeMasterModal(); await loadMasters();
   } catch(e){ toast("Error: "+e.message,"error"); }
 }
@@ -4749,19 +4805,19 @@ function renderStoneGrid(){
   repop(f('spl-f-color'),    V.colorsOf(selCat), selColor);
   repop(f('spl-f-quality'),  V.QUALITIES, selQuality);
 
-  // size-basis suggestions come from the Diamond Sizes master
-  const dl = f('spl-sb-list');
-  if(dl) dl.innerHTML = uniq(allDiamonds.map(d=>d.size_basis)).map(v=>`<option value="${esc(v)}"></option>`).join('');
+  // Size Basis choices come only from the Stone Sizes master (category + type + shape), cached per combination
+  const _sbCache = {};
+  const sbOptions = (cat, type, shape) => { const k = cat+'|'+type+'|'+shape; return _sbCache[k] || (_sbCache[k] = V.sizeBasisOptions(allDiamonds,{category:cat,type,shape})); };
 
   // data checks: invalid classification + duplicate combinations
   const keyCount = {};
   allStones.forEach(s=>{ const k=V.priceKey(s); keyCount[k]=(keyCount[k]||0)+1; });
-  const issueOf = s => V.checkPriceRow(s) || (keyCount[V.priceKey(s)]>1 ? "Duplicate combination" : "");
+  const issueOf = s => V.checkPriceRow(s, allDiamonds) || (keyCount[V.priceKey(s)]>1 ? "Duplicate combination" : "");
   const reasons = {}; let issueTotal = 0, fixable = 0;
   allStones.forEach(s=>{
     const i = issueOf(s); if(!i) return;
     issueTotal++; reasons[i] = (reasons[i]||0)+1;
-    if(Object.keys(V.normalizePriceRow(s)).length) fixable++;
+    if(Object.keys(V.normalizePriceRow(s, allDiamonds)).length) fixable++;
   });
   if(!issueTotal) _splIssuesOnly = false;
   const iss = f('spl-issues');
@@ -4800,7 +4856,7 @@ function renderStoneGrid(){
       ${cell(s.id,'shape',V.SHAPES,s.shape||'','Shape')}
       ${cell(s.id,'color',V.colorsOf(cat),s.color||'','Color')}
       ${cell(s.id,'quality',V.QUALITIES,s.quality||'','Quality')}
-      <td><input class="spl-cell-input" list="spl-sb-list" value="${esc(s.size_basis||'')}" onchange="splUpdate(${s.id},'size_basis',this.value)" placeholder="-2" /></td>
+      ${cell(s.id,'size_basis',sbOptions(cat,s.type,s.shape),s.size_basis||'','Size Basis')}
       <td><input class="spl-cell-input rate-input" type="number" step="0.01" value="${fmt2(s.rate_inr)}" oninput="splRateChange(${s.id},this.value)" placeholder="0.00" /></td>
       <td>${fmtD(d.priceINR)}</td>
       <td>${fmtD(d.rateUSD)}</td>
@@ -4816,7 +4872,7 @@ function splToggleIssuesOnly(){ _splIssuesOnly = !_splIssuesOnly; renderStoneGri
 // Rewrites spellings that differ from the Stone Master (e.g. type "Pear" -> "Pearl", "lab grown" -> "Lab Grown")
 function splAutoFix(){
   const V = VJ_STONE;
-  const todo = allStones.map(s=>({s, fix:V.normalizePriceRow(s)})).filter(x=>Object.keys(x.fix).length);
+  const todo = allStones.map(s=>({s, fix:V.normalizePriceRow(s, allDiamonds)})).filter(x=>Object.keys(x.fix).length);
   if(!todo.length){ toast('Nothing to fix.'); return; }
   openConfirm(`Rewrite the spelling of ${todo.length} price row${todo.length>1?'s':''} to match the Stone Master? Rates are not changed.`, async()=>{
     let ok=0, fail=0, lastErr='';
@@ -4843,7 +4899,7 @@ function splDraftRowHtml(){
     ${sel('shape',V.SHAPES,d.shape,'Shape')}
     ${sel('color',V.colorsOf(d.category),d.color,'Color')}
     ${sel('quality',V.QUALITIES,d.quality,'Quality')}
-    <td><input id="spl-d-sb" class="spl-cell-input" list="spl-sb-list" value="${esc(d.size_basis)}" oninput="splDraftSet('size_basis',this.value,true)" placeholder="-2" /></td>
+    <td><select id="spl-d-sb" class="spl-cell-input" onchange="splDraftSet('size_basis',this.value,true)">${optList(V.sizeBasisOptions(allDiamonds,{category:d.category,type:d.type,shape:d.shape}),d.size_basis,'Size Basis')}</select></td>
     <td><input id="spl-d-rate" class="spl-cell-input rate-input" type="number" step="0.01" value="${esc(d.rate)}" oninput="splDraftRate(this.value)" placeholder="0.00" /></td>
     <td id="spl-d-p1">${dr.priceINR!=null?`<span class="spl-derived has-val">${Number(dr.priceINR).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
     <td id="spl-d-p2">${dr.rateUSD!=null?`<span class="spl-derived has-val">${Number(dr.rateUSD).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
@@ -4876,8 +4932,10 @@ function splDraftSet(field, val, quiet){
     const c = V.categoryOf(val); if(c){ d.category = c; if(d.color && !V.canon('color', d.color, c)) d.color = ''; }
   }
   if(!quiet){
-    const sb0 = document.getElementById('spl-d-sb')?.value, r0 = document.getElementById('spl-d-rate')?.value;
-    if(sb0!=null) d.size_basis = sb0; if(r0!=null) d.rate = r0;
+    const r0 = document.getElementById('spl-d-rate')?.value;
+    if(r0!=null) d.rate = r0;
+    // keep the chosen Size Basis only while it still exists for the new category / type / shape
+    if(d.size_basis && !V.canonSizeBasis(allDiamonds,{category:d.category,type:d.type,shape:d.shape},d.size_basis)) d.size_basis = '';
     renderStoneGrid();
   }
 }
@@ -4891,7 +4949,7 @@ function splDraftCancel(){ _splDraft = null; renderStoneGrid(); }
 async function splDraftSave(){
   const V = VJ_STONE, d = _splDraft; if(!d) return;
   const rec = { category:d.category, type:d.type, shape:d.shape, color:d.color||null, quality:d.quality||null, size_basis:String(d.size_basis||'').trim() };
-  const why = V.checkPriceRow(rec);
+  const why = V.checkPriceRow(rec, allDiamonds);
   if(why){ toast(why+' — complete the highlighted row.','error'); return; }
   const rate = parseFloat(d.rate);
   if(!(rate>0)){ toast('Enter a Rate / CT (INR) greater than 0.','error'); return; }
@@ -5088,12 +5146,14 @@ async function importStonesXlsx(e){
         const color   = color0 ? V.canon("color", color0, category) : "";
         const qual0   = get2(["Quality","quality"]);
         const quality = qual0 ? V.canon("quality", qual0) : "";
-        const size_basis = get2(["Size Basis","size_basis","SizeBasis"]);
+        const size_basis0 = get2(["Size Basis","size_basis","SizeBasis"]);
+        const size_basis = (size_basis0 && allDiamonds.length && category && type && shape)
+          ? (V.canonSizeBasis(allDiamonds,{category,type,shape},size_basis0) || "") : size_basis0;
         const rate_inr = parseFloat(get(row,["Rate/ct (INR)","Rate INR","rate_inr","Rate/CT (INR)"]))||null;
         if(!type0 && !shape && !size_basis){ skipped++; return; }
         const why = !category ? "category/type not recognised" : !type ? `type "${type0}" is not a ${category} type` :
                     !shape ? "shape not recognised" : (color0 && !color) ? `color "${color0}" is not valid for ${category}` :
-                    (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? "Size Basis missing" : "";
+                    (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
         if(why){ invalid++; if(invalidNotes.length<8) invalidNotes.push(`row ${ri+2}: ${why}`); return; }
         const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ");
         const d = getStoneDerivedRates(rate_inr);
