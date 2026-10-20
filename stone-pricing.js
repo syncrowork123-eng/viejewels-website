@@ -24,7 +24,7 @@ const VJ_STONE = (() => {
   // ── TAXONOMY (edit here to add a value everywhere) ─────────────────────
   const CATEGORIES = {
     "Diamond":   ["Natural", "Lab Grown"],
-    "Gem Stone": ["Emerald", "Ruby", "Sapphire", "Pear"],
+    "Gem Stone": ["Emerald", "Ruby", "Sapphire", "Pearl"],
   };
   const SHAPES    = ["Round", "Emerald", "Princess", "Pear", "Marquise", "Bugget", "Taper", "Heart", "Cushion", "Oval"];
   const COLORS    = {
@@ -155,8 +155,12 @@ const VJ_STONE = (() => {
     (stoneRows || []).forEach(row => {
       const pcs = num(row.pcs);
       if (!pcs || !row.stone_type) return;
-      const category = categoryOf(row.stone_type) || rowCategory({ stone_type: row.stone_type });
-      const type = (overrideIsDiamond && category === "Diamond") ? overrideType : row.stone_type;
+      const category = rowCategory({ stone_type: row.stone_type });
+      // Legacy rows may hold only the category word ("Diamond"/"Gem Stone") as type:
+      // use the storefront choice, else the category's first type, so price rows can match.
+      let type = row.stone_type;
+      if (category === "Diamond" && overrideIsDiamond) type = overrideType;
+      else if (!categoryOf(type) && category) type = CATEGORIES[category][0];
       const sel = category === "Gem Stone" ? { color: gemColor, quality: gemQuality } : { color, quality };
       const line = { stone: row, type, category, pcs, shape: row.shape, avgWtCt: 0, sizeBasis: "", totalCt: 0, priceINR: 0, cost: 0, status: "ok" };
 
