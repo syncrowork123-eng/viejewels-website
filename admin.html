@@ -1081,14 +1081,14 @@
 <div class="tab-panel" id="tab-stonereport">
   <div class="toolbar">
     <div class="toolbar-left">
-      <input class="search-input" id="sr-search" placeholder="Search SKU / name..." oninput="renderStoneReport()" />
-      <select class="filter-select" id="sr-type" onchange="renderStoneReport()">
+      <input class="search-input" id="sr-search" name="sr-filter-search" type="text" placeholder="Search SKU / name..." autocomplete="off" autocapitalize="off" spellcheck="false" oninput="renderStoneReport()" />
+      <select class="filter-select" id="sr-type" autocomplete="off" onchange="renderStoneReport()">
         <option value="">All Stone Types</option>
       </select>
-      <select class="filter-select" id="sr-shape" onchange="srOnShapeChange()">
+      <select class="filter-select" id="sr-shape" autocomplete="off" onchange="srOnShapeChange()">
         <option value="">All Shapes</option>
       </select>
-      <select class="filter-select" id="sr-size" onchange="renderStoneReport()">
+      <select class="filter-select" id="sr-size" autocomplete="off" onchange="renderStoneReport()">
         <option value="">All Sizes</option>
       </select>
       <button class="btn btn-secondary" onclick="srClearFilters()">✕ Clear</button>
@@ -6957,7 +6957,7 @@ function srPriceRows(r){
         const size = VJ_STONE.findSize(allDiamonds, { type, shape: z.shape, length: z.len, width: z.wid });
         const basis = size ? size.sizeBasis : "";
         out[kind] = { bases: basis ? [basis] : [], prices: VJ_STONE.rateCandidates(allStones, { type, shape: z.shape, sizeBasis: basis }).map(p => {
-          const d = getStoneDerivedRates(p.rate_inr);
+          const d = getStoneDerivedRates(p.rate_inr, p);
           return { type: p.type, basis: p.size_basis, grade: [p.color, p.quality].filter(Boolean).join(" "), inr: Number(p.price_inr) || Number(p.rate_inr), usd: d.rateUSD };
         }) };
       });
@@ -7014,7 +7014,14 @@ function renderStoneReport(){
 
   renderStonePrices(r);
 
+  const active = [
+    document.getElementById("sr-search")?.value.trim() && `search “${document.getElementById("sr-search").value.trim()}”`,
+    document.getElementById("sr-type")?.value && `type ${document.getElementById("sr-type").value}`,
+    document.getElementById("sr-shape")?.value && `shape ${document.getElementById("sr-shape").value}`,
+    document.getElementById("sr-size")?.value && "size filter"
+  ].filter(Boolean);
   document.getElementById("sr-note").textContent =
+    (active.length ? `Filtered by ${active.join(", ")} · ` : "") +
     `${m.rows.length} of ${r.styles.length} styles · ${m.cols.length} shape/size columns` +
     (r.withoutStones ? ` · ${r.withoutStones} styles have no stone details` : "");
 }
