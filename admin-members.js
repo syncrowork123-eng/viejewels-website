@@ -5,28 +5,10 @@
 // Everything (tab button, panel, modal) is injected by this file.
 // It relies on globals already in admin.html: SUPABASE_URL, SUPABASE_KEY,
 // toast(), esc(), openConfirm().
-// VIE JEWELS ADMIN — Duplicate "Design Name" warning
-// Add ONE line to admin.html, just before </body> (after admin-members.js):
-//     <script src="admin-duplicate-name.js"></script>
-//
-// Covers two places:
-//  1. Add / Edit Product form — popup when the Design Name already exists
-//     on another product (Change Name / Continue Anyway).
-//  2. Bulk Upload (table / Excel) — rows whose name already exists on a
-//     product with a different SKU, or repeats inside the file under a
-//     different SKU, are flagged "NAME EXISTS" in the preview and you are
-//     asked to Review Rows or Continue Import before anything is saved.
-// Matching ignores upper/lower case and extra spaces. A row that has the
-// same SKU as an existing product is an update of that product, so it is
-// never flagged. Relies on globals already in admin.html: allProducts,
-// editingProductId, bulkRows, gv(), esc(), openProductModal(),
-// saveProduct(), renderBulkPreview(), importProducts().
 // ════════════════════════════════════════════════════════════════
 (function () {
   const STATUSES = ["Order Received", "In Design", "In Production", "Quality Check", "Shipped", "Delivered", "Cancelled"];
   const TOKEN_KEY = "vj_admin_sb_token";
-  const nameInput = document.getElementById("f-name");
-  if (!nameInput || typeof saveProduct !== "function") return;
 
   let token = sessionStorage.getItem(TOKEN_KEY) || "";
   let orders = [];
@@ -94,21 +76,14 @@
       <p class="mo-hint" style="margin-top:10px">Clients see an order once they sign up / log in with the <b>same email</b> entered here. You can create the order before they register.</p>
     </div>`;
   app.appendChild(panel);
-  const norm = s => String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
-  const $ = id => document.getElementById(id);
 
-  /* ── Shared popup ──────────────────────────────────────── */
-const modal = document.createElement("div");
-modal.className = "modal-overlay";
+  const modal = document.createElement("div");
+  modal.className = "modal-overlay";
   modal.id = "mo-modal";
-  modal.id = "dupname-modal";
-  modal.style.zIndex = "400"; // above other modals
-modal.innerHTML = `
+  modal.innerHTML = `
     <div class="modal" style="max-width:760px">
       <div class="modal-header"><h2 id="mo-modal-title">New Order</h2><button class="modal-close" id="mo-modal-close">×</button></div>
-    <div class="modal" style="max-width:460px">
-      <div class="modal-header"><h2 id="dupname-title">Design name already exists</h2><button class="modal-close" id="dupname-x">×</button></div>
-     <div class="modal-body">
+      <div class="modal-body">
         <p class="section-label">Order &amp; Client</p>
         <div class="form-grid">
           <div class="form-group"><label>Order Ref *</label><input type="text" id="mo-ref" /></div>
@@ -145,17 +120,13 @@ modal.innerHTML = `
         <p class="section-label">Timeline Update</p>
         <div class="form-group"><label>Update message <span style="font-weight:400;text-transform:none;letter-spacing:0">— optional. A timeline entry is added automatically when the status changes.</span></label><input type="text" id="mo-update-msg" placeholder="e.g. Your piece has entered production" /></div>
         <ul class="mo-timeline" id="mo-timeline"></ul>
-        <p id="dupname-msg" style="font-size:14px;line-height:1.6;margin-bottom:12px"></p>
-        <div id="dupname-list" style="font-size:13px;color:var(--text-muted);line-height:1.8;max-height:220px;overflow-y:auto"></div>
-     </div>
-     <div class="modal-footer">
+      </div>
+      <div class="modal-footer">
         <button class="btn btn-secondary" id="mo-cancel">Cancel</button>
         <button class="btn btn-primary" id="mo-save">Save Order</button>
-        <button class="btn btn-secondary" id="dupname-change">Change Name</button>
-        <button class="btn btn-primary" id="dupname-continue">Continue Anyway</button>
-     </div>
-   </div>`;
-document.body.appendChild(modal);
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
 
   const $ = id => document.getElementById(id);
 
@@ -185,7 +156,6 @@ document.body.appendChild(modal);
     const t = await res.text();
     return t ? JSON.parse(t) : null;
   }
-  let onChange = null, onContinue = null;
 
   /* ── Sign in / out ───────────────────────────────────────── */
   async function signIn() {
@@ -215,38 +185,11 @@ document.body.appendChild(modal);
     } catch (e) {
       $("mo-login-err").textContent = e.message;
     } finally { $("mo-login-btn").disabled = false; }
-  function openPopup(o) {
-    $("dupname-title").textContent = o.title;
-    $("dupname-msg").innerHTML = o.msg;
-    $("dupname-list").innerHTML = o.list;
-    $("dupname-change").textContent = o.changeLabel;
-    $("dupname-continue").textContent = o.continueLabel;
-    onChange = o.onChange || null;
-    onContinue = o.onContinue || null;
-    modal.classList.add("open");
-}
+  }
   function signOut() {
     token = ""; sessionStorage.removeItem(TOKEN_KEY); orders = [];
     refreshView();
-  function closePopup() { modal.classList.remove("open"); }
-
-  const doChange = () => { const cb = onChange; closePopup(); if (cb) cb(); };
-  $("dupname-change").addEventListener("click", doChange);
-  $("dupname-x").addEventListener("click", doChange);
-  $("dupname-continue").addEventListener("click", () => { const cb = onContinue; closePopup(); if (cb) cb(); });
-
-  /* ════════════════════════════════════════════════════════
-     1. ADD / EDIT PRODUCT FORM
-     ════════════════════════════════════════════════════════ */
-  let ackName = ""; // normalised name the admin has already chosen to keep
-
-  function findDups(name) {
-    const n = norm(name);
-    if (!n) return [];
-    return allProducts.filter(p =>
-      String(p.id) !== String(editingProductId) && norm(p.name) === n
-    );
-}
+  }
   $("mo-login-btn").addEventListener("click", signIn);
   $("mo-pass").addEventListener("keydown", e => { if (e.key === "Enter") signIn(); });
   $("mo-signout").addEventListener("click", signOut);
@@ -255,18 +198,7 @@ document.body.appendChild(modal);
     $("mo-login").style.display = token ? "none" : "block";
     $("mo-main").style.display = token ? "block" : "none";
     if (token) load();
-  function askFormDuplicate(name, dups, thenSave) {
-    const shown = dups.slice(0, 5).map(p => `• ${esc(p.sku || "no SKU")} — ${esc(p.name || "")}`).join("<br>");
-    openPopup({
-      title: "Design name already exists",
-      msg: `A product named <strong>“${esc(name.trim())}”</strong> already exists. Do you want to keep this name or change it?`,
-      list: shown + (dups.length > 5 ? `<br>…and ${dups.length - 5} more` : ""),
-      changeLabel: "Change Name",
-      continueLabel: "Continue Anyway",
-      onChange: () => { nameInput.focus(); nameInput.select(); },
-      onContinue: () => { ackName = norm(nameInput.value); if (thenSave) thenSave(); }
-    });
-}
+  }
 
   /* ── List ────────────────────────────────────────────────── */
   async function load() {
@@ -275,21 +207,8 @@ document.body.appendChild(modal);
       render();
     } catch (e) { toast("Failed to load orders: " + e.message, "error"); }
   }
-  // Check as soon as the name field is filled in
-  nameInput.addEventListener("change", () => {
-    const dups = findDups(nameInput.value);
-    if (dups.length && norm(nameInput.value) !== ackName) askFormDuplicate(nameInput.value, dups, null);
-  });
 
   const fmtDate = d => d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
-  // Reset acknowledgement whenever the editor opens (an edited product's
-  // existing name counts as accepted)
-  const origOpen = window.openProductModal;
-  window.openProductModal = function (id) {
-    const r = origOpen.apply(this, arguments);
-    ackName = id ? norm(nameInput.value) : "";
-    return r;
-  };
 
   function render() {
     const q = $("mo-search").value.trim().toLowerCase();
@@ -324,15 +243,7 @@ document.body.appendChild(modal);
         try { await api("member_orders?id=eq." + o.id, "DELETE"); toast("Order deleted."); load(); }
         catch (err) { toast("Error: " + err.message, "error"); }
       });
-  // Safety net on Save, in case the first popup was skipped
-  const origSave = window.saveProduct;
-  window.saveProduct = function () {
-    const name = nameInput.value;
-    const dups = findDups(name);
-    if (gv("f-sku") && dups.length && norm(name) !== ackName) {
-      askFormDuplicate(name, dups, () => origSave());
-      return;
-}
+    }
   });
 
   /* ── Modal ───────────────────────────────────────────────── */
@@ -340,8 +251,7 @@ document.body.appendChild(modal);
     const d = new Date();
     const p = n => String(n).padStart(2, "0");
     return `VJ-${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}-${Math.floor(100 + Math.random() * 900)}`;
-    return origSave.apply(this, arguments);
-};
+  };
 
   function openModal(o) {
     editing = o || null;
@@ -369,27 +279,6 @@ document.body.appendChild(modal);
   $("mo-modal-close").addEventListener("click", closeModal);
   $("mo-cancel").addEventListener("click", closeModal);
   $("mo-new").addEventListener("click", () => openModal(null));
-  /* ════════════════════════════════════════════════════════
-     2. BULK UPLOAD (table / Excel)
-     ════════════════════════════════════════════════════════ */
-  if (typeof renderBulkPreview !== "function" || typeof importProducts !== "function") return;
-
-  const rowSku = r => String(r.sku || "").trim().toLowerCase();
-
-  // Returns Map(rowIndex -> reason text) for rows with a name clash
-  function bulkFlags(rows) {
-    const flags = new Map();
-
-    // (a) name already used by an existing product with a different SKU
-    rows.forEach((r, i) => {
-      const n = norm(r.name);
-      if (!n) return;
-      const sku = rowSku(r);
-      const hit = allProducts.find(p =>
-        norm(p.name) === n && (!sku || String(p.sku || "").trim().toLowerCase() !== sku)
-      );
-      if (hit) flags.set(i, `Already used by existing product ${hit.sku || "(no SKU)"}`);
-    });
 
   const parseItems = txt => txt.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
     const [name, sku, qty] = l.split("|").map(s => s.trim());
@@ -399,22 +288,6 @@ document.body.appendChild(modal);
     const i = l.lastIndexOf("|");
     return i === -1 ? { title: "Document", url: l } : { title: l.slice(0, i).trim() || "Document", url: l.slice(i + 1).trim() };
   }).filter(d => /^https?:\/\//i.test(d.url));
-    // (b) same name repeated in the file under different SKUs
-    const groups = new Map();
-    rows.forEach((r, i) => {
-      const n = norm(r.name);
-      if (!n) return;
-      if (!groups.has(n)) groups.set(n, []);
-      groups.get(n).push(i);
-    });
-    groups.forEach(idxs => {
-      const keys = new Set(idxs.map(i => rowSku(rows[i]) || "#" + i));
-      if (keys.size > 1) {
-        idxs.forEach(i => { if (!flags.has(i)) flags.set(i, "Same name appears more than once in this file"); });
-      }
-    });
-    return flags;
-  }
 
   $("mo-save").addEventListener("click", async () => {
     const ref = $("mo-ref").value.trim();
@@ -423,31 +296,6 @@ document.body.appendChild(modal);
     const status = $("mo-status").value;
     const tUrl = $("mo-turl").value.trim();
     if (tUrl && !/^https?:\/\//i.test(tUrl)) { toast("Tracking link must start with http:// or https://", "error"); return; }
-  let bulkAck = false;
-
-  // After the preview renders, mark the flagged rows
-  const origPreview = window.renderBulkPreview;
-  window.renderBulkPreview = async function (rows) {
-    const r = await origPreview.apply(this, arguments);
-    bulkAck = false;
-    const flags = bulkFlags(rows || []);
-    const trs = document.querySelectorAll("#preview-tbody tr");
-    flags.forEach((reason, i) => {
-      const tr = trs[i];
-      if (!tr) return;
-      const last = tr.lastElementChild;
-      if (last) last.insertAdjacentHTML("beforeend",
-        `<div style="margin-top:4px"><span class="badge badge-inactive" title="${esc(reason)}">NAME EXISTS</span></div>`);
-      tr.style.background = "rgba(192,57,43,0.06)";
-      tr.title = reason;
-    });
-    if (flags.size) {
-      const stats = $("preview-stats");
-      if (stats) stats.insertAdjacentHTML("beforeend",
-        `<div class="stat-card"><div class="stat-num" style="color:var(--danger)">${flags.size}</div><div class="stat-label">Name exists</div></div>`);
-    }
-    return r;
-  };
 
     const payload = {
       order_ref: ref,
@@ -489,24 +337,4 @@ document.body.appendChild(modal);
       toast("Error: " + e.message, "error");
     } finally { saveBtn.disabled = false; }
   });
-  // Ask once before importing if any rows are flagged
-  const origImport = window.importProducts;
-  window.importProducts = function () {
-    const rows = bulkRows.filter(r => String(r.name || "").trim());
-    const flags = bulkFlags(rows);
-    if (flags.size && !bulkAck) {
-      const items = [...flags.entries()].slice(0, 10).map(([i, why]) =>
-        `• ${esc(rows[i].name)}${rows[i].sku ? " (" + esc(rows[i].sku) + ")" : ""} <span style="color:var(--text-light)">— ${esc(why)}</span>`).join("<br>");
-      openPopup({
-        title: "Some design names already exist",
-        msg: `<strong>${flags.size}</strong> row${flags.size > 1 ? "s use" : " uses"} a design name that already exists. Review those rows (marked NAME EXISTS), or continue and import them as they are.`,
-        list: items + (flags.size > 10 ? `<br>…and ${flags.size - 10} more` : ""),
-        changeLabel: "Review Rows",
-        continueLabel: "Continue Import",
-        onContinue: () => { bulkAck = true; origImport(); }
-      });
-      return;
-    }
-    return origImport.apply(this, arguments);
-  };
 })();
