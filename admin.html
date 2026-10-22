@@ -1864,6 +1864,7 @@ function renderAllMasters(){
   // Re-init metal market inputs after data reloads
   setTimeout(initMetalMarketInputs, 0);
   setTimeout(renderStoneGrid, 0);
+  setTimeout(()=>{ try{ if(srLoaded) renderStoneReport(); }catch(e){} }, 0);
   renderDiamondsTable();
   renderLabourPanel();
   render("margins-tbody",allMargins,
@@ -2215,6 +2216,7 @@ async function loadProducts(){
       "product_set_links!product_set_links_product_id_fkey(id,linked_product_id)"
     ].join(",");
     allProducts=await sb("products?select="+SELECT+"&order=sort_order.asc,name.asc");
+    srLoaded = true;
     // Show every image with the correct ImageKit ID straight away (no re-picking needed).
     // _dbUrl keeps what is actually stored, so "Fix Image Extensions" can write the repaired link back.
     allProducts.forEach(p=>(p.product_media||[]).forEach(m=>{
@@ -2224,7 +2226,7 @@ async function loadProducts(){
     }));
     renderProductsTable(allProducts);
     populateMasterDropdowns();
-    renderStoneReport();
+    try{ renderStoneReport(); }catch(e){ console.error("renderStoneReport error:",e); }
   } catch(e){
     document.getElementById("products-tbody").innerHTML="<tr><td colspan='13' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
@@ -6802,6 +6804,7 @@ async function confirmImportPreview(){
 // STONE REPORT — derived from product_stones (per-design data)
 // ══════════════════════════════════════════════════════════════
 let srCache = null;
+let srLoaded = false;   // true once products have been fetched (avoids a misleading empty report while loading)
 
 function srFmt(n){ return Number(n).toString(); }
 
@@ -6982,6 +6985,17 @@ function renderStonePrices(r){
 
 function renderStoneReport(){
   if(!document.getElementById("sr-style-tbody")) return;
+  if(!srLoaded) return;                       // products still loading — keep the "Loading..." message
+  try{ srRenderInner(); }
+  catch(e){
+    console.error("Stone report error:", e);
+    const n = document.getElementById("sr-note");
+    if(n){ n.style.color = "#e5484d"; n.textContent = "Report error: " + (e && e.message || e); }
+  }
+}
+
+function srRenderInner(){
+  const noteEl = document.getElementById("sr-note"); if(noteEl) noteEl.style.color = "";
   const r = srCache = buildStoneReport();
   srFillFilters(r);
   const m = srMatrix(r);
@@ -7012,7 +7026,7 @@ function renderStoneReport(){
       .map(z => `<tr><td>${esc(z.shape)}</td><td><strong>${esc(z.size)}</strong></td><td>${esc(z.basis || "—")}</td><td>${z.skus.size}</td><td>${z.pcs}</td></tr>`).join("")
     || "<tr><td colspan='5' class='state-msg'>No data.</td></tr>";
 
-  renderStonePrices(r);
+  try{ renderStonePrices(r); }catch(e){ console.error("Stone prices table error:", e); }
 
   const active = [
     document.getElementById("sr-search")?.value.trim() && `search “${document.getElementById("sr-search").value.trim()}”`,
@@ -7093,7 +7107,7 @@ function closeConfirm(){ document.getElementById("confirm-modal").classList.remo
 //    >5  <=100  =12 = numeric compare; suggestions show the values in that column
 // ══════════════════════════════════════════════════════════════════
 (function(){
-  const EXCLUDE = new Set(["metal-derived-tbody","f-stone-tbody","svm-stone-tbody","ip-tbody"]);
+  const EXCLUDE = new Set(["metal-derived-tbody","f-stone-tbody","svm-stone-tbody","ip-tbody","sr-style-tbody"]);
   const SKIP_HEAD = /^(actions?|image)?$/i;
   const BLANK = /^[-—–]*$/;
   const WRAPPERS = ".table-wrap, .spl-table-wrap, .jsc-table-wrap, .labour-table-wrap, .enquiry-table-wrap";
