@@ -5273,7 +5273,7 @@ async function importStonesXlsx(e){
         const why = !category ? "category/type not recognised" : !type ? `type "${type0}" is not a ${category} type` :
                     !shape ? "shape not recognised" : (color0 && !color) ? `color "${color0}" is not valid for ${category}` :
                     (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
-        if(why){ invalid++; if(invalidNotes.length<8) invalidNotes.push(`row ${ri+2}: ${why}`); return; }
+        if(why){ invalid++; invalidNotes.push(`row ${ri+2}: ${why}`); return; }
         const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ");
         const d = getStoneDerivedRates(rate_inr, {category, type});
         const rec = withCat({
