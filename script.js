@@ -1069,7 +1069,7 @@ function applyFilters() {
 
   if (weightMin != null || weightMax != null) {
     list = list.filter((p) => {
-      const w = p.metal_weight;
+      const w = productMetalWeightG(p);
       if (w == null) return false;
       if (weightMin != null && w < weightMin) return false;
       if (weightMax != null && w > weightMax) return false;
@@ -1079,7 +1079,7 @@ function applyFilters() {
 
   if (diamondMin != null || diamondMax != null) {
     list = list.filter((p) => {
-      const w = p.stone_weight;
+      const w = productDiamondCt(p);
       if (w == null) return false;
       if (diamondMin != null && w < diamondMin) return false;
       if (diamondMax != null && w > diamondMax) return false;
@@ -2285,6 +2285,33 @@ function computeLivePriceCosts(product, currencyCode) {
   _livePriceCache.set(cacheKey, result);
   return result;
 }
+// ── WEIGHTS FOR THE SIDEBAR FILTERS ─────────────────────────────────────
+// "Metal Weight" = net metal weight in grams for the metal quality currently selected in the
+// top filter bar (else the product's first available quality).
+// "Diamond Weight" = total stone carat weight, worked out exactly as the price is: every
+// product stone's pcs × average carat weight from the Stone Sizes master.
+// Both come from the same calculation that prices the tile, so the filter always agrees with
+// what the tile shows. Returns null when a weight cannot be determined.
+function _filterCosts(p) {
+  if (!_pmMetals) return null;                       // pricing masters not loaded yet
+  try { return computeLivePriceCosts(p, "USD"); } catch (e) { return null; }
+}
+function productMetalWeightG(p) {
+  const c = _filterCosts(p);
+  if (c && Number(c.netWeightG) > 0) return Number(c.netWeightG);
+  // Fallback (masters not ready): net weight of the selected quality, else the first one the product has
+  const f = { "18K": "net_weight_18k", "14K": "net_weight_14k", "10K": "net_weight_10k", "925": "net_weight_silver" };
+  const sel = _selectedCatalogMetalQuality && Number(p[f[_selectedCatalogMetalQuality]]) > 0 ? _selectedCatalogMetalQuality : null;
+  const q = sel || productMetalQualities(p)[0];
+  const w = q ? Number(p[f[q]]) : 0;
+  return w > 0 ? w : null;
+}
+function productDiamondCt(p) {
+  const c = _filterCosts(p);
+  if (c) return Number(c.totalStoneCtWt) || 0;       // 0 = no sized stones on this product
+  return null;
+}
+
 // Returns the live total price in USD for sorting/filtering, or null if unavailable.
 function getLivePriceUSD(product) {
   if (!_pmMetals) return null; // pricing masters not loaded yet
