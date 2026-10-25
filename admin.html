@@ -644,6 +644,7 @@
           <select class="spl-filter-sel" id="spl-f-color" onchange="renderStoneGrid()"><option value="">All Colors</option></select>
           <select class="spl-filter-sel" id="spl-f-quality" onchange="renderStoneGrid()"><option value="">All Qualities</option></select>
           <button type="button" class="btn btn-secondary btn-sm" id="spl-clear-all" onclick="splClearFilters()" title="Reset all filters and show every row">✕ Clear All</button>
+          <button type="button" class="btn btn-danger btn-sm" id="spl-delete-all" onclick="splDeleteAllOpen()" title="Permanently delete every stone price row">🗑 Delete All Rows</button>
           <span id="spl-count" style="font-size:12px;color:var(--text-muted);margin-left:8px;"></span>
           <span id="spl-issues" class="spl-issues"></span>
         </div>
@@ -1413,6 +1414,22 @@
 </div>
 
 <!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="spl-delall-modal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header"><h2>Delete ALL stone price rows</h2><button class="modal-close" onclick="splDeleteAllClose()">×</button></div>
+    <div class="modal-body">
+      <p style="font-size:14px;line-height:1.6;margin-bottom:10px">This will permanently delete <strong id="spl-delall-count">0</strong> rows from the Stone Price List — every category, type, shape and size, <em>not just the rows currently filtered</em>.</p>
+      <p style="font-size:13px;line-height:1.6;color:var(--danger);margin-bottom:12px">It cannot be undone. Until prices are added again, products with stones will show those stones as <b>missing a price</b> on the website and in the Stone Report.</p>
+      <p style="font-size:13px;margin-bottom:12px"><a href="#" onclick="exportStonesXlsx();return false;">⬇ Download a backup (Excel) first</a></p>
+      <label style="font-size:12px;color:var(--text-muted)">Type <b>DELETE ALL</b> to confirm</label>
+      <input type="text" id="spl-delall-input" autocomplete="off" style="width:100%;margin-top:6px" oninput="splDeleteAllCheck()" placeholder="DELETE ALL" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="splDeleteAllClose()">Cancel</button>
+      <button class="btn btn-danger" id="spl-delall-go" disabled onclick="splDeleteAllRun()">Delete All Rows</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal" style="max-width:380px">
     <div class="modal-header"><h2>Confirm Delete</h2><button class="modal-close" onclick="closeConfirm()">x</button></div>
@@ -4935,6 +4952,34 @@ function renderStoneGrid(){
 }
 
 function splToggleIssuesOnly(){ _splIssuesOnly = !_splIssuesOnly; renderStoneGrid(); }
+// Delete All Rows: removes EVERY row of the stone price list (typed confirmation required)
+function splDeleteAllOpen(){
+  if(!allStones.length){ toast('The stone price list is already empty.','error'); return; }
+  document.getElementById('spl-delall-count').textContent = allStones.length;
+  const inp = document.getElementById('spl-delall-input'); inp.value = '';
+  document.getElementById('spl-delall-go').disabled = true;
+  document.getElementById('spl-delall-modal').classList.add('open');
+  setTimeout(()=>inp.focus(),50);
+}
+function splDeleteAllClose(){ document.getElementById('spl-delall-modal').classList.remove('open'); }
+function splDeleteAllCheck(){
+  document.getElementById('spl-delall-go').disabled = document.getElementById('spl-delall-input').value.trim() !== 'DELETE ALL';
+}
+async function splDeleteAllRun(){
+  if(document.getElementById('spl-delall-input').value.trim() !== 'DELETE ALL') return;
+  const go = document.getElementById('spl-delall-go'); go.disabled = true; go.textContent = 'Deleting…';
+  try{
+    await sb('stone_types?id=not.is.null','DELETE');
+    allStones = [];
+    splDeleteAllClose();
+    _splIssuesOnly = false;
+    renderStoneGrid();
+    try{ if(typeof srLoaded!=='undefined' && srLoaded) renderStoneReport(); }catch(e){}
+    toast('All stone price rows deleted.');
+  } catch(e){
+    toast('Error: '+e.message,'error');
+  } finally { go.textContent = 'Delete All Rows'; go.disabled = false; }
+}
 // Clear All: reset every Stone Prices filter (and the "show only these" issues view) — no data is deleted
 function splClearFilters(){
   ['spl-f-category','spl-f-type','spl-f-shape','spl-f-color','spl-f-quality'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
