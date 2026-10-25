@@ -5238,7 +5238,7 @@ async function importStonesXlsx(e){
       const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
       const sheetName=wb.SheetNames.includes("Stone Prices")?"Stone Prices":wb.SheetNames.includes("Stones")?"Stones":wb.SheetNames[0];
       const ws=wb.Sheets[sheetName];
-      const raw=XLSX.utils.sheet_to_json(ws,{defval:""});
+      const raw=XLSX.utils.sheet_to_json(ws,{defval:""}).map((r,i)=>Object.assign(r,{__xl:i+2}));   // __xl = real Excel row number
       // Skip sub-header row if present (row 2 in export has formula descriptions)
       const rows=raw.filter(r=>{
         const t=String(r["Type"]||r["Stone Type"]||r["type"]||"").trim().toLowerCase();
@@ -5254,6 +5254,15 @@ async function importStonesXlsx(e){
       const payload=[];
       const byKey = new Map(allStones.map(x=>[V.priceKey(x), x]));
       const seen = new Set();
+      // Excel stores a Size Basis typed as 2.00 or 1.50 as the plain number 2 / 1.5, so a plain number is
+      // matched by value ("2" = "2.00"); anything else ("-2", "1/6", "-6½+2") still has to match exactly.
+      const PLAIN_NUM = /^\d+(\.\d+)?$/;
+      const matchSizeBasis = (ctx, v) => {
+        const exact = V.canonSizeBasis(allDiamonds, ctx, v);
+        if(exact || !PLAIN_NUM.test(String(v).trim())) return exact;
+        const n = parseFloat(v);
+        return V.sizeBasisOptions(allDiamonds, ctx).find(o => PLAIN_NUM.test(String(o).trim()) && parseFloat(o) === n) || "";
+      };
 
       rows.forEach((row,ri)=>{
         const get2=(keys)=>String(get(row,keys)||"").trim();
@@ -5267,13 +5276,13 @@ async function importStonesXlsx(e){
         const quality = qual0 ? V.canon("quality", qual0) : "";
         const size_basis0 = get2(["Size Basis","size_basis","SizeBasis"]);
         const size_basis = (size_basis0 && allDiamonds.length && category && type && shape)
-          ? (V.canonSizeBasis(allDiamonds,{category,type,shape},size_basis0) || "") : size_basis0;
+          ? (matchSizeBasis({category,type,shape},size_basis0) || "") : size_basis0;
         const rate_inr = parseFloat(get(row,["Rate/ct (INR)","Rate INR","rate_inr","Rate/CT (INR)"]))||null;
         if(!type0 && !shape && !size_basis){ skipped++; return; }
         const why = !category ? "category/type not recognised" : !type ? `type "${type0}" is not a ${category} type` :
                     !shape ? "shape not recognised" : (color0 && !color) ? `color "${color0}" is not valid for ${category}` :
                     (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
-        if(why){ invalid++; invalidNotes.push(`row ${ri+2}: ${why}`); return; }
+        if(why){ invalid++; invalidNotes.push(`row ${row.__xl}: ${why}`); return; }
         const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ");
         const d = getStoneDerivedRates(rate_inr, {category, type});
         const rec = withCat({
