@@ -643,6 +643,7 @@
           <select class="spl-filter-sel" id="spl-f-shape" onchange="renderStoneGrid()"><option value="">All Shapes</option></select>
           <select class="spl-filter-sel" id="spl-f-color" onchange="renderStoneGrid()"><option value="">All Colors</option></select>
           <select class="spl-filter-sel" id="spl-f-quality" onchange="renderStoneGrid()"><option value="">All Qualities</option></select>
+          <button type="button" class="btn btn-secondary btn-sm" id="spl-clear-all" onclick="splClearFilters()" title="Reset all filters and show every row">✕ Clear All</button>
           <span id="spl-count" style="font-size:12px;color:var(--text-muted);margin-left:8px;"></span>
           <span id="spl-issues" class="spl-issues"></span>
         </div>
@@ -1093,6 +1094,7 @@
       </select>
       <button class="btn btn-secondary" onclick="srClearFilters()">✕ Clear</button>
       <span id="sr-note" style="font-size:12px;color:var(--text-muted)"></span>
+      <div id="sr-debug" style="flex-basis:100%;font-size:11px;color:var(--text-muted);font-family:monospace;margin-top:4px"></div>
     </div>
     <div style="display:flex;gap:8px;">
       <button class="btn btn-secondary" onclick="renderStoneReport()">↻ Refresh</button>
@@ -4933,6 +4935,12 @@ function renderStoneGrid(){
 }
 
 function splToggleIssuesOnly(){ _splIssuesOnly = !_splIssuesOnly; renderStoneGrid(); }
+// Clear All: reset every Stone Prices filter (and the "show only these" issues view) — no data is deleted
+function splClearFilters(){
+  ['spl-f-category','spl-f-type','spl-f-shape','spl-f-color','spl-f-quality'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  _splIssuesOnly = false;
+  renderStoneGrid();
+}
 
 // Rewrites spellings that differ from the Stone Master (e.g. type "Pear" -> "Pearl", "lab grown" -> "Lab Grown")
 function splAutoFix(){
@@ -6986,13 +6994,51 @@ function renderStonePrices(r){
 function renderStoneReport(){
   if(!document.getElementById("sr-style-tbody")) return;
   if(!srLoaded) return;                       // products still loading — keep the "Loading..." message
+  srDbg.renders++;
+  srDbg.caller = ((new Error().stack||"").split("\n")[2]||"").trim().replace(/^at\s+/,"").slice(0,90);
+  srDbg.at = new Date().toLocaleTimeString();
+  srInRender = true;
   try{ srRenderInner(); }
   catch(e){
     console.error("Stone report error:", e);
     const n = document.getElementById("sr-note");
     if(n){ n.style.color = "#e5484d"; n.textContent = "Report error: " + (e && e.message || e); }
   }
+  finally{ try{ srObs && srObs.takeRecords(); }catch(e){} srInRender = false; srShowDebug(); }
 }
+
+// ── live debug line: shows what last drew the report and whether anything else changed the table ──
+let srInRender = false, srObs = null;
+const srDbg = { renders:0, caller:"", at:"", outside:0, outsideAt:"", outsideRows:0, heals:0 };
+let srHealT = null, srHealLog = [];
+function srShowDebug(){
+  const el = document.getElementById("sr-debug"); if(!el) return;
+  const tb = document.getElementById("sr-style-tbody");
+  el.textContent = `debug · products ${allProducts.length} · draws ${srDbg.renders} · last ${srDbg.at} by ${srDbg.caller || "-"}` +
+    ` · rows now ${tb ? tb.rows.length : "-"} · changed outside report ${srDbg.outside} · auto-repairs ${srDbg.heals}` + (srDbg.outside ? ` (last ${srDbg.outsideAt}, ${srDbg.outsideRows} rows after)` : "");
+}
+(function(){
+  const tb = document.getElementById("sr-style-tbody"); if(!tb) return;
+  srObs = new MutationObserver(()=>{
+    if(srInRender) return;
+    srDbg.outside++; srDbg.outsideAt = new Date().toLocaleTimeString(); srDbg.outsideRows = tb.rows.length; srShowDebug();
+    clearTimeout(srHealT);
+    srHealT = setTimeout(srHeal, 250);
+  });
+  window.srHeal = function(){
+    if(!srLoaded || !srCache) return;
+    let expected = 0; try{ expected = srMatrix(srCache).rows.length; }catch(e){ return; }
+    if(!expected) return;                                   // genuinely nothing to show
+    const shown = [...tb.rows].filter(r => r.style.display !== "none" && r.querySelector("td:not(.state-msg)")).length;
+    if(shown >= expected) return;                           // table is fine
+    const now = Date.now(); srHealLog = srHealLog.filter(t => now - t < 60000);
+    if(srHealLog.length >= 5) return;                       // safety: never loop
+    srHealLog.push(now); srDbg.heals++;
+    renderStoneReport();
+  };
+  srObs.observe(tb, { childList:true, subtree:true, attributes:true, attributeFilter:["style","hidden","class"] });
+  setInterval(srShowDebug, 1000);
+})();
 
 function srRenderInner(){
   const noteEl = document.getElementById("sr-note"); if(noteEl) noteEl.style.color = "";
