@@ -2155,6 +2155,8 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   // ── 2. STONE COST ─────────────────────────────────────────────────────
   let stoneCostINR = 0;
   let totalStoneCtWt = 0;
+  const stoneLines = [];          // one entry per priced stone row: { category, type, totalCt, cost (INR) }
+  let stoneIncomplete = false;    // true if any stone row could not be sized or priced
 
   const stoneRows = product.product_stones || [];
   stoneRows.forEach(row => {
@@ -2165,6 +2167,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     const stoneType = row.stone_type || "";
 
     if (!pcs || !stoneType) return;
+    const _rowCat = _isDiamondStoneType(stoneType) ? "Diamond" : "Gem Stone";
 
     // Step 1+2: Find avg weight from diamond_sizes (match shape + dims)
     let avgWtCt = 0;
@@ -2182,7 +2185,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     const totalWtCt = pcs * avgWtCt;
     totalStoneCtWt += totalWtCt;
 
-    if (!totalWtCt) return;
+    if (!totalWtCt) { stoneIncomplete = true; return; }
 
     // Step 3+4: Find price from stone_types (match type + shape + color + quality + size_basis)
     // "Natural" and "Lab Grown" are separate rows in stone_types with their own rates.
@@ -2210,7 +2213,13 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
 
     if (stoneRec) {
       // Use price_inr / price_usd (margin-included) not rate_inr / rate_usd (base rate)
-      stoneCostINR += totalWtCt * Number(stoneRec.price_inr || stoneRec.rate_inr || 0);
+      const _lineInr = totalWtCt * Number(stoneRec.price_inr || stoneRec.rate_inr || 0);
+      stoneCostINR += _lineInr;
+      // Category comes from the stone's own name (Natural / Lab Grown / Diamond = Diamond; anything
+      // else = Gem Stone) so a gemstone can never be filed under Diamonds by a stray master value.
+      stoneLines.push({ category: _rowCat, type: stoneRec.type || stoneType, totalCt: totalWtCt, cost: _lineInr });
+    } else {
+      stoneIncomplete = true;
     }
   });
 
@@ -2298,6 +2307,8 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     // raw data for detail display
     netWeightG,
     totalStoneCtWt,
+    stoneLines,
+    stoneIncomplete,
   };
 }
 
@@ -2344,6 +2355,11 @@ let _selectedCatalogMetalQuality = null;
 // product's stone rate without a color/quality match (type+shape fallback).
 let _selectedCatalogDiamondColor = null;
 let _selectedCatalogDiamondQuality = null;
+
+// Colour / quality shown against the Gemstones line of the Price Breakdown (gem rows are priced by
+// type + shape + size, so these are display-only and stay null unless a gem selector sets them).
+let _selectedCatalogGemColor = null;
+let _selectedCatalogGemQuality = null;
 
 // Globally selected stone type override (e.g. "Natural", "Lab Grown").
 // When set, substitutes product_stones.stone_type in the pricing lookup so
