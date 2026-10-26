@@ -176,6 +176,8 @@ const VJ_STONE = (() => {
 
   // ── RATE: Stone Prices master ──────────────────────────────────────────
   const priceOf = s => num(s.price_inr) || num(s.rate_inr);   // margin-inclusive price first
+  // Rate basis of a Stone Prices row: "per_carat" (default, also for old rows) or "per_stone" (gemstones)
+  const basisOf = s => (s && s.price_basis === "per_stone") ? "per_stone" : "per_carat";
 
   // Every priced row for category + type + shape + Size Basis (all four must match exactly)
   function rateCandidates(stoneTypes, { type, shape, sizeBasis }) {
@@ -207,7 +209,7 @@ const VJ_STONE = (() => {
     const best = Math.max(...scored.map(x => x.tier));
     const top = scored.filter(x => x.tier === best).map(x => x.s).sort((a, b) => priceOf(a) - priceOf(b));
     const assumed = !(c && q) && top.length > 1;
-    return { row: top[0], priceINR: priceOf(top[0]), assumed };
+    return { row: top[0], priceINR: priceOf(top[0]), basis: basisOf(top[0]), assumed };
   }
 
   // ── STONE CHARGES ──────────────────────────────────────────────────────
@@ -232,7 +234,7 @@ const VJ_STONE = (() => {
       if (category === "Diamond" && overrideIsDiamond) type = overrideType;
       else if (!categoryOf(type) && category) type = CATEGORIES[category][0];
       const sel = category === "Gem Stone" ? { color: gemColor, quality: gemQuality } : { color, quality };
-      const line = { stone: row, type, category, pcs, shape: row.shape, avgWtCt: 0, sizeBasis: "", totalCt: 0, priceINR: 0, cost: 0, status: "ok" };
+      const line = { stone: row, type, category, pcs, shape: row.shape, avgWtCt: 0, sizeBasis: "", totalCt: 0, priceINR: 0, priceBasis: "per_carat", cost: 0, status: "ok" };
 
       const size = findSize(diamSizes, { category, type, shape: row.shape, length: row.length_mm, width: row.width_mm });
       if (!size || !size.avgWtCt) { line.status = "no-size"; lines.push(line); return; }
@@ -244,7 +246,9 @@ const VJ_STONE = (() => {
       const rate = findRate(stoneTypes, { type, shape: row.shape, sizeBasis: size.sizeBasis, color: sel.color, quality: sel.quality });
       if (!rate) { line.status = "no-rate"; lines.push(line); return; }
       line.priceINR = rate.priceINR;
-      line.cost = line.totalCt * rate.priceINR;
+      line.priceBasis = rate.basis;
+      // per carat: pcs × avg weight × price/ct      per stone: pcs × price/stone
+      line.cost = rate.basis === "per_stone" ? pcs * rate.priceINR : line.totalCt * rate.priceINR;
       if (rate.assumed) line.status = "assumed";
       costINR += line.cost;
       lines.push(line);
@@ -293,6 +297,6 @@ const VJ_STONE = (() => {
   return { CATEGORIES, SHAPES, COLORS, QUALITIES, SIZE_TOLERANCE_MM, DEFAULT_TAXONOMY, TAXONOMY_SETTING_KEY: "stone_taxonomy",
            configure, getTaxonomy, normalizePriceRow, typeKey, sbKey, sizeBasisOptions, canonSizeBasis,
            norm, categoryNames, typesOf, colorsOf, categoryOf, rowCategory, rowType, canon,
-           findSize, rateCandidates, findRate, calcStoneCharges, checkPriceRow, priceKey };
+           findSize, rateCandidates, findRate, basisOf, calcStoneCharges, checkPriceRow, priceKey };
 })();
 if (typeof module !== "undefined") module.exports = VJ_STONE;
