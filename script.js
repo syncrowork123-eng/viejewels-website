@@ -430,6 +430,33 @@ async function renderCategoryGrid() {
     .join("");
 }
 
+// ── DIAMONDS / GEMSTONES LINES ON GALLERY TILES ────────────────────────────
+// Same split as the Price Breakdown on the product page: one small line for Diamonds and one
+// for Gemstones, each with its carat weight. Only groups the product really has are shown, and
+// nothing is shown when the price is "on request" (a stone that cannot be sized or priced).
+(function () {
+  if (document.getElementById("vj-tile-stone-css")) return;
+  const st = document.createElement("style");
+  st.id = "vj-tile-stone-css";
+  st.textContent = `
+    .product-card-stones { display:flex; flex-direction:column; gap:2px; margin-top:6px; }
+    .product-card-stone-line { font-size:11px; letter-spacing:.02em; color:var(--text-light, #8a8176); line-height:1.4; }
+    .product-card-stone-line b { font-weight:600; color:var(--text-muted, #6b645a); margin-right:4px; }`;
+  document.head.appendChild(st);
+})();
+function productCardStonesHtml(p) {
+  if (!_pmMetals) return "";                                   // pricing masters not loaded yet
+  let costs = null;
+  try { costs = computeLivePriceCosts(p, _displayCurrency?.code || "INR"); } catch (e) { return ""; }
+  if (!costs || costs.stoneIncomplete || !(costs.stoneLines || []).length) return "";
+  const line = ([cat, label]) => {
+    const ct = costs.stoneLines.filter((l) => l.category === cat).reduce((a, l) => a + (l.totalCt || 0), 0);
+    return ct > 0 ? `<span class="product-card-stone-line"><b>${label}</b>${ct.toFixed(3)} ct</span>` : "";
+  };
+  const html = [["Diamond", "Diamonds"], ["Gem Stone", "Gemstones"]].map(line).join("");
+  return html ? `<div class="product-card-stones">${html}</div>` : "";
+}
+
 // ── PRODUCT GRID ────────────────────────────────────────────────────────
 function productCardHtml(p) {
   const orig = primaryImage(p);
@@ -441,6 +468,7 @@ function productCardHtml(p) {
       ${p.sku ? `<p class="product-card-sku">${esc(p.sku)}</p>` : ""}
       ${p.short_description ? `<p class="product-card-desc">${esc(p.short_description)}</p>` : ""}
       <p class="product-card-price">${fmtPrice(p)}</p>
+      ${productCardStonesHtml(p)}
     </div>
   </a>`;
 }
