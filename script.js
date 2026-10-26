@@ -2155,6 +2155,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   // ── 2. STONE COST ─────────────────────────────────────────────────────
   let stoneCostINR = 0;
   let totalStoneCtWt = 0;
+  let diamondCtWt = 0;            // diamonds only: the basis for the optional EGL certification
   const stoneLines = [];          // one entry per priced stone row: { category, type, totalCt, cost (INR) }
   let stoneIncomplete = false;    // true if any stone row could not be sized or priced
 
@@ -2184,6 +2185,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
 
     const totalWtCt = pcs * avgWtCt;
     totalStoneCtWt += totalWtCt;
+    if (_rowCat === "Diamond") diamondCtWt += totalWtCt;
 
     if (!totalWtCt) { stoneIncomplete = true; return; }
 
@@ -2269,10 +2271,10 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
 
   // 3c. Certification (EGL) is an OPTIONAL add-on the customer ticks on the product page,
   // so it is NOT part of labour or the base total. Rate and minimum are stored in INR;
-  // INR ÷ USD rate = USD. Cost = rate × total diamond ct, raised to the minimum if lower.
+  // INR ÷ USD rate = USD. Cost = rate × total DIAMOND ct (gemstones excluded), raised to the minimum if lower.
   const certRateInr = Number(labour.find(l => l.category === "__cert_rate_inr__")?.charge || 0);
   const certMinInr  = Number(labour.find(l => l.category === "__cert_min_inr__")?.charge  || 0);
-  const certCalcUSD = (certRateInr / inrPerUSD) * totalStoneCtWt;
+  const certCalcUSD = (certRateInr / inrPerUSD) * diamondCtWt;   // diamonds only, gemstones are not certified
   const certCostUSD = certCalcUSD > 0 ? Math.max(certCalcUSD, certMinInr / inrPerUSD) : 0;
 
   const labourCostUSD = settingCostUSD + makingCostUSD;
