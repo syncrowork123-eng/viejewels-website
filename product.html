@@ -707,7 +707,9 @@
         const ct  = ls.reduce((a, l) => a + (l.totalCt || 0), 0);
         const inr = ls.reduce((a, l) => a + (l.cost || 0), 0);
         const types = [...new Set(ls.map((l) => l.type).filter(Boolean))];
-        const parts = [...types, ...g.sel.filter(Boolean), ct ? ct.toFixed(3) + ' ct' : ''].filter(Boolean);
+        const perStonePcs = ls.reduce((a, l) => a + (l.priceBasis === 'per_stone' ? (l.pcs || 0) : 0), 0);
+        const parts = [...types, ...g.sel.filter(Boolean), ct ? ct.toFixed(3) + ' ct' : '',
+                       perStonePcs ? perStonePcs + (perStonePcs === 1 ? ' stone' : ' stones') + ' priced per stone' : ''].filter(Boolean);
         return { label: g.label, text: parts.join(' · '), inr };
       }).filter(Boolean);
 
