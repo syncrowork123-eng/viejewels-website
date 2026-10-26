@@ -677,6 +677,19 @@
       _pdLastCosts = costs;
       const ctaPriceEl = document.querySelector('[data-pd-cta-price]');
 
+      // Diagnostic: open the product page with ?debug=1 to see what the stone pricing returned
+      if (/[?&]debug=1/.test(location.search)) {
+        setTimeout(() => {
+          let d = document.getElementById('pd-debug-line');
+          if (!d) { d = document.createElement('div'); d.id = 'pd-debug-line'; d.style.cssText = 'font:11px/1.5 monospace;color:#777;background:#f3f3f3;padding:6px 8px;margin-top:8px;white-space:pre-wrap;word-break:break-word'; el.parentNode.appendChild(d); }
+          const ls = (costs && costs.stoneLines) || [];
+          d.textContent = 'debug · total=' + (costs ? costs.total : 'null') + ' · stoneIncomplete=' + (costs ? costs.stoneIncomplete : '?') +
+            ' · stoneLines=' + ls.length + ' · product_stones=' + ((window.currentProduct || {}).product_stones || []).length + '\n' +
+            ls.map(l => '- ' + (l.stone && l.stone.stone_type) + ' | cat=' + l.category + ' | ' + l.status + ' | ' + l.pcs + ' pcs | ' + (l.totalCt || 0).toFixed(3) + ' ct | ' + (l.priceBasis || '') + ' | cost=' + Math.round(l.cost || 0)).join('\n') +
+            ((costs && costs.stoneMissing && costs.stoneMissing.length) ? '\nmissing: ' + costs.stoneMissing.map(m => m.type + '/' + m.shape + ':' + m.status).join(', ') : '');
+        }, 0);
+      }
+
       if (!costs || costs.total === 0) {
         el.innerHTML = `<p class="price-breakdown-loading">Price on request — contact us for details.</p>`;
         if (ctaPriceEl) ctaPriceEl.textContent = 'Price on request';
