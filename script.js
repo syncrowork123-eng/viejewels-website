@@ -77,6 +77,37 @@ function esc(v) {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// ── DEFAULT FILTER-BAR SELECTIONS ───────────────────────────────────────
+// What the top filter bar shows (and prices are worked out for) until the visitor changes it.
+// A visitor's own changes are remembered for the rest of their browser session, so the gallery
+// and the product page always agree. A new session starts from these defaults again.
+const CATALOG_DEFAULTS = {
+  metalType:      "Gold",
+  metalQuality:   "14K",
+  metalColor:     "White",
+  stoneType:      "Lab Grown",     // shown as "Diamond Type"
+  diamondColor:   "G-H",
+  diamondQuality: "VVS-VS",
+  currency:       "USD",
+};
+const _PREF_KEY = "vj_catalog_prefs_v2";
+function _prefGet(name) {
+  try {
+    const o = JSON.parse(sessionStorage.getItem(_PREF_KEY) || "{}");
+    if (Object.prototype.hasOwnProperty.call(o, name)) return o[name];
+  } catch (e) {}
+  return CATALOG_DEFAULTS[name];
+}
+function _prefSet(name, value) {
+  try {
+    const o = JSON.parse(sessionStorage.getItem(_PREF_KEY) || "{}");
+    o[name] = value || "";
+    sessionStorage.setItem(_PREF_KEY, JSON.stringify(o));
+  } catch (e) {}
+}
+// Diamond rows are Natural / Lab Grown (or the legacy word "Diamond"); everything else is a gemstone.
+const _isDiamondStoneType = (t) => /^(diamond|natural|lab[\s-]*grown)$/i.test(String(t || "").trim());
+
 // ── DISPLAY CURRENCY (set via top filter bar) ───────────────────────────
 let _displayCurrency = null; // {code, symbol, rate_to_inr} or null = use product's native currency
 
@@ -731,6 +762,10 @@ async function renderProductGrid() {
     });
   });
 
+  if (!_restoredState || !_restoredState.sort) {
+    document.querySelectorAll("[data-sort]").forEach((b) => b.classList.toggle("active", b.dataset.sort === _currentSort));
+  }
+
   finishCollectionsRestore(_restoredState);
 }
 
@@ -763,8 +798,14 @@ async function setupCatalogFilterBar() {
 
   // Stone types sourced from the Stone Prices master (_pmStoneTypes.type),
   // so any type added in admin automatically appears here.
+  // The "Diamond Type" dropdown lists diamond types only (Natural / Lab Grown); if none can be
+  // told apart, it falls back to every type so the dropdown is never empty.
+  const _diamondRows = (_pmStoneTypes || []).filter(s => {
+    const c = String(s.category || "").toLowerCase();
+    return c ? c === "diamond" : _isDiamondStoneType(s.type);
+  });
   const stoneTypesSet = new Set(
-    (_pmStoneTypes || []).map(s => s.type).filter(Boolean)
+    (_diamondRows.length ? _diamondRows : (_pmStoneTypes || [])).map(s => s.type).filter(Boolean)
   );
 
   const fillSelect = (sel, values, placeholder) => {
@@ -776,10 +817,14 @@ async function setupCatalogFilterBar() {
     sel.addEventListener("change", onCatalogFilterChange);
   };
 
-  fillSelect(stoneTypeSel, stoneTypesSet, "Stone Type");
+  fillSelect(stoneTypeSel, stoneTypesSet, "Diamond Type");
   if (stoneTypeSel) {
+    const wantType = _prefGet("stoneType");
+    stoneTypeSel.value = [...stoneTypesSet].includes(wantType) ? wantType : "";
+    _selectedCatalogStoneType = stoneTypeSel.value || null;
     stoneTypeSel.addEventListener("change", () => {
       _selectedCatalogStoneType = stoneTypeSel.value || null;
+      _prefSet("stoneType", stoneTypeSel.value);
       _livePriceCache.clear();
       onCatalogFilterChange();
     });
@@ -787,7 +832,7 @@ async function setupCatalogFilterBar() {
 
   // ── METAL TYPE: hardcoded Gold / Silver ──────────────────────────────
   if (metalTypeSel) {
-    const cur = metalTypeSel.value;
+    const cur = _prefGet("metalType");
     metalTypeSel.innerHTML = `<option value="">Metal Type</option>` +
       ["Gold", "Silver"].map(t => `<option value="${esc(t)}"${t === cur ? " selected" : ""}>${esc(t)}</option>`).join("");
   }
@@ -814,26 +859,26 @@ async function setupCatalogFilterBar() {
 
     // Keep the preferred value only if it's still valid for this type
     const valid = options.some(o => o.quality === preferredValue);
-    metalQualitySel.value = valid ? preferredValue : "";
+    // If the old quality no longer fits the chosen Metal Type, pick that type's usual one
+    // (Gold -> 14K, Silver -> 925) instead of leaving the dropdown blank.
+    const fallback = typeFilter ? ((options.find(o => o.quality === "14K") || options[0] || {}).quality || "") : "";
+    metalQualitySel.value = valid ? preferredValue : fallback;
     _selectedCatalogMetalQuality = metalQualitySel.value || null;
     try { localStorage.setItem("vj_metal_quality", _selectedCatalogMetalQuality || ""); } catch (e) {}
   };
 
   if (metalTypeSel) {
     metalTypeSel.addEventListener("change", () => {
+      _prefSet("metalType", metalTypeSel.value);
       populateMetalQuality(_selectedCatalogMetalQuality || "");
+      _prefSet("metalQuality", _selectedCatalogMetalQuality || "");
       onCatalogFilterChange();
     });
   }
 
   if (metalQualitySel) {
-    const cur = metalQualitySel.value;
-
-    // Restore last-used quality (persisted across pages) if nothing else is set yet
-    let storedQuality = null;
-    try { storedQuality = localStorage.getItem("vj_metal_quality"); } catch (e) {}
-
-    const preferredValue = cur || _selectedCatalogMetalQuality || storedQuality || "";
+    // This session's choice, else the default (14K)
+    const preferredValue = _selectedCatalogMetalQuality || _prefGet("metalQuality") || "";
 
     // If we have a preferred quality but no Metal Type selected yet, infer
     // the Metal Type from it so the dropdown opens already filtered.
@@ -846,6 +891,7 @@ async function setupCatalogFilterBar() {
 
     metalQualitySel.addEventListener("change", () => {
       _selectedCatalogMetalQuality = metalQualitySel.value || null;
+      _prefSet("metalQuality", metalQualitySel.value);
       try { localStorage.setItem("vj_metal_quality", _selectedCatalogMetalQuality || ""); } catch (e) {}
       onCatalogFilterChange();
     });
@@ -853,7 +899,7 @@ async function setupCatalogFilterBar() {
 
   if (currencySel) {
     const currencies = await getAllCurrencies();
-    const cur = currencySel.value;
+    const cur = _prefGet("currency");
     // INR is the base currency — always listed first, then all others from DB
     const inrFirst = [
       { code: "INR", symbol: "₹" },
@@ -862,11 +908,12 @@ async function setupCatalogFilterBar() {
     currencySel.innerHTML = inrFirst
       .map(c => `<option value="${esc(c.code)}">${esc(c.symbol)} ${esc(c.code)}</option>`)
       .join("");
-    currencySel.value = cur || "INR";
+    currencySel.value = inrFirst.some(c => c.code === cur) ? cur : "INR";
     const findCur = code => currencies.find(c => c.code === code) || { code: "INR", symbol: "₹", rate_to_inr: 1 };
     _displayCurrency = findCur(currencySel.value);
     currencySel.addEventListener("change", () => {
       _displayCurrency = findCur(currencySel.value);
+      _prefSet("currency", currencySel.value);
       onCatalogFilterChange();
     });
   }
@@ -874,13 +921,14 @@ async function setupCatalogFilterBar() {
   // ── METAL COLOR: display-only — selects which tagged product image to show ──
   // Does NOT affect pricing or technical details.
   if (metalColorSel) {
-    const cur = metalColorSel.value;
+    const cur = _prefGet("metalColor");
     metalColorSel.innerHTML = `<option value="">Metal Color</option>` +
       ["White", "Yellow", "Rose", "Multi-Tone", "Model Showcase", "Spotlight View"]
         .map(c => `<option value="${esc(c)}"${c === cur ? " selected" : ""}>${esc(c)}</option>`).join("");
     _selectedMetalColor = metalColorSel.value || null;
     metalColorSel.addEventListener("change", () => {
       _selectedMetalColor = metalColorSel.value || null;
+      _prefSet("metalColor", metalColorSel.value);
       onCatalogFilterChange();
     });
   }
@@ -913,6 +961,7 @@ function onCatalogFilterChange() {
 // calcProductPrice()'s stone-rate lookup but never hide products that don't
 // have a matching stone (graceful fallback to type+shape rate).
 let _diamondFiltersWired = false;
+let _diamondDefaultsApplied = false;   // the default Color / Quality are applied once, never over a later choice
 function populateDiamondFilters() {
   const colorSel = document.querySelector("[data-filter-diamond-color]");
   const qualitySel = document.querySelector("[data-filter-diamond-quality]");
@@ -920,7 +969,9 @@ function populateDiamondFilters() {
 
   const stoneTypes = _pmStoneTypes || [];
 
-  const refreshQualities = () => {
+  const firstRun = !_diamondDefaultsApplied && stoneTypes.length > 0;
+
+  const refreshQualities = (forced) => {
     if (!qualitySel) return;
     const colorFilter = colorSel?.value || "";
     const qualities = [...new Set(
@@ -929,7 +980,7 @@ function populateDiamondFilters() {
         .map((s) => s.quality)
         .filter(Boolean)
     )].sort();
-    const cur = qualitySel.value;
+    const cur = forced !== undefined ? forced : qualitySel.value;
     qualitySel.innerHTML = `<option value="">Diamond Quality</option>` +
       qualities.map((q) => `<option value="${esc(q)}">${esc(q)}</option>`).join("");
     qualitySel.value = qualities.includes(cur) ? cur : "";
@@ -938,14 +989,15 @@ function populateDiamondFilters() {
 
   if (colorSel) {
     const colors = [...new Set(stoneTypes.map((s) => s.color).filter(Boolean))].sort();
-    const cur = colorSel.value;
+    const cur = firstRun ? _prefGet("diamondColor") : colorSel.value;
     colorSel.innerHTML = `<option value="">Diamond Color</option>` +
       colors.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
     colorSel.value = colors.includes(cur) ? cur : "";
     _selectedCatalogDiamondColor = colorSel.value || null;
   }
 
-  refreshQualities();
+  refreshQualities(firstRun ? _prefGet("diamondQuality") : undefined);
+  if (firstRun) _diamondDefaultsApplied = true;
 
   if (!_diamondFiltersWired) {
     if (colorSel) {
@@ -953,12 +1005,15 @@ function populateDiamondFilters() {
         _selectedCatalogDiamondColor = colorSel.value || null;
         _livePriceCache.clear();
         refreshQualities();
+        _prefSet("diamondColor", colorSel.value);
+        _prefSet("diamondQuality", qualitySel ? qualitySel.value : "");
         onCatalogFilterChange();
       });
     }
     if (qualitySel) {
       qualitySel.addEventListener("change", () => {
         _selectedCatalogDiamondQuality = qualitySel.value || null;
+        _prefSet("diamondQuality", qualitySel.value);
         _livePriceCache.clear();
         onCatalogFilterChange();
       });
@@ -2091,11 +2146,12 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     // Technical details (avg wt, size basis) come from diamond_sizes which is shared (matched by shape+dims only).
     // If the user has selected a stone type override (e.g. "Lab Grown"), use that instead of
     // the product's stored stone_type so the price reflects the chosen material.
-    const selStoneType = (selectedDiamond?.stoneType || "").toLowerCase();
+    const rowIsDiamond = _isDiamondStoneType(stoneType);
+    const selStoneType = rowIsDiamond ? (selectedDiamond?.stoneType || "").toLowerCase() : "";
     const lookupType = selStoneType || stoneType.toLowerCase();
 
-    const selColor   = (selectedDiamond?.color   || "").toLowerCase();
-    const selQuality = (selectedDiamond?.quality || "").toLowerCase();
+    const selColor   = rowIsDiamond ? (selectedDiamond?.color   || "").toLowerCase() : "";
+    const selQuality = rowIsDiamond ? (selectedDiamond?.quality || "").toLowerCase() : "";
 
     const stoneRec = stoneTypes.find(s =>
       (s.type  || "").toLowerCase() === lookupType &&
@@ -2334,7 +2390,8 @@ async function runProductPricing(rawProduct) {
   // product is available in that quality). Only applies on first render.
   if (_selectedProductMetalQuality === null) {
     let storedQuality = null;
-    try { storedQuality = localStorage.getItem("vj_metal_quality"); } catch (e) {}
+    storedQuality = _prefGet("metalQuality") || null;
+    if (!storedQuality) { try { storedQuality = localStorage.getItem("vj_metal_quality"); } catch (e) {} }
     if (storedQuality && available.some(a => a.quality === storedQuality)) {
       _selectedProductMetalQuality = storedQuality;
     }
