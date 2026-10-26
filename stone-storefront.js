@@ -232,13 +232,16 @@ function populateDiamondFilters() {
     const colorSel = document.querySelector(g.color), qualitySel = document.querySelector(g.quality);
     if (!colorSel && !qualitySel) return;
     const inCat = rows.filter(s => VJ_STONE.rowCategory(s) === g.category && Number(s.price_inr || s.rate_inr) > 0);
+    // Default Diamond Color / Quality (see CATALOG_DEFAULTS in script.js) are applied once, on the first fill
+    const isDiamond = g.category === "Diamond";
+    const firstRun = isDiamond && !_diamondDefaultsApplied && inCat.length > 0;
 
-    const refreshQualities = () => {
+    const refreshQualities = (forced) => {
       if (!qualitySel) return;
       const c = colorSel?.value || "";
       const have = new Set(inCat.filter(s => !c || s.color === c).map(s => s.quality).filter(Boolean));
       const qualities = VJ_STONE.QUALITIES.filter(q => have.has(q));
-      const cur = qualitySel.value;
+      const cur = forced !== undefined ? forced : qualitySel.value;
       qualitySel.innerHTML = `<option value="">${g.qLabel}</option>` +
         qualities.map(q => `<option value="${esc(q)}">${esc(q)}</option>`).join("");
       qualitySel.value = qualities.includes(cur) ? cur : "";
@@ -248,13 +251,14 @@ function populateDiamondFilters() {
     if (colorSel) {
       const have = new Set(inCat.map(s => s.color).filter(Boolean));
       const colors = VJ_STONE.colorsOf(g.category).filter(c => have.has(c));
-      const cur = colorSel.value;
+      const cur = firstRun ? _prefGet("diamondColor") : colorSel.value;
       colorSel.innerHTML = `<option value="">${g.cLabel}</option>` +
         colors.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
       colorSel.value = colors.includes(cur) ? cur : "";
       g.setColor(colorSel.value || null);
     }
-    refreshQualities();
+    refreshQualities(firstRun ? _prefGet("diamondQuality") : undefined);
+    if (firstRun) _diamondDefaultsApplied = true;
 
     if (colorSel && !colorSel.dataset.vjWired) {
       colorSel.dataset.vjWired = "1";
@@ -262,6 +266,7 @@ function populateDiamondFilters() {
         g.setColor(colorSel.value || null);
         _livePriceCache.clear();
         refreshQualities();
+        if (isDiamond) { _prefSet("diamondColor", colorSel.value); _prefSet("diamondQuality", qualitySel ? qualitySel.value : ""); }
         onCatalogFilterChange();
       });
     }
@@ -269,6 +274,7 @@ function populateDiamondFilters() {
       qualitySel.dataset.vjWired = "1";
       qualitySel.addEventListener("change", () => {
         g.setQuality(qualitySel.value || null);
+        if (isDiamond) _prefSet("diamondQuality", qualitySel.value);
         _livePriceCache.clear();
         onCatalogFilterChange();
       });
@@ -288,8 +294,8 @@ function populateDiamondFilters() {
     const priced = _pmStoneTypes || [];
     const types = VJ_STONE.typesOf("Diamond")
       .filter(t => priced.some(s => VJ_STONE.typeKey(s.type) === VJ_STONE.typeKey(t) && Number(s.price_inr || s.rate_inr) > 0));
-    const cur = sel.value;
-    sel.innerHTML = `<option value="">Stone Type</option>` +
+    const cur = _prefGet("stoneType");     // this session's choice, else the default (Lab Grown)
+    sel.innerHTML = `<option value="">Diamond Type</option>` +
       types.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join("");
     sel.value = types.includes(cur) ? cur : "";
     _selectedCatalogStoneType = sel.value || null;
@@ -357,7 +363,7 @@ function populateDiamondFilters() {
 
       const need = (sel, label) => { if (hasOptions(sel) && !sel.value) missing.push({ label, els: [sel] }); };
       if (hasStoneOfCategory(product, "Diamond")) {
-        need(document.querySelector("[data-filter-stone-type]"), "Stone Type");
+        need(document.querySelector("[data-filter-stone-type]"), "Diamond Type");
         need(document.querySelector("[data-filter-diamond-color]"), "Diamond Color");
         need(document.querySelector("[data-filter-diamond-quality]"), "Diamond Quality");
       }
