@@ -87,7 +87,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   // For every stone on the product (pcs, type, shape, length, width):
   //   Diamond Sizes  : category [+ type] + shape + mm  -> average weight (ct) + Size Basis
   //   Stone Prices   : category + type + shape + Size Basis + color + quality -> price per ct
-  //   cost           : pcs × average weight × price per ct
+  //   cost           : pcs × average weight × price per ct   (gemstone rows set to "per stone": pcs × price per stone)
   // Natural <-> Lab Grown (Stone Type dropdown) only swaps DIAMOND rows. Gem stone rows keep their
   // own type and use the Gem Color / Gem Quality selections. A stone that cannot be sized or priced
   // is reported in stoneMissing and flips stoneIncomplete (the site then shows "Price on request").
@@ -126,8 +126,16 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   const makingMinRec  = metalIsSilver
     ? (labour.find(l => l.category === "__making_min_silver__")  || labour.find(l => l.category === "__making_min__"))
     : (labour.find(l => l.category === "__making_min_gold__")    || labour.find(l => l.category === "__making_min__"));
-  const makingRateInrRec = labour.find(l => l.category === "__making_rate_inr__");
-  const makingMinInrRec  = labour.find(l => l.category === "__making_min_inr__");
+  // Admin stores making rate / minimum in INR separately for gold and silver
+  // (__making_rate_inr_gold__ / _silver__, __making_min_inr_gold__ / _silver__); the old single
+  // INR keys are the fallback (same rule as script.js).
+  const _mk = (suffix) => {
+    const metalKey  = "__making_" + suffix + "_inr_" + (metalIsSilver ? "silver" : "gold") + "__";
+    const sharedKey = "__making_" + suffix + "_inr__";
+    return labour.find(l => l.category === metalKey) || labour.find(l => l.category === sharedKey);
+  };
+  const makingRateInrRec = _mk("rate");
+  const makingMinInrRec  = _mk("min");
   const makingRateUSD = makingRateInrRec
     ? Number(makingRateInrRec.charge || 0) / inrPerUSD
     : Number(makingRateRec?.charge || 0);
