@@ -105,6 +105,30 @@ function _prefSet(name, value) {
     sessionStorage.setItem(_PREF_KEY, JSON.stringify(o));
   } catch (e) {}
 }
+// Puts every pricing selector in the top filter bar back to its default (used by "Clear All Filters").
+function _resetCatalogToDefaults() {
+  try { sessionStorage.removeItem(_PREF_KEY); } catch (e) {}
+  // Dependency order: type -> quality, color -> quality. Firing "change" runs each control's own
+  // handler so prices / images follow; the grid is redrawn once by the caller.
+  const order = [
+    ["[data-filter-metal-type]", "metalType"], ["[data-filter-metal-quality]", "metalQuality"],
+    ["[data-filter-metal-color]", "metalColor"], ["[data-filter-stone-type]", "stoneType"],
+    ["[data-filter-diamond-color]", "diamondColor"], ["[data-filter-diamond-quality]", "diamondQuality"],
+    ["[data-filter-currency]", "currency"],
+  ];
+  const before = _suppressApply;
+  _suppressApply = true;
+  try {
+    order.forEach(([sel, key]) => {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      const want = CATALOG_DEFAULTS[key];
+      el.value = [...el.options].some((o) => o.value === want) ? want : "";
+      el.dispatchEvent(new Event("change"));
+    });
+  } finally { _suppressApply = before; }
+  _livePriceCache.clear();
+}
 // Diamond rows are Natural / Lab Grown (or the legacy word "Diamond"); everything else is a gemstone.
 const _isDiamondStoneType = (t) => /^(diamond|natural|lab[\s-]*grown)$/i.test(String(t || "").trim());
 
@@ -727,17 +751,8 @@ async function renderProductGrid() {
         const input = document.querySelector(sel);
         if (input) input.value = "";
       });
-      ["[data-filter-metal-quality]", "[data-filter-stone-type]", "[data-filter-diamond-color]", "[data-filter-diamond-quality]"].forEach((sel) => {
-        const dd = document.querySelector(sel);
-        if (dd) dd.value = "";
-      });
-      _selectedCatalogMetalQuality = null;
-      try { localStorage.removeItem("vj_metal_quality"); } catch (e) {}
-      _selectedCatalogDiamondColor = null;
-      _selectedCatalogDiamondQuality = null;
-      _selectedCatalogStoneType = null;
-      _livePriceCache.clear();
-      populateDiamondFilters(); // rebuild Diamond Quality options for the cleared color
+      // The pricing selectors (metal / diamond / currency) go back to the DEFAULTS, not to blank
+      _resetCatalogToDefaults();
       const search = document.querySelector("[data-product-search]");
       if (search) search.value = "";
       applyFilters();
