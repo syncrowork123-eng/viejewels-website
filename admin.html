@@ -310,6 +310,11 @@
     .margin-group-title span { font-size:11px; font-weight:400; letter-spacing:0; color:var(--text-muted); margin-left:8px; }
     .margin-card { padding:24px 28px; border-right:1px solid var(--border); }
     .margin-card:last-child { border-right:none; }
+    .margin-cards-row.three { grid-template-columns:1fr 1fr 1fr; }
+    .margin-basis-label { font-size:10.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-muted); padding:14px 28px 0; }
+    .margin-basis-label span { font-weight:400; letter-spacing:0; text-transform:none; margin-left:6px; }
+    .margin-cards-row.three .margin-input { width:150px; }
+    @media(max-width:768px){ .margin-cards-row.three { grid-template-columns:1fr; } }
     .margin-card-label { font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:16px; }
     .margin-input-row { display:flex; align-items:baseline; gap:6px; }
     .margin-symbol { font-size:20px; color:var(--accent); font-weight:600; }
@@ -660,17 +665,17 @@
                 <th class="spl-th-color">Color</th>
                 <th class="spl-th-quality">Quality</th>
                 <th class="spl-th-size">Size Basis</th>
-                <th class="spl-th-rate">Rate (INR)<div class="spl-sub">per ct (gemstones: or per stone)</div></th>
+                <th class="spl-th-rate">Rate / CT (INR)</th>
                 <th class="spl-th-derived">
-                  Price (INR)
-                  <div class="spl-sub">Rate + Margin INR (per ct or per stone)</div>
+                  Price / CT (INR)
+                  <div class="spl-sub">Rate + Margin INR</div>
                 </th>
                 <th class="spl-th-derived">
-                  Rate (USD)
+                  Rate / CT (USD)
                   <div class="spl-sub">Rate INR × INR Rate</div>
                 </th>
                 <th class="spl-th-derived">
-                  Price (USD)
+                  Price / CT (USD)
                   <div class="spl-sub">Price INR ÷ INR Rate × (1 + Margin %)</div>
                 </th>
                 <th style="width:78px;"></th>
@@ -845,70 +850,140 @@
         <div class="margin-rates-header">
           <span class="metal-market-title">Margin Rates</span>
         </div>
-        <div style="font-size:12px;color:var(--text-muted);padding:10px 20px 0;">Per-carat margin applied on top of stone cost during pricing calculations.</div>
+        <div style="font-size:12px;color:var(--text-muted);padding:10px 20px 0;">Margin applied on top of stone cost during pricing calculations. Each stone type can have a flat margin and a % margin (INR) on both the per-carat and per-stone basis; when both are entered, the <b>higher</b> margin amount is used.</div>
         <div class="margin-group-title">NATURAL DIAMONDS <span>Type: Natural</span></div>
-        <div class="margin-cards-row">
+        <div class="margin-basis-label">Per carat</div>
+        <div class="margin-cards-row three">
           <div class="margin-card">
             <div class="margin-card-label">Margin / CT (INR)</div>
             <div class="margin-input-row">
               <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-ct-natural" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-inr-ct-natural" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
               <span class="margin-unit">/ct</span>
+            </div>
+          </div>
+          <div class="margin-card">
+            <div class="margin-card-label">Margin % (INR)</div>
+            <div class="margin-input-row">
+              <input type="number" id="margin-pct-inr-ct-natural" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">%</span>
             </div>
           </div>
           <div class="margin-card">
             <div class="margin-card-label">Margin % (USD)</div>
             <div class="margin-input-row">
-              <input type="number" id="margin-pct-usd-natural" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-pct-usd-natural" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="margin-basis-label">Per stone <span>(rows priced per piece)</span></div>
+        <div class="margin-cards-row three">
+          <div class="margin-card">
+            <div class="margin-card-label">Margin / Stone (INR)</div>
+            <div class="margin-input-row">
+              <span class="margin-symbol">₹</span>
+              <input type="number" id="margin-inr-stone-natural" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">/stone</span>
+            </div>
+          </div>
+          <div class="margin-card">
+            <div class="margin-card-label">Margin % (INR)</div>
+            <div class="margin-input-row">
+              <input type="number" id="margin-pct-inr-stone-natural" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
               <span class="margin-unit">%</span>
             </div>
           </div>
         </div>
         <div class="margin-group-title">LAB GROWN DIAMONDS <span>Type: Lab Grown</span></div>
-        <div class="margin-cards-row">
+        <div class="margin-basis-label">Per carat</div>
+        <div class="margin-cards-row three">
           <div class="margin-card">
             <div class="margin-card-label">Margin / CT (INR)</div>
             <div class="margin-input-row">
               <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-ct-lab" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-inr-ct-lab" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
               <span class="margin-unit">/ct</span>
+            </div>
+          </div>
+          <div class="margin-card">
+            <div class="margin-card-label">Margin % (INR)</div>
+            <div class="margin-input-row">
+              <input type="number" id="margin-pct-inr-ct-lab" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">%</span>
             </div>
           </div>
           <div class="margin-card">
             <div class="margin-card-label">Margin % (USD)</div>
             <div class="margin-input-row">
-              <input type="number" id="margin-pct-usd-lab" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-pct-usd-lab" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="margin-basis-label">Per stone <span>(rows priced per piece)</span></div>
+        <div class="margin-cards-row three">
+          <div class="margin-card">
+            <div class="margin-card-label">Margin / Stone (INR)</div>
+            <div class="margin-input-row">
+              <span class="margin-symbol">₹</span>
+              <input type="number" id="margin-inr-stone-lab" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">/stone</span>
+            </div>
+          </div>
+          <div class="margin-card">
+            <div class="margin-card-label">Margin % (INR)</div>
+            <div class="margin-input-row">
+              <input type="number" id="margin-pct-inr-stone-lab" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
               <span class="margin-unit">%</span>
             </div>
           </div>
         </div>
         <div class="margin-group-title">GEMSTONES <span>Emerald, Ruby, Sapphire, Pearl and other Gem Stone types</span></div>
-        <div class="margin-cards-row">
+        <div class="margin-basis-label">Per carat</div>
+        <div class="margin-cards-row three">
           <div class="margin-card">
             <div class="margin-card-label">Margin / CT (INR)</div>
             <div class="margin-input-row">
               <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-ct-gem" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-inr-ct-gem" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
               <span class="margin-unit">/ct</span>
+            </div>
+          </div>
+          <div class="margin-card">
+            <div class="margin-card-label">Margin % (INR)</div>
+            <div class="margin-input-row">
+              <input type="number" id="margin-pct-inr-ct-gem" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">%</span>
             </div>
           </div>
           <div class="margin-card">
             <div class="margin-card-label">Margin % (USD)</div>
             <div class="margin-input-row">
-              <input type="number" id="margin-pct-usd-gem" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-pct-usd-gem" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
               <span class="margin-unit">%</span>
             </div>
           </div>
+        </div>
+        <div class="margin-basis-label">Per stone <span>(rows priced per piece)</span></div>
+        <div class="margin-cards-row three">
           <div class="margin-card">
-            <div class="margin-card-label">Margin / Stone (INR) <span style="font-weight:400;opacity:.7">— rows priced per stone</span></div>
+            <div class="margin-card-label">Margin / Stone (INR)</div>
             <div class="margin-input-row">
               <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-stone-gem" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-inr-stone-gem" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
               <span class="margin-unit">/stone</span>
             </div>
           </div>
+          <div class="margin-card">
+            <div class="margin-card-label">Margin % (INR)</div>
+            <div class="margin-input-row">
+              <input type="number" id="margin-pct-inr-stone-gem" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <span class="margin-unit">%</span>
+            </div>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--border);">
+<div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--border);">
           <span id="margin-save-status" style="font-size:12px;color:var(--text-muted)"></span>
           <button class="btn btn-primary" onclick="saveMarginRates()">Save Margin Rates</button>
         </div>
@@ -4713,11 +4788,12 @@ function calcStoneWebsite(){
 
 function getStoneDerivedRates(rateINR, stone){
   // Get live margin/currency values — margin depends on the stone group (Natural / Lab Grown / Gemstone)
-  const { inr: marginINR, pct: marginPct, stoneInr } = marginRatesFor(marginGroupOf(stone));
-  const perStone = !!(stone && stone.price_basis === 'per_stone');   // gemstone priced per stone, not per carat
+  const { inr: marginFlatINR, pct: marginPct, pctInr: marginPctINR } = marginRatesFor(marginGroupOf(stone));
   const usdRate   = parseFloat(allCurrencies.find(c=>c.code==='USD')?.rate_to_inr)||0; // INR per 1 USD (e.g. 83)
   const rate = parseFloat(rateINR)||0;
-  const priceINR  = rate>0 ? rate + (perStone ? stoneInr : marginINR) : null;
+  // Per-carat price list: margin = higher of (flat ₹/ct, INR % of rate)
+  const marginINR = marginAmountINR(marginFlatINR, marginPctINR, rate);
+  const priceINR  = rate>0 ? rate + marginINR : null;
   const rateUSD   = rate>0 && usdRate>0 ? rate / usdRate : null;
   const priceUSD  = (priceINR!=null && usdRate>0) ? (priceINR / usdRate) * (1 + marginPct/100) : null;
   return { priceINR, rateUSD, priceUSD };
@@ -4950,7 +5026,7 @@ function renderStoneGrid(){
       ${cell(s.id,'color',V.colorsOf(cat),s.color||'','Color')}
       ${cell(s.id,'quality',V.QUALITIES,s.quality||'','Quality')}
       ${cell(s.id,'size_basis',sbOptions(cat,s.type,s.shape),s.size_basis||'','Size Basis')}
-      <td><input class="spl-cell-input rate-input" type="number" step="0.01" value="${fmt2(s.rate_inr)}" oninput="splRateChange(${s.id},this.value)" placeholder="0.00" />${cat==='Gem Stone'?`<select class="spl-cell-input" style="margin-top:4px;font-size:11px" title="Rate basis" onchange="splBasisChange(${s.id},this.value)"><option value="per_carat"${s.price_basis==='per_stone'?'':' selected'}>per carat</option><option value="per_stone"${s.price_basis==='per_stone'?' selected':''}>per stone</option></select>`:''}</td>
+      <td><input class="spl-cell-input rate-input" type="number" step="0.01" value="${fmt2(s.rate_inr)}" oninput="splRateChange(${s.id},this.value)" placeholder="0.00" /></td>
       <td>${fmtD(d.priceINR)}</td>
       <td>${fmtD(d.rateUSD)}</td>
       <td>${fmtD(d.priceUSD)}</td>
@@ -5027,7 +5103,7 @@ function splDraftRowHtml(){
     ${sel('color',V.colorsOf(d.category),d.color,'Color')}
     ${sel('quality',V.QUALITIES,d.quality,'Quality')}
     <td><select id="spl-d-sb" class="spl-cell-input" onchange="splDraftSet('size_basis',this.value,true)">${optList(V.sizeBasisOptions(allDiamonds,{category:d.category,type:d.type,shape:d.shape}),d.size_basis,'Size Basis')}</select></td>
-    <td><input id="spl-d-rate" class="spl-cell-input rate-input" type="number" step="0.01" value="${esc(d.rate)}" oninput="splDraftRate(this.value)" placeholder="0.00" />${d.category==='Gem Stone'?`<select class="spl-cell-input" style="margin-top:4px;font-size:11px" title="Rate basis" onchange="splDraftSet('price_basis',this.value)"><option value="per_carat"${d.price_basis==='per_stone'?'':' selected'}>per carat</option><option value="per_stone"${d.price_basis==='per_stone'?' selected':''}>per stone</option></select>`:''}</td>
+    <td><input id="spl-d-rate" class="spl-cell-input rate-input" type="number" step="0.01" value="${esc(d.rate)}" oninput="splDraftRate(this.value)" placeholder="0.00" /></td>
     <td id="spl-d-p1">${dr.priceINR!=null?`<span class="spl-derived has-val">${Number(dr.priceINR).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
     <td id="spl-d-p2">${dr.rateUSD!=null?`<span class="spl-derived has-val">${Number(dr.rateUSD).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
     <td id="spl-d-p3">${dr.priceUSD!=null?`<span class="spl-derived has-val">${Number(dr.priceUSD).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
@@ -5058,7 +5134,6 @@ function splDraftSet(field, val, quiet){
   } else if(field==='type'){
     const c = V.categoryOf(val); if(c){ d.category = c; if(d.color && !V.canon('color', d.color, c)) d.color = ''; }
   }
-  if(d.category!=='Gem Stone') d.price_basis = 'per_carat';   // per stone is gemstones-only
   if(!quiet){
     const r0 = document.getElementById('spl-d-rate')?.value;
     if(r0!=null) d.rate = r0;
@@ -5076,11 +5151,11 @@ function splDraftRate(val){
 function splDraftCancel(){ _splDraft = null; renderStoneGrid(); }
 async function splDraftSave(){
   const V = VJ_STONE, d = _splDraft; if(!d) return;
-  const rec = { category:d.category, type:d.type, shape:d.shape, color:d.color||null, quality:d.quality||null, size_basis:String(d.size_basis||'').trim(), price_basis:(d.category==='Gem Stone' && d.price_basis==='per_stone')?'per_stone':'per_carat' };
+  const rec = { category:d.category, type:d.type, shape:d.shape, color:d.color||null, quality:d.quality||null, size_basis:String(d.size_basis||'').trim() };
   const why = V.checkPriceRow(rec, allDiamonds);
   if(why){ toast(why+' — complete the highlighted row.','error'); return; }
   const rate = parseFloat(d.rate);
-  if(!(rate>0)){ toast('Enter a Rate (INR) greater than 0.','error'); return; }
+  if(!(rate>0)){ toast('Enter a Rate / CT (INR) greater than 0.','error'); return; }
   if(allStones.some(s=>V.priceKey(s)===V.priceKey(rec))){ toast('A price for this Category / Type / Shape / Color / Quality / Size Basis already exists — edit that row instead.','error'); return; }
   const der = getStoneDerivedRates(rate, rec);
   const body = withCat({
@@ -5090,7 +5165,6 @@ async function splDraftSave(){
     rate_usd:der.rateUSD?Math.round(der.rateUSD*10000)/10000:null,
     price_usd:der.priceUSD?Math.round(der.priceUSD*10000)/10000:null,
   }, rec.category);
-  if(rec.price_basis==='per_stone') body.price_basis = 'per_stone';   // omitted otherwise: the database default is per_carat
   try{
     const res = await sb('stone_types','POST',body);
     const row = Array.isArray(res)?res[0]:res;
@@ -5143,22 +5217,6 @@ async function splSaveRate(id, val){
   catch(e){ toast('Save error: '+e.message,'error'); }
 }
 
-// Gemstone rate basis: per carat (default) or per stone. Price = rate + margin (per-ct or per-stone margin).
-async function splBasisChange(id, val){
-  const s = allStones.find(x=>x.id===id); if(!s) return;
-  const basis = val==='per_stone' ? 'per_stone' : 'per_carat';
-  const d = getStoneDerivedRates(s.rate_inr, Object.assign({}, s, {price_basis:basis}));
-  const patch = { price_basis:basis, price_inr:d.priceINR, price_usd:d.priceUSD ? Math.round(d.priceUSD*10000)/10000 : null };
-  try{
-    await sb('stone_types?id=eq.'+id,'PATCH',patch);
-    Object.assign(s, patch);
-    toast('Rate basis set to '+(basis==='per_stone'?'per stone':'per carat')+'.');
-  }catch(e){
-    toast('Save error: '+e.message+' (has the price_basis column been added in Supabase?)','error');
-  }
-  renderStoneGrid();
-}
-
 const _splFieldDebounce = {};
 async function splUpdate(id, field, value){
   const stone = allStones.find(s=>s.id===id);
@@ -5180,7 +5238,6 @@ async function splUpdate(id, field, value){
     stone[field] = value;
   }
   patch[field] = value;
-  if(stone.price_basis==='per_stone' && (stone.category || V.rowCategory(stone))!=='Gem Stone'){ stone.price_basis='per_carat'; patch.price_basis='per_carat'; }  // per stone is gemstones-only
   patch.category = stone.category || V.rowCategory(stone) || null;
   if(!STONE_CAT_COL) delete patch.category;
   stone.name = [stone.type,stone.shape,stone.size_basis,stone.color,stone.quality].filter(Boolean).join(' ');
@@ -5212,9 +5269,9 @@ function exportStonesXlsx(){
   const mN = marginRatesFor('natural'), mL = marginRatesFor('lab'), mG = marginRatesFor('gem');
   const usdRate   = parseFloat(allCurrencies.find(c=>c.code==='USD')?.rate_to_inr)||0;
 
-  const headers=["Category","Type","Shape","Color","Quality","Size Basis","Rate/ct (INR)","Price/ct (INR)","Rate/ct (USD)","Price/ct (USD)","Rate Basis"];
+  const headers=["Category","Type","Shape","Color","Quality","Size Basis","Rate/ct (INR)","Price/ct (INR)","Rate/ct (USD)","Price/ct (USD)"];
   const inrPerUsd=usdRate>0?Math.round(usdRate):0;
-  const subheads=["","","","","","",`Rate INR (editable)`,`Rate + margin ₹/ct (by stone group)`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+margin %)`,"per carat / per stone (gemstones only)"];
+  const subheads=["","","","","","",`Rate INR (editable)`,`Rate + margin ₹/ct (by stone group)`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+margin %)`];
   const rows = allStones.map(s=>{
     const d = getStoneDerivedRates(s.rate_inr, s);
     return [
@@ -5223,13 +5280,12 @@ function exportStonesXlsx(){
       d.priceINR!=null?Number(d.priceINR).toFixed(2):'',
       d.rateUSD!=null?Number(d.rateUSD).toFixed(4):'',
       d.priceUSD!=null?Number(d.priceUSD).toFixed(2):'',
-      s.price_basis==='per_stone'?'per stone':'per carat',
     ];
   });
 
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([headers, subheads, ...rows]);
-  ws["!cols"] = [{wch:12},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:16},{wch:16},{wch:16},{wch:16},{wch:14}];
+  ws["!cols"] = [{wch:12},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:16},{wch:16},{wch:16},{wch:16}];
   // Style header row bold/accent — limited in xlsx but set row height
   ws["!rows"] = [{hpt:20},{hpt:14},...rows.map(()=>({hpt:18}))];
   XLSX.utils.book_append_sheet(wb, ws, "Stone Prices");
@@ -5248,8 +5304,9 @@ function exportStonesXlsx(){
     [""],
     ["CALCULATION FORMULAS"],
     [`Margin per ct (INR): Natural ${mN.inr} | Lab Grown ${mL.inr} | Gemstone ${mG.inr}`],
+    [`Margin % (INR): Natural ${mN.pctInr}% | Lab Grown ${mL.pctInr}% | Gemstone ${mG.pctInr}%`],
     [`Margin % (USD): Natural ${mN.pct}% | Lab Grown ${mL.pct}% | Gemstone ${mG.pct}%`],
-    [`Price/ct (INR) = Rate/ct (INR) + margin per ct INR of the stone's group`],
+    [`Price/ct (INR) = Rate/ct (INR) + the higher of (margin per ct INR, Rate/ct × margin % INR) for the stone's group`],
     [`Rate/ct (USD)  = Rate/ct (INR) ÷ ${inrPerUsd} (INR rate)`],
     [`Price/ct (USD) = Price/ct (INR) ÷ ${inrPerUsd} (INR rate) × (1 + margin % of the stone's group)`],
   ]);
@@ -5307,16 +5364,13 @@ async function importStonesXlsx(e){
         const size_basis = (size_basis0 && allDiamonds.length && category && type && shape)
           ? (matchSizeBasis({category,type,shape},size_basis0) || "") : size_basis0;
         const rate_inr = parseFloat(get(row,["Rate/ct (INR)","Rate INR","rate_inr","Rate/CT (INR)"]))||null;
-        const basis0 = get2(["Rate Basis","Rate basis","price_basis","Basis"]).toLowerCase();
-        const wantStone = /stone|piece|\bpcs?\b/.test(basis0);      // blank / "per carat" = per carat
-        const price_basis = (wantStone && category==="Gem Stone") ? "per_stone" : "per_carat";
         if(!type0 && !shape && !size_basis){ skipped++; return; }
         const why = !category ? "category/type not recognised" : !type ? `type "${type0}" is not a ${category} type` :
                     !shape ? "shape not recognised" : (color0 && !color) ? `color "${color0}" is not valid for ${category}` :
-                    (qual0 && !quality) ? `quality "${qual0}" not recognised` : (wantStone && category!=="Gem Stone") ? `Rate Basis "per stone" is only for Gem Stone rows` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
+                    (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
         if(why){ invalid++; invalidNotes.push(`row ${row.__xl}: ${why}`); return; }
         const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ");
-        const d = getStoneDerivedRates(rate_inr, {category, type, price_basis});
+        const d = getStoneDerivedRates(rate_inr, {category, type});
         const rec = withCat({
           name, type, shape, color:color||null, quality:quality||null, size_basis,
           rate_inr, price_inr:d.priceINR, rate_usd:d.rateUSD, price_usd:d.priceUSD,
@@ -5324,10 +5378,7 @@ async function importStonesXlsx(e){
         const key = V.priceKey({category, type, shape, color, quality, size_basis});
         if(seen.has(key)){ skipped++; return; }          // same combination twice in the file
         seen.add(key);
-        const existingRow = byKey.get(key)||null;
-        // price_basis is only sent when needed (per stone, or resetting a row that was per stone), so imports still work before the column exists
-        if(price_basis==="per_stone" || existingRow?.price_basis==="per_stone") rec.price_basis = price_basis;
-        payload.push({rec, existing: existingRow});
+        payload.push({rec, existing: byKey.get(key)||null});
       });
 
       if(!payload.length){
@@ -6725,9 +6776,12 @@ async function saveMetalRates(){
 const MARGIN_GROUPS = ['natural','lab','gem'];
 const MARGIN_INR_NAME = 'margin_per_ct_inr';   // legacy shared record
 const MARGIN_PCT_NAME = 'margin_pct_usd';      // legacy shared record
-const MARGIN_STONE_NAME = 'margin_per_stone_inr_gem';   // gemstones priced per stone: flat INR margin per stone
 const marginInrName = g => MARGIN_INR_NAME+'_'+g;
 const marginPctName = g => MARGIN_PCT_NAME+'_'+g;
+// New in the INR % / per-stone update (no legacy fallback — an unsaved value means 0)
+const marginPctInrCtName      = g => 'margin_pct_inr_'+g;          // % of stone cost, per-carat rows (INR)
+const marginInrStoneName      = g => 'margin_per_stone_inr_'+g;    // flat ₹ per stone, per-stone rows
+const marginPctInrStoneName   = g => 'margin_pct_stone_inr_'+g;    // % of stone cost, per-stone rows (INR)
 
 // Which margin group a stone belongs to. Accepts a stone row, a draft or {category,type}.
 function marginGroupOf(x){
@@ -6742,8 +6796,31 @@ function marginRecVal(name){ const r = allMargins.find(m=>m.name===name); return
 function marginRatesFor(group){
   const inr = marginRecVal(marginInrName(group)), pct = marginRecVal(marginPctName(group));
   const li = marginRecVal(MARGIN_INR_NAME),        lp = marginRecVal(MARGIN_PCT_NAME);
-  const si = marginRecVal(MARGIN_STONE_NAME);
-  return { inr: !isNaN(inr)?inr:(!isNaN(li)?li:0), pct: !isNaN(pct)?pct:(!isNaN(lp)?lp:0), stoneInr: !isNaN(si)?si:0 };
+  const z = v => (!isNaN(v) && v>0) ? v : 0;
+  return {
+    inr: !isNaN(inr)?inr:(!isNaN(li)?li:0),          // flat ₹ / ct
+    pct: !isNaN(pct)?pct:(!isNaN(lp)?lp:0),          // % (USD)
+    pctInr:       z(marginRecVal(marginPctInrCtName(group))),     // % (INR), per carat
+    stoneInr:     z(marginRecVal(marginInrStoneName(group))),     // flat ₹ / stone
+    stonePctInr:  z(marginRecVal(marginPctInrStoneName(group))),  // % (INR), per stone
+  };
+}
+
+// The margin rule, in one place: when both a flat margin and a % margin are set,
+// the higher margin AMOUNT wins (compared in rupees, not as raw numbers).
+function marginAmountINR(flatAmount, pct, cost){
+  const f = flatAmount>0 ? flatAmount : 0;
+  const p = (pct>0 && cost>0) ? cost*pct/100 : 0;
+  return Math.max(f, p);
+}
+// Margin (INR) for one priced line.
+//   basis 'ct'    -> cost is the cost of `units` carats; flat = margin/ct × carats
+//   basis 'stone' -> cost is the cost of `units` stones; flat = margin/stone × stones
+function marginForLineINR(group, basis, cost, units){
+  const m = marginRatesFor(group);
+  return basis==='stone'
+    ? marginAmountINR(m.stoneInr * units, m.stonePctInr, cost)
+    : marginAmountINR(m.inr * units,      m.pctInr,      cost);
 }
 
 function initMarginCards(){
@@ -6754,9 +6831,11 @@ function initMarginCards(){
     const pctRec = allMargins.find(m=>m.name===marginPctName(g)) || allMargins.find(m=>m.name===MARGIN_PCT_NAME);
     if(inrEl) inrEl.value = inrRec?.percentage ?? '';
     if(pctEl) pctEl.value = pctRec?.percentage ?? '';
+    const put = (id, name) => { const el = document.getElementById(id); if(el) el.value = allMargins.find(m=>m.name===name)?.percentage ?? ''; };
+    put('margin-pct-inr-ct-'+g,     marginPctInrCtName(g));
+    put('margin-inr-stone-'+g,      marginInrStoneName(g));
+    put('margin-pct-inr-stone-'+g,  marginPctInrStoneName(g));
   });
-  const stEl = document.getElementById('margin-inr-stone-gem');
-  if(stEl) stEl.value = allMargins.find(m=>m.name===MARGIN_STONE_NAME)?.percentage ?? '';
 }
 
 function marginLiveUpdate(){
@@ -6767,9 +6846,10 @@ function marginLiveUpdate(){
 async function saveMarginRates(){
   const status = document.getElementById('margin-save-status');
 
-  const upsert = async (name, value) => {
-    if(isNaN(value)) return;
+  const upsert = async (name, value, blankAsZero) => {
     const existing = allMargins.find(m=>m.name===name);
+    // New fields: clearing a box resets a saved value to 0 (otherwise the old % would silently stay in force)
+    if(isNaN(value)){ if(!(blankAsZero && existing && parseFloat(existing.percentage)!==0)) return; value = 0; }
     if(existing){
       await sb('margins?id=eq.'+existing.id,'PATCH',{percentage:value});
     } else {
@@ -6782,8 +6862,10 @@ async function saveMarginRates(){
     for(const g of MARGIN_GROUPS){
       await upsert(marginInrName(g), parseFloat(document.getElementById('margin-inr-ct-'+g)?.value));
       await upsert(marginPctName(g), parseFloat(document.getElementById('margin-pct-usd-'+g)?.value));
+      await upsert(marginPctInrCtName(g),    parseFloat(document.getElementById('margin-pct-inr-ct-'+g)?.value),    true);
+      await upsert(marginInrStoneName(g),    parseFloat(document.getElementById('margin-inr-stone-'+g)?.value),     true);
+      await upsert(marginPctInrStoneName(g), parseFloat(document.getElementById('margin-pct-inr-stone-'+g)?.value), true);
     }
-    await upsert(MARGIN_STONE_NAME, parseFloat(document.getElementById('margin-inr-stone-gem')?.value));
     toast('Margin rates saved.');
     if(status) status.textContent = '';
     await loadMasters();
