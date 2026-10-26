@@ -234,7 +234,9 @@ const VJ_STONE = (() => {
       if (category === "Diamond" && overrideIsDiamond) type = overrideType;
       else if (!categoryOf(type) && category) type = CATEGORIES[category][0];
       const sel = category === "Gem Stone" ? { color: gemColor, quality: gemQuality } : { color, quality };
-      const line = { stone: row, type, category, pcs, shape: row.shape, avgWtCt: 0, sizeBasis: "", totalCt: 0, priceINR: 0, priceBasis: "per_carat", cost: 0, status: "ok" };
+      // A stone type missing from the classification (e.g. a gemstone name typed differently) is reported as a Gem Stone line,
+      // so the price breakup and gallery tiles still show it instead of dropping the Diamonds / Gemstones detail.
+      const line = { stone: row, type, category: category || "Gem Stone", pcs, shape: row.shape, avgWtCt: 0, sizeBasis: "", totalCt: 0, priceINR: 0, priceBasis: "per_carat", cost: 0, status: "ok" };
 
       const size = findSize(diamSizes, { category, type, shape: row.shape, length: row.length_mm, width: row.width_mm });
       if (!size || !size.avgWtCt) { line.status = "no-size"; lines.push(line); return; }
