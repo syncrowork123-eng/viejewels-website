@@ -2590,7 +2590,10 @@ function renderProductDetailsGrid(product, selectedMetal, selectedDiamond, costs
   const diamEl = document.querySelector("[data-pd-diamond-display]");
   if (diamEl) {
     const parts = [selectedDiamond?.color, selectedDiamond?.quality].filter(Boolean);
-    const ctWt  = costs?.totalStoneCtWt;
+    // Diamond carats only (gemstone carats are shown on their own line in the price breakdown)
+    const ctWt  = costs?.stoneLines
+      ? costs.stoneLines.filter(l => l.category === "Diamond").reduce((a, l) => a + (l.totalCt || 0), 0)
+      : costs?.totalStoneCtWt;
     if (ctWt) parts.push(Number(ctWt).toFixed(3) + " ct");
     diamEl.textContent = parts.length ? parts.join(" · ") : (product.stone || "—");
   }
