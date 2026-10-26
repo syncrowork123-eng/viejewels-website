@@ -466,7 +466,7 @@
             </div>
             <div class="pd-card-row">
               <div class="pd-field">
-                <label>Stone Type</label>
+                <label>Diamond Type</label>
                 <select data-filter-stone-type></select>
               </div>
               <div class="pd-field">
@@ -780,7 +780,7 @@
         const stoneTypeSel = document.querySelector('[data-filter-stone-type]');
         const diamondColorSel = document.querySelector('[data-filter-diamond-color]');
         const diamondQualitySel = document.querySelector('[data-filter-diamond-quality]');
-        if (hasOptions(stoneTypeSel) && !stoneTypeSel.value) missing.push({ label: 'Stone Type', els: [stoneTypeSel] });
+        if (hasOptions(stoneTypeSel) && !stoneTypeSel.value) missing.push({ label: 'Diamond Type', els: [stoneTypeSel] });
         if (hasOptions(diamondColorSel) && !diamondColorSel.value) missing.push({ label: 'Diamond Color', els: [diamondColorSel] });
         if (hasOptions(diamondQualitySel) && !diamondQualitySel.value) missing.push({ label: 'Diamond Quality', els: [diamondQualitySel] });
       }
