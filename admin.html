@@ -248,6 +248,37 @@
     #toast.toast-success { border-color:var(--success); color:var(--success); }
     #toast.toast-error { border-color:var(--danger); color:#e74c3c; }
     .state-msg { padding:48px; text-align:center; color:var(--text-muted); font-size:14px; }
+
+    /* ── Add / Edit Product window: wide two-band layout with a big main-image box ── */
+    .modal.pm { width:97vw; max-width:1680px; height:95vh; max-height:95vh; }
+    .pm .modal-header { padding:12px 20px; }
+    .pm .modal-body { padding:14px 20px; }
+    .pm .modal-footer { padding:10px 20px; }
+    .pm { --pm-img: clamp(260px, 38vh, 430px); }
+    .pm-top { display:grid; grid-template-columns:var(--pm-img) 1fr; gap:18px; align-items:start; margin-bottom:14px; }
+    .pm-image { display:flex; flex-direction:column; gap:8px; }
+    .pm-image-main { width:var(--pm-img); height:var(--pm-img); background:var(--surface2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .pm-image-main img { width:100%; height:100%; object-fit:contain; display:block; }
+    .pm-image-empty { padding:20px; text-align:center; font-size:13px; color:var(--text-muted); }
+    .pm-image-thumbs { display:flex; gap:6px; flex-wrap:wrap; max-width:var(--pm-img); }
+    .pm-thumb { width:44px; height:44px; padding:0; border:2px solid var(--border); border-radius:6px; overflow:hidden; cursor:pointer; background:var(--surface2); }
+    .pm-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .pm-thumb.sel { border-color:var(--accent); }
+    .pm-top-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px 22px; align-items:start; min-width:0; }
+    .pm-bottom { display:grid; grid-template-columns:1.1fr 1.35fr 1fr; gap:14px 22px; align-items:start; }
+    .pm-col { display:flex; flex-direction:column; gap:14px; min-width:0; }
+    .pm-sec { border:1px solid var(--border); border-radius:10px; padding:12px 14px; min-width:0; }
+    .pm-sec .section-label { margin-bottom:8px; }
+    .pm-sec .form-grid { gap:10px; }
+    .pm-sec .form-group { margin-bottom:0 !important; }
+    .pm .pm-sec table th, .pm .pm-sec table td { padding:6px 8px !important; }
+    .pm .media-list { max-height:230px; overflow-y:auto; margin-bottom:8px; }
+    .pm .media-item { flex-wrap:wrap; padding:6px 8px; gap:8px; }
+    .pm .media-item-controls { flex-wrap:wrap; }
+    .pm .media-add-row .form-group { min-width:120px; }
+    .pm .tags-grid { max-height:120px; overflow-y:auto; }
+    .pm #f-description { min-height:64px !important; }
+    @media(max-width:1200px){ .pm-top, .pm-bottom, .pm-top-fields { grid-template-columns:1fr; } .modal.pm { width:100%; height:100vh; max-height:100vh; border-radius:0; } }
     .divider { height:1px; background:var(--border); margin:20px 0; }
     .section-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
     .bulk-info { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; }
@@ -1230,19 +1261,34 @@
 </div><!-- /#app -->
 
 <div class="modal-overlay" id="product-modal">
-  <div class="modal" style="max-width:760px">
+  <div class="modal pm">
     <div class="modal-header"><h2 id="product-modal-title">Add Product</h2><button class="modal-close" onclick="closeProductModal()">×</button></div>
     <div class="modal-body">
 
-      <!-- STYLE IDENTITY -->
+      <!-- TOP BAND: big main image + identity / categories / size / tags -->
+      <div class="pm-top">
+        <div class="pm-image">
+          <div class="pm-image-main" id="pm-image-main">
+            <img id="pm-main-img" alt="Main product image" style="display:none" onerror="pmMainImgError()" />
+            <div class="pm-image-empty" id="pm-image-empty">Enter the SKU to load the product image</div>
+          </div>
+          <div class="pm-image-thumbs" id="pm-image-thumbs"></div>
+        </div>
+        <div class="pm-top-fields">
+          <div class="pm-col">
+            <div class="pm-sec">
+<!-- STYLE IDENTITY -->
       <p class="section-label">Style Identity</p>
       <div class="form-grid">
         <div class="form-group"><label>SKU (Unique) *</label><input type="text" id="f-sku" placeholder="E.G. VB1002" onchange="syncStdImagesFromSku()" /></div>
         <div class="form-group"><label>Design Name</label><input type="text" id="f-name" placeholder="e.g. Petralia" /></div>
       </div>
 
-      <!-- JEWELRY CATEGORIES -->
-      <div class="divider"></div>
+      
+            </div>
+            <div class="pm-sec">
+<!-- JEWELRY CATEGORIES -->
+      
       <p class="section-label">Jewelry Categories</p>
       <div id="f-jewel-cats-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -1252,8 +1298,13 @@
         <button class="btn btn-primary btn-sm" onclick="addProductJewelCat()">+ ADD</button>
       </div>
 
-      <!-- SIZE -->
-      <div class="divider"></div>
+      
+            </div>
+          </div>
+          <div class="pm-col">
+            <div class="pm-sec">
+<!-- SIZE -->
+      
       <div class="form-grid">
         <div class="form-group">
           <label id="f-size-label">Size</label>
@@ -1266,16 +1317,29 @@
         </div>
       </div>
 
-      <!-- TAGS -->
+      
+            </div>
+            <div class="pm-sec">
+<!-- TAGS -->
       <div class="form-group" style="margin-bottom:16px">
         <label>Tags <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— themes / collections (click to toggle)</span></label>
         <div class="tags-grid" id="f-tags-grid"></div>
       </div>
 
-      <!-- PHOTOS & VIDEO -->
-      <div class="divider"></div>
+      
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM BAND: three columns -->
+      <div class="pm-bottom">
+        <div class="pm-col">
+          <div class="pm-sec">
+<!-- PHOTOS & VIDEO -->
+      
       <p class="section-label">Photos &amp; Video <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— paste a hosted image/video URL (e.g. from Cloudinary) and add it</span></p>
-      <div class="form-group" style="margin-bottom:12px;max-width:380px">
+      <div class="form-group" style="margin-bottom:8px">
         <label>Image Host <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— the 5 SKU images (W, Y, R, Model, Spot) are linked automatically. Pick one host for all of them, or <b>Auto</b> to use whichever host has each image. Each image can also be moved to a different host in the list below.</span></label>
         <select id="f-media-host" class="filter-select" style="width:100%" onchange="applyProductMediaHost(this.value)">
           <option value="cloudinary">Cloudinary</option>
@@ -1291,25 +1355,13 @@
         <button class="btn btn-primary btn-sm" onclick="addProductMedia()">+ Add</button>
       </div>
 
-      <!-- PART OF A SET -->
-      <div class="form-group" style="margin-bottom:16px">
-        <label>Part of a Set <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— search and select styles that belong together as a set with this piece</span></label>
-        <div style="position:relative">
-          <input type="text" id="f-set-search" placeholder="Search by SKU or design name..." oninput="searchSetProducts()" autocomplete="off"
-            style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;outline:none;" />
-          <div id="f-set-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);z-index:50;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.12);"></div>
+      
+          </div>
         </div>
-        <div id="f-set-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
-      </div>
-
-      <!-- PRODUCT STORY -->
-      <div class="form-group" style="margin-bottom:16px">
-        <label>Product Story <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— inspiration, design details, styling notes</span></label>
-        <textarea id="f-description" placeholder="e.g. Inspired by the geometric harmony of ancient temple architecture..." style="min-height:90px"></textarea>
-      </div>
-
-      <!-- METAL NET WEIGHTS -->
-      <div class="divider"></div>
+        <div class="pm-col">
+          <div class="pm-sec">
+<!-- METAL NET WEIGHTS -->
+      
       <p class="section-label">Metal Net Weights (Grams) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— enter 18K weight; the others auto-calculate (Silver × 1.4875 / 1.2425 / 1.1051). Leave 0 if not produced in that alloy</span></p>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
@@ -1334,8 +1386,11 @@
         </table>
       </div>
 
-      <!-- DIAMOND & STONE DETAILS -->
-      <div class="divider"></div>
+      
+          </div>
+          <div class="pm-sec">
+<!-- DIAMOND & STONE DETAILS -->
+      
       <p class="section-label">Diamond &amp; Stone Details</p>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
@@ -1355,13 +1410,46 @@
       </div>
       <button class="btn btn-secondary btn-sm" style="margin-top:8px;border:1px dashed var(--border);" onclick="addStoneDetailRow()">+ ADD STONE ROW</button>
 
-      <!-- ADMIN FIELDS -->
-      <div class="divider"></div>
+      
+          </div>
+        </div>
+        <div class="pm-col">
+          <div class="pm-sec">
+<!-- PRODUCT STORY -->
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Product Story <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— inspiration, design details, styling notes</span></label>
+        <textarea id="f-description" placeholder="e.g. Inspired by the geometric harmony of ancient temple architecture..." style="min-height:90px"></textarea>
+      </div>
+
+      
+          </div>
+          <div class="pm-sec">
+<!-- PART OF A SET -->
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Part of a Set <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— search and select styles that belong together as a set with this piece</span></label>
+        <div style="position:relative">
+          <input type="text" id="f-set-search" placeholder="Search by SKU or design name..." oninput="searchSetProducts()" autocomplete="off"
+            style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;outline:none;" />
+          <div id="f-set-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);z-index:50;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.12);"></div>
+        </div>
+        <div id="f-set-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+      </div>
+
+      
+          </div>
+          <div class="pm-sec">
+<!-- ADMIN FIELDS -->
+      
       <p class="section-label">Admin</p>
       <div class="form-grid">
         <div class="form-group"><label>Stock Status</label><select id="f-stock-status"><option value="">Select...</option><option>In Stock</option><option>Made to Order</option><option>Out of Stock</option></select></div>
         <div class="form-group"><label>Sort Order <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— auto-assigned, lower = first</span></label><input type="number" id="f-sort-order" value="0" /></div>
         <div class="form-group"><label>Active</label><select id="f-active"><option value="true">Yes — visible</option><option value="false">No — hidden</option></select></div>
+      </div>
+
+    
+          </div>
+        </div>
       </div>
 
     </div>
@@ -3137,6 +3225,7 @@ function openProductModal(id=null){
   productStoneRows=[];
   productSetLinks=[];
   productMediaRows=[];
+  pmPreviewIdx=0;
   document.getElementById("product-modal-title").textContent=id?"Edit Product":"Add Product";
 
   populateProductJewelTypeDropdown();
@@ -3211,7 +3300,38 @@ function toggleTag(chip){
 }
 
 // ── PHOTOS / VIDEO (product_media) ─────────────────────────────────────
+// ── Main image preview (top-left box of the Add / Edit Product window) ──
+let pmPreviewIdx = 0, pmAutoSkips = 0;
+function pmImageCandidates(){
+  const imgs = productMediaRows.filter(m=>m && m.media_type!=="video" && m.url);
+  return imgs.filter(m=>m.is_primary).concat(imgs.filter(m=>!m.is_primary));   // primary first
+}
+function renderProductImagePreview(){
+  const img=document.getElementById("pm-main-img"), empty=document.getElementById("pm-image-empty"), th=document.getElementById("pm-image-thumbs");
+  if(!img||!empty||!th) return;
+  const c=pmImageCandidates();
+  if(pmPreviewIdx>=c.length) pmPreviewIdx=0;
+  if(!c.length){
+    img.style.display="none"; img.removeAttribute("src");
+    empty.style.display=""; empty.textContent="Enter the SKU to load the product image";
+    th.innerHTML=""; return;
+  }
+  const cur=c[pmPreviewIdx];
+  empty.style.display="none"; img.style.display="";
+  if(img.getAttribute("src")!==cur.url) img.src=cur.url;
+  th.innerHTML = c.length>1 ? c.map((m,k)=>`<button type="button" class="pm-thumb${k===pmPreviewIdx?" sel":""}" onclick="pmSelectPreview(${k})" title="${esc(m.alt_text||"")}"><img src="${esc(m.url)}" alt="" onerror="this.closest('.pm-thumb').style.display='none'" /></button>`).join("") : "";
+}
+function pmSelectPreview(k){ pmPreviewIdx=k; pmAutoSkips=c_len(); renderProductImagePreview(); }
+function c_len(){ return pmImageCandidates().length; }
+// If the shown image fails to load, move on to the next image automatically
+function pmMainImgError(){
+  const c=pmImageCandidates();
+  if(pmAutoSkips < c.length-1 && pmPreviewIdx < c.length-1){ pmAutoSkips++; pmPreviewIdx++; renderProductImagePreview(); return; }
+  const img=document.getElementById("pm-main-img"), empty=document.getElementById("pm-image-empty");
+  img.style.display="none"; empty.style.display=""; empty.textContent="Image not found — check the SKU / host";
+}
 function renderProductMedia(){
+  pmAutoSkips=0; renderProductImagePreview();
   const wrap=document.getElementById("f-media-list");
   if(!wrap) return;
   if(!productMediaRows.length){
