@@ -255,6 +255,10 @@
     .pm .modal-body { padding:14px 20px; }
     .pm .modal-footer { padding:10px 20px; }
     .pm { --pm-img: clamp(260px, 38vh, 430px); }
+    .pm .modal-header h2 { margin-right:auto; }
+    .pm-nav { display:flex; align-items:center; gap:10px; margin-right:18px; }
+    .pm-nav-pos { font-size:12px; color:var(--text-muted); min-width:74px; text-align:center; font-variant-numeric:tabular-nums; }
+    .pm-nav .btn:disabled { opacity:.4; cursor:not-allowed; }
     .pm-top { display:grid; grid-template-columns:var(--pm-img) 1fr; gap:18px; align-items:start; margin-bottom:14px; }
     .pm-image { display:flex; flex-direction:column; gap:8px; }
     .pm-image-main { width:var(--pm-img); height:var(--pm-img); background:var(--surface2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
@@ -1262,7 +1266,15 @@
 
 <div class="modal-overlay" id="product-modal">
   <div class="modal pm">
-    <div class="modal-header"><h2 id="product-modal-title">Add Product</h2><button class="modal-close" onclick="closeProductModal()">×</button></div>
+    <div class="modal-header">
+      <h2 id="product-modal-title">Add Product</h2>
+      <div class="pm-nav" id="pm-nav" style="display:none">
+        <button type="button" class="btn btn-secondary btn-sm" id="pm-prev" onclick="pmNavigate(-1)" title="Previous product in the list">‹ Prev</button>
+        <span id="pm-nav-pos" class="pm-nav-pos"></span>
+        <button type="button" class="btn btn-secondary btn-sm" id="pm-next" onclick="pmNavigate(1)" title="Next product in the list">Next ›</button>
+      </div>
+      <button class="modal-close" onclick="closeProductModal()">×</button>
+    </div>
     <div class="modal-body">
 
       <!-- TOP BAND: big main image + identity / categories / size / tags -->
@@ -3286,6 +3298,39 @@ function openProductModal(id=null){
   smartResolveAutoRows();
   document.querySelectorAll(".tag-chip").forEach(chip=>chip.classList.toggle("selected",selectedTags.includes(parseInt(chip.dataset.tagId))));
   document.getElementById("product-modal").classList.add("open");
+  pmUpdateNav();
+  pmSnap = pmSnapshot();
+}
+
+
+// ── Prev / Next between products (follows the Products table order: current search, filter and sort) ──
+let pmSnap = "";
+function pmNavIds(){
+  return Array.from(document.querySelectorAll("#products-tbody tr[data-pid]")).map(tr=>tr.dataset.pid);
+}
+function pmSnapshot(){
+  const vals = Array.from(document.querySelectorAll("#product-modal input, #product-modal select, #product-modal textarea"))
+    .filter(el=>!el.closest("#f-media-list") && !el.closest(".media-add-row") && el.id!=="f-media-host" && el.id!=="f-set-search")
+    .map(el=>el.type==="checkbox" ? el.checked : el.value);
+  return JSON.stringify([vals, selectedTags, productJewelCats, productStoneRows, productSetLinks]);
+}
+function pmUpdateNav(){
+  const nav=document.getElementById("pm-nav");
+  if(!nav) return;
+  if(!editingProductId){ nav.style.display="none"; return; }
+  const ids=pmNavIds(), i=ids.indexOf(String(editingProductId));
+  if(i<0){ nav.style.display="none"; return; }          // product not in the current list (e.g. filtered out)
+  nav.style.display="flex";
+  document.getElementById("pm-nav-pos").textContent=(i+1)+" of "+ids.length;
+  document.getElementById("pm-prev").disabled = i<=0;
+  document.getElementById("pm-next").disabled = i>=ids.length-1;
+}
+function pmNavigate(dir){
+  const ids=pmNavIds(), i=ids.indexOf(String(editingProductId)), j=i+dir;
+  if(i<0 || j<0 || j>=ids.length) return;
+  if(pmSnapshot()!==pmSnap && !confirm("You have unsaved changes to this product. Discard them and move to the next product?")) return;
+  openProductModal(ids[j]);
+  const body=document.querySelector("#product-modal .modal-body"); if(body) body.scrollTop=0;
 }
 
 function closeProductModal(){
