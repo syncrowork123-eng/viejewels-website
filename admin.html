@@ -3325,12 +3325,32 @@ function pmUpdateNav(){
   document.getElementById("pm-prev").disabled = i<=0;
   document.getElementById("pm-next").disabled = i>=ids.length-1;
 }
-function pmNavigate(dir){
+let pmNavBusy = false;
+async function pmNavigate(dir){
+  if(pmNavBusy) return;
   const ids=pmNavIds(), i=ids.indexOf(String(editingProductId)), j=i+dir;
   if(i<0 || j<0 || j>=ids.length) return;
-  if(pmSnapshot()!==pmSnap && !confirm("You have unsaved changes to this product. Discard them and move to the next product?")) return;
-  openProductModal(ids[j]);
-  const body=document.querySelector("#product-modal .modal-body"); if(body) body.scrollTop=0;
+  const currentId=String(editingProductId), targetId=ids[j];   // destination is fixed BEFORE saving
+  pmNavBusy=true;
+  document.getElementById("pm-prev").disabled=true;
+  document.getElementById("pm-next").disabled=true;
+  try{
+    if(pmSnapshot()!==pmSnap){                                  // only save when something changed
+      const ok = await saveProduct({keepOpen:true});
+      if(!ok) return;                                           // error already shown; stay on this product
+      const after=pmNavIds();
+      if(!after.includes(currentId) || !after.includes(targetId)){
+        pmSnap=pmSnapshot();
+        toast("Saved. The product list changed to match your filters, so I stayed on this product.");
+        return;
+      }
+    }
+    openProductModal(targetId);
+    const body=document.querySelector("#product-modal .modal-body"); if(body) body.scrollTop=0;
+  } finally {
+    pmNavBusy=false;
+    pmUpdateNav();                                              // re-enables the arrows for whichever product is open
+  }
 }
 
 function closeProductModal(){
@@ -3549,9 +3569,11 @@ function removeProductMedia(index){
   renderProductMedia();
 }
 
-async function saveProduct(){
+// opts.keepOpen: save but leave the window open (used by Prev / Next). Returns true when saved, false otherwise.
+async function saveProduct(opts){
+  const keepOpen = !!(opts && opts.keepOpen === true);
   const sku = gv("f-sku");
-  if(!sku){ toast("SKU is required.","error"); return; }
+  if(!sku){ toast("SKU is required.","error"); return false; }
   productMediaRows = mergeStdImages(productMediaRows, sku);
   const btn=document.getElementById("save-product-btn");
   btn.disabled=true; btn.textContent="Checking images...";
@@ -3614,8 +3636,10 @@ async function saveProduct(){
     }
 
     toast(editingProductId?"Product updated.":"Product added.");
-    closeProductModal(); await loadProducts();
-  } catch(e){ toast("Error: "+e.message,"error"); console.error(e); }
+    if(!keepOpen) closeProductModal();
+    await loadProducts();
+    return true;
+  } catch(e){ toast("Error: "+e.message,"error"); console.error(e); return false; }
   finally { btn.disabled=false; btn.textContent="Save Product"; }
 }
 
