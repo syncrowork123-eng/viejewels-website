@@ -39,6 +39,11 @@
     .tab-panel.active { display:block; }
     .sub-tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
     .sub-tab-btn { padding:7px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:20px; color:var(--text-muted); font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+    .pp-in { width:86px; padding:6px 8px; text-align:right; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; font-variant-numeric:tabular-nums; }
+    .pp-in:focus { outline:none; border-color:var(--accent); }
+    .pp-in.pp-saved { box-shadow:0 0 0 2px #2e7d32; }
+    #pp-table th, #pp-table td { text-align:center; white-space:nowrap; } #pp-table th:first-child, #pp-table td:first-child { text-align:left; }
+    .pp-sub { display:block; font-size:10px; font-weight:500; color:var(--text-muted); text-transform:none; letter-spacing:0; }
     .sub-tab-btn:hover { color:var(--text); } .sub-tab-btn.active { background:var(--accent); color:#0f0f0f; border-color:var(--accent); }
     .sub-panel { display:none; } .sub-panel.active { display:block; }
     .toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
@@ -181,6 +186,20 @@
     .modal-close:hover { color:var(--text); }
     .modal-body { padding:24px; overflow-y:auto; flex:1; }
     .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; flex-shrink:0; }
+    .modal.modal-xl { max-width:1700px; width:97vw; max-height:95vh; }
+    .pm-grid { display:grid; grid-template-columns:minmax(330px,0.78fr) minmax(0,1.1fr) minmax(0,1.1fr); gap:16px; align-items:start; }
+    .pm-col { display:flex; flex-direction:column; gap:16px; min-width:0; }
+    .pm-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; min-width:0; }
+    .pm-card .section-label { margin-bottom:10px; }
+    .pm-photo-main { aspect-ratio:1/1; background:#fff; border:1px solid var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .pm-photo-main img { max-width:100%; max-height:100%; object-fit:contain; }
+    .pm-photo-empty { font-size:12px; color:var(--text-muted); }
+    .pm-photo-thumbs { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .pm-thumb { width:48px; height:48px; padding:0; border:2px solid var(--border); border-radius:8px; background:#fff; overflow:hidden; cursor:pointer; }
+    .pm-thumb.active { border-color:var(--accent); }
+    .pm-thumb img { width:100%; height:100%; object-fit:cover; }
+    .pm-nav { display:flex; align-items:center; gap:10px; margin-left:auto; margin-right:14px; font-size:13px; color:var(--text-muted); }
+    @media(max-width:1100px) { .pm-grid { grid-template-columns:1fr; } }
     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .form-grid .full { grid-column:1/-1; }
     .form-group { display:flex; flex-direction:column; gap:6px; }
@@ -248,41 +267,6 @@
     #toast.toast-success { border-color:var(--success); color:var(--success); }
     #toast.toast-error { border-color:var(--danger); color:#e74c3c; }
     .state-msg { padding:48px; text-align:center; color:var(--text-muted); font-size:14px; }
-
-    /* ── Add / Edit Product window: wide two-band layout with a big main-image box ── */
-    .modal.pm { width:97vw; max-width:1680px; height:95vh; max-height:95vh; }
-    .pm .modal-header { padding:12px 20px; }
-    .pm .modal-body { padding:14px 20px; }
-    .pm .modal-footer { padding:10px 20px; }
-    .pm { --pm-img: clamp(260px, 38vh, 430px); }
-    .pm .modal-header h2 { margin-right:auto; }
-    .pm-nav { display:flex; align-items:center; gap:10px; margin-right:18px; }
-    .pm-nav-pos { font-size:12px; color:var(--text-muted); min-width:74px; text-align:center; font-variant-numeric:tabular-nums; }
-    .pm-nav .btn:disabled { opacity:.4; cursor:not-allowed; }
-    .pm-top { display:grid; grid-template-columns:var(--pm-img) 1fr; gap:18px; align-items:start; margin-bottom:14px; }
-    .pm-image { display:flex; flex-direction:column; gap:8px; }
-    .pm-image-main { width:var(--pm-img); height:var(--pm-img); background:var(--surface2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-    .pm-image-main img { width:100%; height:100%; object-fit:contain; display:block; }
-    .pm-image-empty { padding:20px; text-align:center; font-size:13px; color:var(--text-muted); }
-    .pm-image-thumbs { display:flex; gap:6px; flex-wrap:wrap; max-width:var(--pm-img); }
-    .pm-thumb { width:44px; height:44px; padding:0; border:2px solid var(--border); border-radius:6px; overflow:hidden; cursor:pointer; background:var(--surface2); }
-    .pm-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-    .pm-thumb.sel { border-color:var(--accent); }
-    .pm-top-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px 22px; align-items:start; min-width:0; }
-    .pm-bottom { display:grid; grid-template-columns:1.1fr 1.35fr 1fr; gap:14px 22px; align-items:start; }
-    .pm-col { display:flex; flex-direction:column; gap:14px; min-width:0; }
-    .pm-sec { border:1px solid var(--border); border-radius:10px; padding:12px 14px; min-width:0; }
-    .pm-sec .section-label { margin-bottom:8px; }
-    .pm-sec .form-grid { gap:10px; }
-    .pm-sec .form-group { margin-bottom:0 !important; }
-    .pm .pm-sec table th, .pm .pm-sec table td { padding:6px 8px !important; }
-    .pm .media-list { max-height:230px; overflow-y:auto; margin-bottom:8px; }
-    .pm .media-item { flex-wrap:wrap; padding:6px 8px; gap:8px; }
-    .pm .media-item-controls { flex-wrap:wrap; }
-    .pm .media-add-row .form-group { min-width:120px; }
-    .pm .tags-grid { max-height:120px; overflow-y:auto; }
-    .pm #f-description { min-height:64px !important; }
-    @media(max-width:1200px){ .pm-top, .pm-bottom, .pm-top-fields { grid-template-columns:1fr; } .modal.pm { width:100%; height:100vh; max-height:100vh; border-radius:0; } }
     .divider { height:1px; background:var(--border); margin:20px 0; }
     .section-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
     .bulk-info { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; }
@@ -345,11 +329,6 @@
     .margin-group-title span { font-size:11px; font-weight:400; letter-spacing:0; color:var(--text-muted); margin-left:8px; }
     .margin-card { padding:24px 28px; border-right:1px solid var(--border); }
     .margin-card:last-child { border-right:none; }
-    .margin-cards-row.three { grid-template-columns:1fr 1fr 1fr; }
-    .margin-basis-label { font-size:10.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-muted); padding:14px 28px 0; }
-    .margin-basis-label span { font-weight:400; letter-spacing:0; text-transform:none; margin-left:6px; }
-    .margin-cards-row.three .margin-input { width:150px; }
-    @media(max-width:768px){ .margin-cards-row.three { grid-template-columns:1fr; } }
     .margin-card-label { font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:16px; }
     .margin-input-row { display:flex; align-items:baseline; gap:6px; }
     .margin-symbol { font-size:20px; color:var(--accent); font-weight:600; }
@@ -463,7 +442,11 @@
     .lookup-toggle:hover { background:var(--surface2); }
     .lookup-toggle-sub { font-size:12px; font-weight:400; color:var(--text-muted); margin-left:6px; }
     .lookup-body { padding:16px 20px; border-top:1px solid var(--border); }
-  </style>
+  .products-pager{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0;font-size:13px;color:var(--text-muted)}
+.products-pager .pg-info{margin-right:auto;font-weight:600}
+.products-pager .btn{padding:5px 10px;font-size:12px}
+.products-pager input,.products-pager select{padding:4px 6px;font-size:12px}
+</style>
 </head>
 <body>
 
@@ -471,7 +454,8 @@
   <div class="login-card">
     <p class="brand">Vie Jewels</p>
     <h1>Admin Panel</h1>
-    <input type="password" id="pin-input" placeholder="Enter admin password" />
+    <input type="email" id="email-input" placeholder="Admin email" autocomplete="username" />
+    <input type="password" id="pin-input" placeholder="Password" autocomplete="current-password" />
     <div class="login-error" id="login-error"></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In</button>
   </div>
@@ -482,6 +466,7 @@
     <span class="brand">VIE JEWELS — Admin</span>
     <div class="header-right">
       <a href="collections.html" target="_blank" class="btn btn-secondary btn-sm">View Website</a>
+      <button class="btn btn-secondary btn-sm" onclick="openStaffView()" title="Open the storefront signed in as staff (shows every product)">Staff View</button>
       <button class="btn btn-secondary btn-sm" onclick="doLogout()">Sign Out</button>
     </div>
   </header>
@@ -498,20 +483,28 @@
   <div class="tab-panel active" id="tab-products">
     <div class="toolbar">
       <div class="toolbar-left">
-        <input class="search-input" id="product-search" placeholder="Search products..." oninput="filterProducts()" />
+        <input class="search-input" id="product-search" placeholder="Search SKU, name, metal, stone..." oninput="queryProductsDebounced()" />
+        <select class="search-input" id="pf-display" onchange="queryProducts()" style="width:auto;min-width:130px"><option value="">All Display</option></select>
+        <select class="search-input" id="pf-display-type" onchange="queryProducts()" style="width:auto;min-width:140px"><option value="">All Display Types</option></select>
+        <select class="search-input" id="pf-file-type" onchange="queryProducts()" style="width:auto;min-width:130px"><option value="">All File Types</option></select>
+        <select class="search-input" id="pf-status" onchange="queryProducts()" style="width:auto;min-width:110px"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        <button class="btn btn-secondary" onclick="clearProductFilters()">Clear</button>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products with no working image (missing or all broken)">📷 No Images Only</button>
-        <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
-        <button class="btn btn-secondary" onclick="fixImageExtensionsForAllProducts()" title="Checks every saved image link and corrects the file extension (jpg / png / webp / bmp...) where the file on its host has a different one">🛠 Fix Image Extensions</button>
+        <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="On this page, show only products with no working image (missing or all broken)">📷 No Images Only</button>
+        <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images (this page)</button>
+        <button class="btn btn-secondary" onclick="fixImageExtensionsForAllProducts()" title="Checks every saved image link and corrects the file extension (jpg / png / webp / bmp...) where the file on its host has a different one">🛠 Fix Image Extensions (this page)</button>
+        <button class="btn btn-secondary" onclick="ppApplyAll()" title="Recalculate Price (USD) from Masters → Product Pricing for every product without a manual price">💲 Apply Pricing Rules</button>
         <button class="btn btn-secondary" id="export-products-btn" onclick="exportProductsXlsx()">⬇ Export Products</button>
         <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
       </div>
     </div>
+    <div id="products-pager-top" class="products-pager"></div>
     <div class="table-wrap"><table class="products-table">
-      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Jewelry Category</th><th>Sizes</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="products-tbody"><tr><td colspan="13" class="state-msg">Loading...</td></tr></tbody>
+      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Jewelry Category</th><th>Sizes</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Status</th><th>Display</th><th>Display Type</th><th title="File Type: 3DM">3DM</th><th title="File Type: JCD">JCD</th><th title="File Type: 3DM (Mesh with Diamonds)">3DM (Mesh with Diamonds)</th><th title="File Type: STL">STL</th><th title="File Type: MGX">MGX</th><th title="Flat price in USD — filled from Masters → Product Pricing; click a cell to overwrite">Price (USD)</th><th>Actions</th></tr></thead>
+      <tbody id="products-tbody"><tr><td colspan="21" class="state-msg">Loading...</td></tr></tbody>
     </table></div>
+    <div id="products-pager" class="products-pager"></div>
   </div>
 
   <!-- ENQUIRIES -->
@@ -559,9 +552,11 @@
       <button class="sub-tab-btn" data-sub="diamonds">Stone Sizes</button>
       <button class="sub-tab-btn" data-sub="stones">Stone Prices</button>
       <button class="sub-tab-btn" data-sub="labour">Labour Charges</button>
+      <button class="sub-tab-btn" data-sub="productpricing">Product Pricing</button>
       <button class="sub-tab-btn" data-sub="jewelcats">Jewelry Categories</button>
       <button class="sub-tab-btn" data-sub="sizes">Jewelry Sizes</button>
       <button class="sub-tab-btn" data-sub="tags">Tags</button>
+      <button class="sub-tab-btn" data-sub="displaytype">Display Type</button>
       <button class="sub-tab-btn" data-sub="sitesettings">Site Settings</button>
     </div>
     <div class="sub-panel" id="sub-metals">
@@ -683,8 +678,6 @@
           <select class="spl-filter-sel" id="spl-f-shape" onchange="renderStoneGrid()"><option value="">All Shapes</option></select>
           <select class="spl-filter-sel" id="spl-f-color" onchange="renderStoneGrid()"><option value="">All Colors</option></select>
           <select class="spl-filter-sel" id="spl-f-quality" onchange="renderStoneGrid()"><option value="">All Qualities</option></select>
-          <button type="button" class="btn btn-secondary btn-sm" id="spl-clear-all" onclick="splClearFilters()" title="Reset all filters and show every row">✕ Clear All</button>
-          <button type="button" class="btn btn-danger btn-sm" id="spl-delete-all" onclick="splDeleteAllOpen()" title="Permanently delete every stone price row">🗑 Delete All Rows</button>
           <span id="spl-count" style="font-size:12px;color:var(--text-muted);margin-left:8px;"></span>
           <span id="spl-issues" class="spl-issues"></span>
         </div>
@@ -885,140 +878,62 @@
         <div class="margin-rates-header">
           <span class="metal-market-title">Margin Rates</span>
         </div>
-        <div style="font-size:12px;color:var(--text-muted);padding:10px 20px 0;">Margin applied on top of stone cost during pricing calculations. Each stone type can have a flat margin and a % margin (INR) on both the per-carat and per-stone basis; when both are entered, the <b>higher</b> margin amount is used.</div>
+        <div style="font-size:12px;color:var(--text-muted);padding:10px 20px 0;">Per-carat margin applied on top of stone cost during pricing calculations.</div>
         <div class="margin-group-title">NATURAL DIAMONDS <span>Type: Natural</span></div>
-        <div class="margin-basis-label">Per carat</div>
-        <div class="margin-cards-row three">
+        <div class="margin-cards-row">
           <div class="margin-card">
             <div class="margin-card-label">Margin / CT (INR)</div>
             <div class="margin-input-row">
               <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-ct-natural" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-inr-ct-natural" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
               <span class="margin-unit">/ct</span>
-            </div>
-          </div>
-          <div class="margin-card">
-            <div class="margin-card-label">Margin % (INR)</div>
-            <div class="margin-input-row">
-              <input type="number" id="margin-pct-inr-ct-natural" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">%</span>
             </div>
           </div>
           <div class="margin-card">
             <div class="margin-card-label">Margin % (USD)</div>
             <div class="margin-input-row">
-              <input type="number" id="margin-pct-usd-natural" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">%</span>
-            </div>
-          </div>
-        </div>
-        <div class="margin-basis-label">Per stone <span>(rows priced per piece)</span></div>
-        <div class="margin-cards-row three">
-          <div class="margin-card">
-            <div class="margin-card-label">Margin / Stone (INR)</div>
-            <div class="margin-input-row">
-              <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-stone-natural" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">/stone</span>
-            </div>
-          </div>
-          <div class="margin-card">
-            <div class="margin-card-label">Margin % (INR)</div>
-            <div class="margin-input-row">
-              <input type="number" id="margin-pct-inr-stone-natural" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-pct-usd-natural" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
               <span class="margin-unit">%</span>
             </div>
           </div>
         </div>
         <div class="margin-group-title">LAB GROWN DIAMONDS <span>Type: Lab Grown</span></div>
-        <div class="margin-basis-label">Per carat</div>
-        <div class="margin-cards-row three">
+        <div class="margin-cards-row">
           <div class="margin-card">
             <div class="margin-card-label">Margin / CT (INR)</div>
             <div class="margin-input-row">
               <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-ct-lab" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-inr-ct-lab" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
               <span class="margin-unit">/ct</span>
-            </div>
-          </div>
-          <div class="margin-card">
-            <div class="margin-card-label">Margin % (INR)</div>
-            <div class="margin-input-row">
-              <input type="number" id="margin-pct-inr-ct-lab" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">%</span>
             </div>
           </div>
           <div class="margin-card">
             <div class="margin-card-label">Margin % (USD)</div>
             <div class="margin-input-row">
-              <input type="number" id="margin-pct-usd-lab" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">%</span>
-            </div>
-          </div>
-        </div>
-        <div class="margin-basis-label">Per stone <span>(rows priced per piece)</span></div>
-        <div class="margin-cards-row three">
-          <div class="margin-card">
-            <div class="margin-card-label">Margin / Stone (INR)</div>
-            <div class="margin-input-row">
-              <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-stone-lab" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">/stone</span>
-            </div>
-          </div>
-          <div class="margin-card">
-            <div class="margin-card-label">Margin % (INR)</div>
-            <div class="margin-input-row">
-              <input type="number" id="margin-pct-inr-stone-lab" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-pct-usd-lab" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
               <span class="margin-unit">%</span>
             </div>
           </div>
         </div>
         <div class="margin-group-title">GEMSTONES <span>Emerald, Ruby, Sapphire, Pearl and other Gem Stone types</span></div>
-        <div class="margin-basis-label">Per carat</div>
-        <div class="margin-cards-row three">
+        <div class="margin-cards-row">
           <div class="margin-card">
             <div class="margin-card-label">Margin / CT (INR)</div>
             <div class="margin-input-row">
               <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-ct-gem" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-inr-ct-gem" class="margin-input" placeholder="0" step="1" oninput="marginLiveUpdate()" />
               <span class="margin-unit">/ct</span>
-            </div>
-          </div>
-          <div class="margin-card">
-            <div class="margin-card-label">Margin % (INR)</div>
-            <div class="margin-input-row">
-              <input type="number" id="margin-pct-inr-ct-gem" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">%</span>
             </div>
           </div>
           <div class="margin-card">
             <div class="margin-card-label">Margin % (USD)</div>
             <div class="margin-input-row">
-              <input type="number" id="margin-pct-usd-gem" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
+              <input type="number" id="margin-pct-usd-gem" class="margin-input" placeholder="0.00" step="0.01" oninput="marginLiveUpdate()" />
               <span class="margin-unit">%</span>
             </div>
           </div>
         </div>
-        <div class="margin-basis-label">Per stone <span>(rows priced per piece)</span></div>
-        <div class="margin-cards-row three">
-          <div class="margin-card">
-            <div class="margin-card-label">Margin / Stone (INR)</div>
-            <div class="margin-input-row">
-              <span class="margin-symbol">₹</span>
-              <input type="number" id="margin-inr-stone-gem" class="margin-input" placeholder="0" step="1" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">/stone</span>
-            </div>
-          </div>
-          <div class="margin-card">
-            <div class="margin-card-label">Margin % (INR)</div>
-            <div class="margin-input-row">
-              <input type="number" id="margin-pct-inr-stone-gem" class="margin-input" placeholder="0.00" step="0.01" min="0" oninput="marginLiveUpdate()" />
-              <span class="margin-unit">%</span>
-            </div>
-          </div>
-        </div>
-<div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--border);">
           <span id="margin-save-status" style="font-size:12px;color:var(--text-muted)"></span>
           <button class="btn btn-primary" onclick="saveMarginRates()">Save Margin Rates</button>
         </div>
@@ -1101,6 +1016,30 @@
     <div class="sub-panel" id="sub-tags">
       <div class="toolbar"><div class="toolbar-left"></div><button class="btn btn-primary" onclick="openMasterModal('tag')">+ Add Tag</button></div>
       <div class="table-wrap"><table><thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead><tbody id="tags-tbody"><tr><td colspan="3" class="state-msg">Loading...</td></tr></tbody></table></div>
+    </div>
+    <div class="sub-panel" id="sub-productpricing">
+      <div class="toolbar">
+        <div class="toolbar-left"><span style="font-size:12px;color:var(--text-muted);max-width:760px">Flat price (USD) for every product, by <b>Jewelry Type</b> and <b>File Type</b> — e.g. Rings &middot; 3DM = 5, Rings &middot; JCD = 1. Type a number (or a simple sum such as <b>3+2</b>) and press Enter or Tab to save. A blank cell means no rule. The <b>Any</b> row / column is the fallback when nothing more specific is set. Prices are shown on the website in USD or INR as the visitor chooses.</span></div>
+        <div style="display:flex;gap:8px;align-items:center"><button class="btn btn-primary" onclick="ppApplyAll()" title="Recalculates the Price (USD) of every product that does not have a manual price">Apply rules to all products</button></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 12px">
+        <label style="font-size:12px;color:var(--text-muted)">If a product has several file types:</label>
+        <select id="pp-multi" class="search-input" style="width:auto" onchange="ppSaveSettings()">
+          <option value="sum">Add the file type prices together</option>
+          <option value="max">Use the highest price</option>
+          <option value="min">Use the lowest price</option>
+        </select>
+        <span id="pp-status" style="font-size:12px;color:var(--text-muted)"></span>
+      </div>
+      <div class="table-wrap"><table id="pp-table"><thead id="pp-thead"></thead><tbody id="pp-tbody"><tr><td class="state-msg">Loading...</td></tr></tbody></table></div>
+      <div style="font-size:11px;color:var(--text-muted);margin:8px 0 0">Jewelry types come from <b>Masters &rarr; Jewelry Categories</b>; file types from the File Type list. A product uses its <b>first</b> Jewelry Category. In <b>Products</b>, the Price (USD) column is filled from these rules and any cell can be overwritten by clicking it; hand-typed prices are kept when rules change. More specific rules win: Jewelry Type + File Type, then Jewelry Type + any file, then any jewelry + File Type, then Any + Any.</div>
+    </div>
+    <div class="sub-panel" id="sub-displaytype">
+      <div class="toolbar">
+        <div class="toolbar-left"><span style="font-size:12px;color:var(--text-muted)">Values for the Display Type column in Products (e.g. HK Line, India Line, Product, Vacant, Order, client names). New values found in an Excel import are added here automatically.</span></div>
+        <div style="display:flex;gap:8px;align-items:center"><input type="text" id="dt-new" placeholder="New Display Type…" style="min-width:200px" onkeydown="if(event.key==='Enter'){event.preventDefault();addDisplayType();}" /><button class="btn btn-primary" onclick="addDisplayType()">+ Add</button></div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Name</th><th>Products using it</th><th>Actions</th></tr></thead><tbody id="displaytype-tbody"><tr><td colspan="3" class="state-msg">Loading...</td></tr></tbody></table></div>
     </div>
     <div class="sub-panel" id="sub-sitesettings">
       <div class="toolbar">
@@ -1213,7 +1152,6 @@
       </select>
       <button class="btn btn-secondary" onclick="srClearFilters()">✕ Clear</button>
       <span id="sr-note" style="font-size:12px;color:var(--text-muted)"></span>
-      <div id="sr-debug" style="flex-basis:100%;font-size:11px;color:var(--text-muted);font-family:monospace;margin-top:4px"></div>
     </div>
     <div style="display:flex;gap:8px;">
       <button class="btn btn-secondary" onclick="renderStoneReport()">↻ Refresh</button>
@@ -1265,93 +1203,28 @@
 </div><!-- /#app -->
 
 <div class="modal-overlay" id="product-modal">
-  <div class="modal pm">
+  <div class="modal modal-xl">
     <div class="modal-header">
       <h2 id="product-modal-title">Add Product</h2>
       <div class="pm-nav" id="pm-nav" style="display:none">
-        <button type="button" class="btn btn-secondary btn-sm" id="pm-prev" onclick="pmNavigate(-1)" title="Previous product in the list">‹ Prev</button>
-        <span id="pm-nav-pos" class="pm-nav-pos"></span>
-        <button type="button" class="btn btn-secondary btn-sm" id="pm-next" onclick="pmNavigate(1)" title="Next product in the list">Next ›</button>
+        <button class="btn btn-secondary btn-sm" id="pm-prev" type="button" onclick="pmNav(-1)">‹ Prev</button>
+        <span id="pm-pos"></span>
+        <button class="btn btn-primary btn-sm" id="pm-next" type="button" onclick="pmNav(1)">Next ›</button>
       </div>
       <button class="modal-close" onclick="closeProductModal()">×</button>
     </div>
     <div class="modal-body">
-
-      <!-- TOP BAND: big main image + identity / categories / size / tags -->
-      <div class="pm-top">
-        <div class="pm-image">
-          <div class="pm-image-main" id="pm-image-main">
-            <img id="pm-main-img" alt="Main product image" style="display:none" onerror="pmMainImgError()" />
-            <div class="pm-image-empty" id="pm-image-empty">Enter the SKU to load the product image</div>
-          </div>
-          <div class="pm-image-thumbs" id="pm-image-thumbs"></div>
-        </div>
-        <div class="pm-top-fields">
-          <div class="pm-col">
-            <div class="pm-sec">
-<!-- STYLE IDENTITY -->
-      <p class="section-label">Style Identity</p>
-      <div class="form-grid">
-        <div class="form-group"><label>SKU (Unique) *</label><input type="text" id="f-sku" placeholder="E.G. VB1002" onchange="syncStdImagesFromSku()" /></div>
-        <div class="form-group"><label>Design Name</label><input type="text" id="f-name" placeholder="e.g. Petralia" /></div>
-      </div>
-
-      
-            </div>
-            <div class="pm-sec">
-<!-- JEWELRY CATEGORIES -->
-      
-      <p class="section-label">Jewelry Categories</p>
-      <div id="f-jewel-cats-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <select id="f-jcat-type" class="filter-select" style="min-width:160px" onchange="populateProductSubType1()"><option value="">Jewelry Type...</option></select>
-        <select id="f-jcat-sub1" class="filter-select" style="min-width:160px" onchange="populateProductSubType2()"><option value="">Sub Type 1...</option></select>
-        <select id="f-jcat-sub2" class="filter-select" style="min-width:160px"><option value="">Sub Type 2...</option></select>
-        <button class="btn btn-primary btn-sm" onclick="addProductJewelCat()">+ ADD</button>
-      </div>
-
-      
-            </div>
-          </div>
-          <div class="pm-col">
-            <div class="pm-sec">
-<!-- SIZE -->
-      
-      <div class="form-grid">
-        <div class="form-group">
-          <label id="f-size-label">Size</label>
-          <select id="f-size" class="filter-select" style="width:100%"><option value="">Select size...</option></select>
-          <input type="text" id="f-size-custom" placeholder="Or type custom size..." style="margin-top:6px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;width:100%;outline:none;" onfocus="document.getElementById('f-size').value=''" />
-        </div>
-        <div class="form-group">
-          <label>Short Description</label>
-          <input type="text" id="f-short-desc" placeholder="e.g. LIVE-HK LINE — Micro Pavé Bangle" />
-        </div>
-      </div>
-
-      
-            </div>
-            <div class="pm-sec">
-<!-- TAGS -->
-      <div class="form-group" style="margin-bottom:16px">
-        <label>Tags <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— themes / collections (click to toggle)</span></label>
-        <div class="tags-grid" id="f-tags-grid"></div>
-      </div>
-
-      
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BOTTOM BAND: three columns -->
-      <div class="pm-bottom">
+      <div class="pm-grid">
         <div class="pm-col">
-          <div class="pm-sec">
+<div class="pm-card pm-photo">
+  <div class="pm-photo-main" id="pm-photo-main"><div class="pm-photo-empty">No photo yet</div></div>
+  <div class="pm-photo-thumbs" id="pm-photo-thumbs"></div>
+</div>
+<div class="pm-card">
 <!-- PHOTOS & VIDEO -->
       
       <p class="section-label">Photos &amp; Video <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— paste a hosted image/video URL (e.g. from Cloudinary) and add it</span></p>
-      <div class="form-group" style="margin-bottom:8px">
+      <div class="form-group" style="margin-bottom:12px;max-width:380px">
         <label>Image Host <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— the 5 SKU images (W, Y, R, Model, Spot) are linked automatically. Pick one host for all of them, or <b>Auto</b> to use whichever host has each image. Each image can also be moved to a different host in the list below.</span></label>
         <select id="f-media-host" class="filter-select" style="width:100%" onchange="applyProductMediaHost(this.value)">
           <option value="cloudinary">Cloudinary</option>
@@ -1366,12 +1239,30 @@
         <div class="form-group" style="flex:0 0 160px;min-width:130px"><label>Alt text <span style="font-weight:400;text-transform:none;color:var(--text-muted)">(optional)</span></label><input type="text" id="f-media-alt" placeholder="e.g. Yellow gold" /></div>
         <button class="btn btn-primary btn-sm" onclick="addProductMedia()">+ Add</button>
       </div>
-
-      
-          </div>
+</div>
         </div>
         <div class="pm-col">
-          <div class="pm-sec">
+<div class="pm-card">
+<!-- STYLE IDENTITY -->
+      <p class="section-label">Style Identity</p>
+      <div class="form-grid">
+        <div class="form-group"><label>SKU (Unique) *</label><input type="text" id="f-sku" placeholder="E.G. VB1002" onchange="syncStdImagesFromSku()" /></div>
+        <div class="form-group"><label>Design Name</label><input type="text" id="f-name" placeholder="e.g. Petralia" /></div>
+      </div>
+</div>
+<div class="pm-card">
+<!-- JEWELRY CATEGORIES -->
+      
+      <p class="section-label">Jewelry Categories</p>
+      <div id="f-jewel-cats-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <select id="f-jcat-type" class="filter-select" style="min-width:160px" onchange="populateProductSubType1()"><option value="">Jewelry Type...</option></select>
+        <select id="f-jcat-sub1" class="filter-select" style="min-width:160px" onchange="populateProductSubType2()"><option value="">Sub Type 1...</option></select>
+        <select id="f-jcat-sub2" class="filter-select" style="min-width:160px"><option value="">Sub Type 2...</option></select>
+        <button class="btn btn-primary btn-sm" onclick="addProductJewelCat()">+ ADD</button>
+      </div>
+</div>
+<div class="pm-card">
 <!-- METAL NET WEIGHTS -->
       
       <p class="section-label">Metal Net Weights (Grams) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— enter 18K weight; the others auto-calculate (Silver × 1.4875 / 1.2425 / 1.1051). Leave 0 if not produced in that alloy</span></p>
@@ -1397,10 +1288,8 @@
           </tbody>
         </table>
       </div>
-
-      
-          </div>
-          <div class="pm-sec">
+</div>
+<div class="pm-card">
 <!-- DIAMOND & STONE DETAILS -->
       
       <p class="section-label">Diamond &amp; Stone Details</p>
@@ -1421,21 +1310,39 @@
         </table>
       </div>
       <button class="btn btn-secondary btn-sm" style="margin-top:8px;border:1px dashed var(--border);" onclick="addStoneDetailRow()">+ ADD STONE ROW</button>
-
-      
-          </div>
+</div>
         </div>
         <div class="pm-col">
-          <div class="pm-sec">
+<div class="pm-card">
+<!-- SIZE -->
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label id="f-size-label">Size</label>
+          <select id="f-size" class="filter-select" style="width:100%"><option value="">Select size...</option></select>
+          <input type="text" id="f-size-custom" placeholder="Or type custom size..." style="margin-top:6px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;width:100%;outline:none;" onfocus="document.getElementById('f-size').value=''" />
+        </div>
+        <div class="form-group">
+          <label>Short Description</label>
+          <input type="text" id="f-short-desc" placeholder="e.g. LIVE-HK LINE — Micro Pavé Bangle" />
+        </div>
+      </div>
+</div>
+<div class="pm-card">
+<!-- TAGS -->
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Tags <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— themes / collections (click to toggle)</span></label>
+        <div class="tags-grid" id="f-tags-grid"></div>
+      </div>
+</div>
+<div class="pm-card">
 <!-- PRODUCT STORY -->
       <div class="form-group" style="margin-bottom:16px">
         <label>Product Story <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— inspiration, design details, styling notes</span></label>
         <textarea id="f-description" placeholder="e.g. Inspired by the geometric harmony of ancient temple architecture..." style="min-height:90px"></textarea>
       </div>
-
-      
-          </div>
-          <div class="pm-sec">
+</div>
+<div class="pm-card">
 <!-- PART OF A SET -->
       <div class="form-group" style="margin-bottom:16px">
         <label>Part of a Set <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— search and select styles that belong together as a set with this piece</span></label>
@@ -1446,10 +1353,8 @@
         </div>
         <div id="f-set-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
       </div>
-
-      
-          </div>
-          <div class="pm-sec">
+</div>
+<div class="pm-card">
 <!-- ADMIN FIELDS -->
       
       <p class="section-label">Admin</p>
@@ -1457,13 +1362,13 @@
         <div class="form-group"><label>Stock Status</label><select id="f-stock-status"><option value="">Select...</option><option>In Stock</option><option>Made to Order</option><option>Out of Stock</option></select></div>
         <div class="form-group"><label>Sort Order <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— auto-assigned, lower = first</span></label><input type="number" id="f-sort-order" value="0" /></div>
         <div class="form-group"><label>Active</label><select id="f-active"><option value="true">Yes — visible</option><option value="false">No — hidden</option></select></div>
+        <div class="form-group"><label>Display <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— who can see this product</span></label><select id="f-display"><option>Admin Only</option><option>Main Website</option><option>Registered User</option></select></div>
+        <div class="form-group"><label>Display Type <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— e.g. HK Line, India Line, Client name (edit list in Masters)</span></label><select id="f-display-type"><option value="">— None —</option></select></div>
+        <div class="form-group full"><label>File Type <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">— tick every file format available for this product</span></label><div id="f-filetypes" style="display:flex;flex-wrap:wrap;gap:6px 18px;padding:6px 2px"></div></div>
       </div>
-
-    
-          </div>
+</div>
         </div>
       </div>
-
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
@@ -1597,22 +1502,6 @@
 </div>
 
 <!-- CONFIRM MODAL -->
-<div class="modal-overlay" id="spl-delall-modal">
-  <div class="modal" style="max-width:460px">
-    <div class="modal-header"><h2>Delete ALL stone price rows</h2><button class="modal-close" onclick="splDeleteAllClose()">×</button></div>
-    <div class="modal-body">
-      <p style="font-size:14px;line-height:1.6;margin-bottom:10px">This will permanently delete <strong id="spl-delall-count">0</strong> rows from the Stone Price List — every category, type, shape and size, <em>not just the rows currently filtered</em>.</p>
-      <p style="font-size:13px;line-height:1.6;color:var(--danger);margin-bottom:12px">It cannot be undone. Until prices are added again, products with stones will show those stones as <b>missing a price</b> on the website and in the Stone Report.</p>
-      <p style="font-size:13px;margin-bottom:12px"><a href="#" onclick="exportStonesXlsx();return false;">⬇ Download a backup (Excel) first</a></p>
-      <label style="font-size:12px;color:var(--text-muted)">Type <b>DELETE ALL</b> to confirm</label>
-      <input type="text" id="spl-delall-input" autocomplete="off" style="width:100%;margin-top:6px" oninput="splDeleteAllCheck()" placeholder="DELETE ALL" />
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="splDeleteAllClose()">Cancel</button>
-      <button class="btn btn-danger" id="spl-delall-go" disabled onclick="splDeleteAllRun()">Delete All Rows</button>
-    </div>
-  </div>
-</div>
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal" style="max-width:380px">
     <div class="modal-header"><h2>Confirm Delete</h2><button class="modal-close" onclick="closeConfirm()">x</button></div>
@@ -1731,14 +1620,15 @@
 
 <script src="stone-pricing.js"></script>
 <script>
-const SUPABASE_URL = "https://efiajmmxlrvyppdwwfug.supabase.co";
+const SUPABASE_URL = "https://lcicrgbodblggfmthusb.supabase.co";
 
-const SUPABASE_KEY = "sb_publishable_-VEloc-EI4CfRx4K9_si3g_E7QDIpfk";
-const ADMIN_PASSWORD = "viejewels2024";
+const SUPABASE_KEY = "sb_publishable_qbYpKkR0EGLDd1nMqbcBPg_8qS52k54";
+let SB_TOKEN = sessionStorage.getItem("vj_token") || "";
+let SB_REFRESH = sessionStorage.getItem("vj_refresh") || "";
 
 const CLOUD_PROVIDERS = {
   cloudinary: { label: "Cloudinary", base: "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/" },
-  imagekit:   { label: "ImageKit",   base: "https://ik.imagekit.io/fr43kcknv/viejewels/products/" }
+  imagekit:   { label: "ImageKit",   base: "https://ik.imagekit.io/wsb15dsbc/viejewels/products/" }
 };
 // Any ik.imagekit.io link that carries a wrong account ID (e.g. the placeholder
 // YOUR_IMAGEKIT_ID that an earlier SQL update saved) is re-pointed to the real ImageKit ID.
@@ -1749,7 +1639,7 @@ function normalizeMediaUrl(u){
   const m = u.match(/^(https?:\/\/ik\.imagekit\.io\/)([^\/]+)(\/.*)$/i);
   return (m && m[2] !== IMAGEKIT_REAL_ID) ? m[1] + IMAGEKIT_REAL_ID + m[3] : u;
 }
-let activeMediaProvider = localStorage.getItem("vj_media_provider") || "cloudinary";
+let activeMediaProvider = localStorage.getItem("vj_media_provider") || "imagekit";
 function setActiveMediaProvider(p){
   if(!CLOUD_PROVIDERS[p]) return;
   activeMediaProvider = p;
@@ -1813,15 +1703,47 @@ document.querySelectorAll(".tab-btn, .sub-tab-btn").forEach(b=>b.addEventListene
 let _navT; window.addEventListener("scroll", ()=>{ clearTimeout(_navT); _navT = setTimeout(navSave,250); }, {passive:true});
 window.addEventListener("pagehide", navSave);
 
-function doLogin(){
-  const val=document.getElementById("pin-input").value;
-  if(val===ADMIN_PASSWORD){ sessionStorage.setItem("vj_admin","1"); showApp(); }
-  else { document.getElementById("login-error").textContent="Incorrect password."; document.getElementById("pin-input").value=""; }
+async function doLogin(){
+  const email=document.getElementById("email-input").value.trim();
+  const pw=document.getElementById("pin-input").value;
+  const err=document.getElementById("login-error");
+  err.textContent="";
+  try{
+    const r=await fetch(SUPABASE_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:pw})});
+    const j=await r.json();
+    if(!r.ok||!j.access_token) throw new Error(j.error_description||j.msg||"Sign-in failed.");
+    const c=await fetch(SUPABASE_URL+"/rest/v1/rpc/is_admin",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+j.access_token,"Content-Type":"application/json"},body:"{}"});
+    if(!c.ok||(await c.json())!==true) throw new Error("This account is not an admin.");
+    SB_TOKEN=j.access_token; SB_REFRESH=j.refresh_token||"";
+    sessionStorage.setItem("vj_token",SB_TOKEN); sessionStorage.setItem("vj_refresh",SB_REFRESH);
+    sessionStorage.setItem("vj_admin","1");
+    showApp();
+  }catch(e){ err.textContent=e.message; document.getElementById("pin-input").value=""; }
 }
+async function sbRefresh(){
+  if(!SB_REFRESH) return false;
+  try{
+    const r=await fetch(SUPABASE_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:SB_REFRESH})});
+    const j=await r.json();
+    if(!r.ok||!j.access_token) return false;
+    SB_TOKEN=j.access_token; SB_REFRESH=j.refresh_token||SB_REFRESH;
+    sessionStorage.setItem("vj_token",SB_TOKEN); sessionStorage.setItem("vj_refresh",SB_REFRESH);
+    return true;
+  }catch(e){ return false; }
+}
+setInterval(sbRefresh, 45*60*1000);
 document.getElementById("pin-input").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
-function doLogout(){ sessionStorage.removeItem("vj_admin"); location.reload(); }
+// Staff View: open the storefront already signed in as staff (no pasting of the Cloudflare address).
+// Hands over a fresh access token only (not the refresh token), so the admin session is never disturbed.
+async function openStaffView(){
+  try{
+    // Opens the staff sign-in page; that login renews itself, so the staff view does not expire after an hour
+    window.open("staff-login.html","_blank");
+  }catch(e){ toast("Could not open Staff View: "+(e.message||e)); }
+}
+function doLogout(){ sessionStorage.removeItem("vj_admin"); sessionStorage.removeItem("vj_token"); sessionStorage.removeItem("vj_refresh"); location.reload(); }
 function showApp(){ document.getElementById("login-screen").style.display="none"; document.getElementById("app").style.display="block"; setTimeout(navRestoreSelection,0); init(); }   /* after the tab buttons are wired */
-if(sessionStorage.getItem("vj_admin")==="1") showApp();
+if(sessionStorage.getItem("vj_admin")==="1"){ sbRefresh().then(ok=>{ if(ok) showApp(); else doLogout(); }); }
 
 async function sbUpsert(table, conflictCol, rows){
   // Supabase upsert: POST with on-conflict + merge-duplicates
@@ -1830,7 +1752,7 @@ async function sbUpsert(table, conflictCol, rows){
     method: "POST",
     headers: {
       "apikey": SUPABASE_KEY,
-      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Authorization": "Bearer " + (SB_TOKEN||SUPABASE_KEY),
       "Content-Type": "application/json",
       "Prefer": "resolution=merge-duplicates,return=minimal"
     },
@@ -1843,12 +1765,186 @@ async function sbUpsert(table, conflictCol, rows){
 }
 
 async function sb(path,method="GET",body=null){
-  const opts={method,headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json",Prefer:"return=representation"}};
+  const opts={method,headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+(SB_TOKEN||SUPABASE_KEY),"Content-Type":"application/json",Prefer:"return=representation"}};
   if(body) opts.body=JSON.stringify(body);
   const res=await fetch(SUPABASE_URL+"/rest/v1/"+path,opts);
   if(!res.ok){ const e=await res.text(); throw new Error(e); }
   const t=await res.text(); return t?JSON.parse(t):null;
 }
+
+// ═════════ PRODUCT PRICING — flat USD price per Jewelry Type x File Type ═════════
+// Rules live in table product_price_rules (see price_rules.sql). products.price_usd holds the
+// price the website shows; products.price_manual marks prices typed by hand (never auto-changed).
+const PP_ANY = "*";
+let ppRules = [], ppLoaded = false, ppSettings = { multi: "sum" };
+const ppNorm = v => String(v == null ? "" : v).trim().toLowerCase().replace(/\s+/g, " ");
+const ppJewelOf = p => ((p.product_jewel_cats || [])[0] || {}).jewel_type || "";
+const ppSame = (r, j, f) => ppNorm(r.jewel_type) === ppNorm(j) && ppNorm(r.file_type) === ppNorm(f);
+
+async function loadPriceRules(){
+  try{ ppRules = (await sb("product_price_rules?select=id,jewel_type,file_type,price_usd&order=id.asc")) || []; ppLoaded = true; }
+  catch(e){ ppRules = []; ppLoaded = false; console.warn("Product pricing rules unavailable (run price_rules.sql):", e.message); }
+  try{
+    const r = await sb("site_settings?key=eq.product_price_settings&select=value");
+    if(r && r[0] && r[0].value){ let v = r[0].value; if(typeof v === "string") v = JSON.parse(v); if(v && v.multi) ppSettings.multi = v.multi; }
+  }catch(e){}
+  ppRenderMatrix();
+}
+// Most specific rule wins: type+file, type+any file, any type+file, any+any
+function ppRuleFor(jewel, file){
+  const j = ppNorm(jewel), f = ppNorm(file); let best = null, bestScore = -1;
+  ppRules.forEach(r => {
+    const rj = ppNorm(r.jewel_type), rf = ppNorm(r.file_type);
+    if(!(rj === PP_ANY || (j && rj === j)) || !(rf === PP_ANY || (f && rf === f))) return;
+    const score = (rj === PP_ANY ? 0 : 2) + (rf === PP_ANY ? 0 : 1);
+    if(score > bestScore){ best = r; bestScore = score; }
+  });
+  return best;
+}
+function ppAutoPrice(jewel, files){
+  const list = (files && files.length) ? files : [""];
+  const parts = [];
+  list.forEach(f => { const r = ppRuleFor(jewel, f); if(r) parts.push({ file: f || "any file type", price: Number(r.price_usd) }); });
+  if(!parts.length) return null;
+  const nums = parts.map(x => x.price);
+  const price = ppSettings.multi === "max" ? Math.max(...nums) : ppSettings.multi === "min" ? Math.min(...nums) : nums.reduce((s, n) => s + n, 0);
+  return { price: Math.round(price * 100) / 100, parts };
+}
+function ppEval(s){
+  const t = String(s).replace(/[$,\s]/g, "");
+  if(!/^[0-9+\-*/().]+$/.test(t)) return null;
+  try{ const v = Function('"use strict";return (' + t + ')')(); return isFinite(v) ? v : null; }catch(e){ return null; }
+}
+function ppStatus(msg, warn){ const el = document.getElementById("pp-status"); if(el){ el.textContent = msg || ""; el.style.color = warn ? "#c0392b" : "var(--text-muted)"; } }
+
+function ppRenderMatrix(){
+  const head = document.getElementById("pp-thead"), body = document.getElementById("pp-tbody"); if(!head || !body) return;
+  const sel = document.getElementById("pp-multi"); if(sel) sel.value = ppSettings.multi;
+  const types = [...new Set((typeof allJewelCats !== "undefined" ? allJewelCats : []).map(c => c.jewel_type).filter(Boolean))].sort((x, y) => x.localeCompare(y));
+  ppRules.forEach(r => { if(r.jewel_type !== PP_ANY && !types.some(t => ppNorm(t) === ppNorm(r.jewel_type))) types.push(r.jewel_type); });
+  const files = [...allFileTypeOptions];
+  ppRules.forEach(r => { if(r.file_type !== PP_ANY && !files.some(t => ppNorm(t) === ppNorm(r.file_type))) files.push(r.file_type); });
+  const cols = [...files, PP_ANY];
+  head.innerHTML = `<tr><th>Jewelry Type</th>${cols.map(f => `<th>${f === PP_ANY ? "Any file type" : esc(f)}<span class="pp-sub">USD</span></th>`).join("")}</tr>`;
+  body.innerHTML = [PP_ANY, ...types].map(j => `<tr><td><strong>${j === PP_ANY ? "Any jewelry type" : esc(j)}</strong></td>${cols.map(f => {
+    const r = ppRules.find(x => ppSame(x, j, f));
+    return `<td><input class="pp-in" type="text" inputmode="decimal" data-j="${esc(j)}" data-f="${esc(f)}" value="${r ? Number(r.price_usd) : ""}" placeholder="—" onfocus="this.select()" onchange="ppSaveCell(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" /></td>`;
+  }).join("")}</tr>`).join("");
+  if(!ppLoaded) ppStatus("Pricing rules table not found — run price_rules.sql in Supabase first.", true);
+}
+async function ppSaveCell(inp){
+  const j = inp.dataset.j, f = inp.dataset.f, raw = inp.value.trim();
+  const ex = ppRules.find(x => ppSame(x, j, f));
+  let price = null;
+  if(raw !== ""){
+    price = ppEval(raw);
+    if(price == null || price < 0){ toast("Enter a number, or a simple sum like 3+2.", "error"); inp.value = ex ? Number(ex.price_usd) : ""; return; }
+    price = Math.round(price * 100) / 100;
+  }
+  try{
+    if(price == null){ if(ex){ await sb("product_price_rules?id=eq." + ex.id, "DELETE"); ppRules = ppRules.filter(x => x !== ex); } }
+    else if(ex){ if(Number(ex.price_usd) !== price){ await sb("product_price_rules?id=eq." + ex.id, "PATCH", { price_usd: price }); ex.price_usd = price; } }
+    else { const r = await sb("product_price_rules", "POST", { jewel_type: j, file_type: f, price_usd: price }); ppRules.push(Array.isArray(r) ? r[0] : r); }
+    ppLoaded = true;
+    inp.value = price == null ? "" : price;
+    inp.classList.add("pp-saved"); setTimeout(() => inp.classList.remove("pp-saved"), 900);
+    ppStatus("Rules changed — click “Apply rules to all products” to update product prices.");
+  }catch(e){ toast("Could not save: " + (e.message || e) + " (has price_rules.sql been run?)", "error"); inp.value = ex ? Number(ex.price_usd) : ""; }
+}
+async function ppSaveSettings(){
+  const multi = document.getElementById("pp-multi").value;
+  try{
+    const key = "product_price_settings", value = JSON.stringify({ multi });
+    const ex = await sb("site_settings?key=eq." + key + "&select=key");
+    if(ex && ex.length) await sb("site_settings?key=eq." + key, "PATCH", { value }); else await sb("site_settings", "POST", { key, value });
+    ppSettings.multi = multi;
+    ppStatus("Setting saved — click “Apply rules to all products” to update product prices.");
+  }catch(e){ toast("Could not save setting: " + (e.message || e), "error"); }
+}
+
+// Products table cell: price + auto / manual / out-of-date marker
+function ppPriceCell(p){
+  const has = p.price_usd != null && p.price_usd !== "" && Number(p.price_usd) > 0;
+  const auto = ppAutoPrice(ppJewelOf(p), p.file_types || []);
+  let tag = "";
+  if(has){
+    if(p.price_manual) tag = ' <span class="badge badge-inactive" title="Typed by hand — not changed by the rules">manual</span>';
+    else if(auto && auto.price !== Number(p.price_usd)) tag = ` <span class="badge badge-inactive" title="Rule price is $${auto.price.toFixed(2)} — click, then Reset to rule price (or Apply Pricing Rules)">rule $${auto.price.toFixed(2)}</span>`;
+    else tag = ' <span class="badge badge-active" title="Calculated from Product Pricing rules">auto</span>';
+  }else if(auto) tag = ` <span class="badge badge-inactive" title="Click to set, or use Apply Pricing Rules">rule $${auto.price.toFixed(2)}</span>`;
+  return `<td class="cell-edit" data-edit="price" data-sort="${has ? Number(p.price_usd) : -1}" title="Price (USD) — click to edit" style="text-align:right">${has ? "$ " + Number(p.price_usd).toFixed(2) : '<span style="color:var(--text-muted)">—</span>'}${tag}</td>`;
+}
+async function ppLoadManualFlags(rows){
+  rows.forEach(p => { p.price_manual = false; });
+  try{
+    if(!rows.length) return;
+    const r = await sb("products?select=id&price_manual=eq.true&id=in.(" + rows.map(p => p.id).join(",") + ")");
+    const set = new Set((r || []).map(x => String(x.id)));
+    rows.forEach(p => { p.price_manual = set.has(String(p.id)); });
+  }catch(e){ /* price_manual column not added yet (price_rules.sql) — treat all as automatic */ }
+}
+// Keep an automatic price in step after file types / jewelry categories change
+async function ppSyncProduct(p){
+  try{
+    if(!ppLoaded || p.price_manual) return;
+    const a = ppAutoPrice(ppJewelOf(p), p.file_types || []);
+    if(!a || Number(p.price_usd) === a.price) return;
+    await sb("products?id=eq." + p.id, "PATCH", { price_usd: a.price }); p.price_usd = a.price;
+  }catch(e){ console.warn("auto price sync failed:", e.message); }
+}
+async function ppSyncById(pid, jewel, files){
+  if(!ppLoaded) return;
+  const r = await sb("products?select=price_usd,price_manual&id=eq." + encodeURIComponent(pid));
+  const cur = r && r[0]; if(!cur || cur.price_manual) return;
+  const a = ppAutoPrice(jewel, files); if(!a || Number(cur.price_usd) === a.price) return;
+  await sb("products?id=eq." + encodeURIComponent(pid), "PATCH", { price_usd: a.price });
+}
+async function ceResetPrice(){
+  const ed = cellEd; if(!ed) return; const p = ceFind(ed.pid); if(!p) return;
+  const a = ed.auto; if(!a){ toast("No pricing rule matches this product yet.", "error"); return; }
+  try{
+    await sb("products?id=eq." + p.id, "PATCH", { price_usd: a.price, price_manual: false });
+    p.price_usd = a.price; p.price_manual = false;
+    closeCellEditor(); filterProducts(); toast("Price reset to the rule price.");
+  }catch(e){ toast("Save failed: " + (e.message || e), "error"); }
+}
+async function ppApplyAll(){
+  if(!ppLoaded){ toast("Run price_rules.sql in Supabase first (Masters → Product Pricing has no rules table yet).", "error"); return; }
+  toast("Reading all products…");
+  let rows = [];
+  try{
+    for(let off = 0; ; off += 1000){
+      const r = await sb("products?select=id,price_usd,price_manual,file_types,product_jewel_cats(jewel_type)&order=id.asc&limit=1000&offset=" + off);
+      rows.push(...(r || [])); if(!r || r.length < 1000) break;
+    }
+  }catch(e){ toast("Could not read products: " + (e.message || e) + " (has price_rules.sql been run?)", "error"); return; }
+  const groups = new Map(); let manual = 0, noRule = 0, same = 0;
+  rows.forEach(p => {
+    if(p.price_manual){ manual++; return; }
+    const a = ppAutoPrice(ppJewelOf(p), p.file_types || []);
+    if(!a){ noRule++; return; }
+    if(p.price_usd != null && p.price_usd !== "" && Number(p.price_usd) === a.price){ same++; return; }
+    if(!groups.has(a.price)) groups.set(a.price, []); groups.get(a.price).push(p.id);
+  });
+  const changing = [...groups.values()].reduce((s, g) => s + g.length, 0);
+  if(!changing){ toast("Nothing to change — " + same + " already match the rules, " + manual + " hand-typed, " + noRule + " have no matching rule."); return; }
+  openConfirm("Set the Price (USD) of " + changing + " product" + (changing > 1 ? "s" : "") + " from the pricing rules (this replaces any price imported earlier from CSV)? " + same + " already match, " + manual + " hand-typed prices are kept, " + noRule + " have no matching rule and stay as they are.", async () => {
+    try{
+      let done = 0;
+      for(const [price, ids] of groups){
+        for(let i = 0; i < ids.length; i += 100){
+          const chunk = ids.slice(i, i + 100);
+          await sb("products?id=in.(" + chunk.join(",") + ")", "PATCH", { price_usd: price });
+          done += chunk.length; ppStatus("Updated " + done + " of " + changing + "…");
+        }
+      }
+      ppStatus("Applied — " + done + " product price" + (done > 1 ? "s" : "") + " updated.");
+      toast("Updated " + done + " product price" + (done > 1 ? "s" : "") + ".");
+      await loadProductsPage();
+    }catch(e){ toast("Apply failed: " + (e.message || e), "error"); }
+  });
+}
+document.querySelector('.sub-tab-btn[data-sub="productpricing"]')?.addEventListener("click", ppRenderMatrix);
 
 document.querySelectorAll(".tab-btn").forEach(btn=>{
   btn.addEventListener("click",()=>{
@@ -1870,7 +1966,7 @@ document.querySelectorAll(".sub-tab-btn").forEach(btn=>{
 
 async function init(){
   sv("media-provider-select", activeMediaProvider);
-  await Promise.all([loadCategories(),loadMasters(),loadJewelCats(),loadRingSizes(),loadBangleSizes(),loadSiteSettings()]);
+  await Promise.all([loadCategories(),loadMasters(),loadJewelCats(),loadRingSizes(),loadBangleSizes(),loadSiteSettings(),loadPriceRules()]);
   await Promise.all([loadProducts(), loadEnquiries()]);
   setTimeout(navRestoreScroll, 60);          // back to where the admin was scrolled
 }
@@ -2399,25 +2495,209 @@ function confirmDeleteSiteSetting(key){
   });
 }
 
+let allFileTypeOptions=["3DM","JCD","3DM (Mesh with Diamonds)","STL","MGX"];
+function renderFileTypeChecks(){
+  const el=document.getElementById("f-filetypes"); if(!el) return;
+  const cur=getFileTypeChecks();
+  el.innerHTML=allFileTypeOptions.map((n,i)=>`<label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;font-weight:500;cursor:pointer"><input type="checkbox" class="ft-chk" value="${esc(n)}"${cur.includes(n)?" checked":""}/> ${esc(n)}</label>`).join("");
+}
+function getFileTypeChecks(){ return [...document.querySelectorAll("#f-filetypes .ft-chk:checked")].map(c=>c.value); }
+function setFileTypeChecks(arr){ renderFileTypeChecks(); const a=Array.isArray(arr)?arr:[]; document.querySelectorAll("#f-filetypes .ft-chk").forEach(c=>{ c.checked=a.includes(c.value); }); }
+async function loadFileTypeOptions(){
+  try{ const r=await sb("file_type_options?select=name&order=sort_order.asc"); if(r&&r.length) allFileTypeOptions=r.map(x=>x.name); }catch(e){}
+  renderFileTypeChecks(); renderProductFilterOptions();
+  try{ ppRenderMatrix(); }catch(e){}
+}
+let allDisplayOptions=["Admin Only","Main Website","Registered User"];
+async function loadDisplayOptions(){
+  try{ const r=await sb("display_options?select=name&order=sort_order.asc"); if(r&&r.length) allDisplayOptions=r.map(x=>x.name); }catch(e){}
+  const el=document.getElementById("f-display");
+  if(el){ const cur=el.value; el.innerHTML=allDisplayOptions.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(""); if(cur) el.value=cur; }
+  renderProductFilterOptions();
+}
+let allDisplayTypeRows=[], allDisplayTypeOptions=[];
+function setDisplayTypeSelect(val){
+  const el=document.getElementById("f-display-type"); if(!el) return;
+  const v=val||"";
+  if(v && ![...el.options].some(o=>o.value===v)){ const o=document.createElement("option"); o.value=v; o.textContent=v; el.appendChild(o); }
+  el.value=v;
+}
+function renderDisplayTypeSelect(){
+  const el=document.getElementById("f-display-type"); if(!el) return;
+  const cur=el.value;
+  el.innerHTML='<option value="">— None —</option>'+allDisplayTypeOptions.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  if(cur) setDisplayTypeSelect(cur);
+}
+let displayTypeCounts={}, dtCountsLoaded=false;
+async function refreshDisplayTypeCounts(){
+  dtCountsLoaded=true; const rows=allDisplayTypeRows.slice(0,80); displayTypeCounts={};
+  await Promise.all(rows.map(async r=>{ try{ displayTypeCounts[r.name]=await countProducts("display_type=eq."+encodeURIComponent(r.name)); }catch(e){} }));
+}
+async function loadDisplayTypeOptions(withCounts){
+  try{
+    const r=await sb("display_type_options?select=id,name,sort_order&order=sort_order.asc,name.asc");
+    allDisplayTypeRows=r||[]; allDisplayTypeOptions=allDisplayTypeRows.map(x=>x.name);
+  }catch(e){ console.error("loadDisplayTypeOptions failed:",e); }
+  renderDisplayTypeSelect(); renderProductFilterOptions();
+  if(withCounts||!dtCountsLoaded){ await refreshDisplayTypeCounts(); }
+  renderDisplayTypeMaster();
+}
+function renderDisplayTypeMaster(){
+  const tb=document.getElementById("displaytype-tbody"); if(!tb) return;
+  if(!allDisplayTypeRows.length){ tb.innerHTML='<tr><td colspan="3" class="state-msg">No values yet.</td></tr>'; return; }
+  tb.innerHTML=allDisplayTypeRows.map(r=>{
+    const n=(displayTypeCounts[r.name]!==undefined)?displayTypeCounts[r.name]:"—";
+    return `<tr><td><strong>${esc(r.name)}</strong></td><td style="color:var(--text-muted)">${n}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="renameDisplayType(${Number(r.id)})">Rename</button><button class="btn btn-danger btn-sm" onclick="deleteDisplayType(${Number(r.id)})">Delete</button></div></td></tr>`;
+  }).join("");
+}
+async function addDisplayType(){
+  const inp=document.getElementById("dt-new"); const name=(inp.value||"").trim().replace(/\s+/g," ");
+  if(!name){ toast("Type a Display Type name first.","error"); return; }
+  if(allDisplayTypeRows.some(r=>r.name.toLowerCase()===name.toLowerCase())){ toast("That Display Type already exists.","error"); return; }
+  try{
+    const next=allDisplayTypeRows.reduce((m,x)=>Math.max(m,x.sort_order||0),0)+1;
+    await sb("display_type_options","POST",{name,sort_order:next});
+    inp.value=""; toast("Display Type added."); await loadDisplayTypeOptions(true);
+  }catch(e){ toast("Error: "+(e.message||e),"error"); }
+}
+async function renameDisplayType(id){
+  const row=allDisplayTypeRows.find(r=>Number(r.id)===Number(id)); if(!row) return;
+  const nv=(window.prompt("Rename Display Type:",row.name)||"").trim().replace(/\s+/g," ");
+  if(!nv||nv===row.name) return;
+  if(allDisplayTypeRows.some(r=>Number(r.id)!==Number(id)&&r.name.toLowerCase()===nv.toLowerCase())){ toast("Another Display Type already uses that name.","error"); return; }
+  try{
+    await sb("display_type_options?id=eq."+id,"PATCH",{name:nv});
+    await sb("products?display_type=eq."+encodeURIComponent(row.name),"PATCH",{display_type:nv});
+    (typeof allProducts!=="undefined"?allProducts:[]).forEach(p=>{ if(p.display_type===row.name) p.display_type=nv; });
+    toast("Renamed. Products using it were updated.");
+    await loadDisplayTypeOptions(true);
+    loadProductsPage();
+  }catch(e){ toast("Error: "+(e.message||e),"error"); }
+}
+async function deleteDisplayType(id){
+  const row=allDisplayTypeRows.find(r=>Number(r.id)===Number(id)); if(!row) return;
+  let used=0; try{ used=await countProducts("display_type=eq."+encodeURIComponent(row.name)); }catch(e){ toast("Could not check usage: "+(e.message||e),"error"); return; }
+  if(used){ toast(used+" product"+(used>1?"s use":" uses")+' "'+row.name+'". Change them first, then delete.',"error"); return; }
+  openConfirm('Delete "'+row.name+'"?',async()=>{
+    try{ await sb("display_type_options?id=eq."+id,"DELETE"); toast("Deleted."); await loadDisplayTypeOptions(true); }
+    catch(e){ toast("Error: "+(e.message||e),"error"); }
+  });
+}
+// Used by Excel import: finds the master value (ignoring capitals) or adds it, so new client names need no manual step
+async function ensureDisplayTypeValue(v){
+  const t=String(v??"").trim().replace(/\s+/g," "); if(!t) return null;
+  const hit=allDisplayTypeRows.find(r=>r.name.toLowerCase()===t.toLowerCase()); if(hit) return hit.name;
+  try{
+    const next=allDisplayTypeRows.reduce((m,x)=>Math.max(m,x.sort_order||0),0)+1;
+    const r=await sb("display_type_options","POST",{name:t,sort_order:next});
+    const row=Array.isArray(r)?r[0]:r;
+    if(row&&row.name){ allDisplayTypeRows.push(row); allDisplayTypeOptions.push(row.name); }
+  }catch(e){ console.error("display type add failed:",e); }
+  return t;
+}
+const PRODUCT_SELECT = [
+  "id,name,slug,sku",
+  "price,price_usd,currency,is_active,display,display_type,file_types,sort_order",
+  "short_description,description,size,stock_status",
+  "metal,stone,gross_weight,dimensions",
+  "net_weight_18k,net_weight_14k,net_weight_10k,net_weight_silver",
+  "category_id",
+  "categories(id,name,slug)",
+  "product_media(id,url,media_type,is_primary,alt_text,sort_order)",
+  "product_tags(tags(id,name,slug))",
+  "product_jewel_cats(id,jewel_type,sub_type1,sub_type2)",
+  "product_size_variants(id,size_label,sort_order)",
+  "product_stones(id,stone_type,setting_type,shape,pcs,length_mm,width_mm)",
+  "product_set_links!product_set_links_product_id_fkey(id,linked_product_id)"
+].join(",");
+let prodPage=0, prodPageSize=100, prodTotal=0, prodSeq=0, prodTimer=null;
+
+// Builds the database filter from the search box and the filter dropdowns (applies to ALL products, not just the page)
+function productFilterQS(){
+  const f=[];
+  const q=((document.getElementById("product-search")||{}).value||"").trim().replace(/[*,()%\\]/g," ").replace(/\s+/g," ").trim();
+  if(q){ const e=encodeURIComponent(q); f.push("or=(name.ilike.*"+e+"*,sku.ilike.*"+e+"*,metal.ilike.*"+e+"*,stone.ilike.*"+e+"*)"); }
+  const d=gv("pf-display"); if(d) f.push("display=eq."+encodeURIComponent(d));
+  const dt=gv("pf-display-type");
+  if(dt==="__none__") f.push("display_type=is.null"); else if(dt) f.push("display_type=eq."+encodeURIComponent(dt));
+  const ft=gv("pf-file-type"); if(ft) f.push("file_types=cs."+encodeURIComponent('{"'+ft.replace(/"/g,"")+'"}'));
+  const st=gv("pf-status"); if(st) f.push("is_active=eq."+(st==="active"?"true":"false"));
+  return f.join("&");
+}
+async function fetchProductsPage(offset,limit,withCount){
+  const qs=productFilterQS();
+  const url=SUPABASE_URL+"/rest/v1/products?select="+PRODUCT_SELECT+(qs?"&"+qs:"")+"&order=sort_order.asc,name.asc,id.asc&limit="+limit+"&offset="+offset;
+  const headers={apikey:SUPABASE_KEY,Authorization:"Bearer "+(SB_TOKEN||SUPABASE_KEY),"Content-Type":"application/json"};
+  if(withCount) headers.Prefer="count=exact";
+  const res=await fetch(url,{headers});
+  if(!res.ok) throw new Error(await res.text());
+  const m=/\/(\d+)$/.exec(res.headers.get("content-range")||"");
+  return {rows:await res.json(), total:m?Number(m[1]):null};
+}
+async function fetchAllFilteredProducts(){
+  const out=[]; let off=0;
+  while(true){
+    const {rows}=await fetchProductsPage(off,1000,false);
+    out.push(...rows);
+    if(rows.length<1000) break;
+    off+=1000;
+    toast("Collected "+out.length.toLocaleString()+" products...");
+  }
+  return out;
+}
+async function countProducts(qs){
+  const res=await fetch(SUPABASE_URL+"/rest/v1/products?select=id"+(qs?"&"+qs:"")+"&limit=1",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+(SB_TOKEN||SUPABASE_KEY),Prefer:"count=exact"}});
+  if(!res.ok) throw new Error(await res.text());
+  const m=/\/(\d+)$/.exec(res.headers.get("content-range")||""); return m?Number(m[1]):0;
+}
+function renderProductFilterOptions(){
+  const fill=(id,first,items)=>{ const el=document.getElementById(id); if(!el) return; const cur=el.value;
+    el.innerHTML=first+items.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+    if(cur && [...el.options].some(o=>o.value===cur)) el.value=cur; };
+  fill("pf-display",'<option value="">All Display</option>',allDisplayOptions);
+  fill("pf-display-type",'<option value="">All Display Types</option><option value="__none__">(No Display Type)</option>',allDisplayTypeOptions);
+  fill("pf-file-type",'<option value="">All File Types</option>',allFileTypeOptions);
+}
+function renderProductPager(){
+  const pages=Math.max(1,Math.ceil(prodTotal/prodPageSize));
+  const from=prodTotal?prodPage*prodPageSize+1:0, to=Math.min(prodTotal,(prodPage+1)*prodPageSize);
+  const html=`<span class="pg-info">${from.toLocaleString()}–${to.toLocaleString()} of ${prodTotal.toLocaleString()} products</span>
+    <button class="btn btn-secondary" onclick="prodGo(0)" ${prodPage===0?"disabled":""}>« First</button>
+    <button class="btn btn-secondary" onclick="prodGo(${prodPage-1})" ${prodPage===0?"disabled":""}>‹ Prev</button>
+    <span>Page <input type="number" min="1" max="${pages}" value="${prodPage+1}" style="width:70px" onchange="prodGo(this.value-1)" /> of ${pages.toLocaleString()}</span>
+    <button class="btn btn-secondary" onclick="prodGo(${prodPage+1})" ${prodPage>=pages-1?"disabled":""}>Next ›</button>
+    <button class="btn btn-secondary" onclick="prodGo(${pages-1})" ${prodPage>=pages-1?"disabled":""}>Last »</button>
+    <select onchange="prodSetSize(this.value)">${[50,100,250,1000].map(n=>`<option value="${n}"${n===prodPageSize?" selected":""}>${n===1000?"All (1,000 per page)":n+" per page"}</option>`).join("")}</select>`;
+  ["products-pager-top","products-pager"].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; });
+}
+function prodGo(n){
+  const last=Math.max(0,Math.ceil(prodTotal/prodPageSize)-1);
+  n=Math.max(0,Math.min(Number(n)||0,last)); if(n===prodPage) return;
+  prodPage=n; loadProductsPage();
+  const t=document.getElementById("tab-products"); if(t&&t.scrollIntoView) t.scrollIntoView({block:"start"});
+}
+function prodSetSize(v){ prodPageSize=Number(v)||100; prodPage=0; loadProductsPage(); }
+function queryProducts(){ prodPage=0; loadProductsPage(); }
+function queryProductsDebounced(){ clearTimeout(prodTimer); prodTimer=setTimeout(queryProducts,350); }
+function clearProductFilters(){
+  ["product-search","pf-display","pf-display-type","pf-file-type","pf-status"].forEach(id=>sv(id,""));
+  queryProducts();
+}
 async function loadProducts(){
+  loadDisplayOptions(); loadFileTypeOptions(); loadDisplayTypeOptions();
+  await loadProductsPage();
+}
+async function loadProductsPage(){
+  const seq=++prodSeq;
+  document.getElementById("products-tbody").innerHTML="<tr><td colspan='21' class='state-msg'>Loading...</td></tr>";
   try {
-    // Build SELECT safely — only include columns confirmed in schema
-    const SELECT = [
-      "id,name,slug,sku",
-      "price,currency,is_active,sort_order",
-      "short_description,description,size,stock_status",
-      "metal,stone,gross_weight,dimensions",
-      "net_weight_18k,net_weight_14k,net_weight_10k,net_weight_silver",
-      "category_id",
-      "categories(id,name,slug)",
-      "product_media(id,url,media_type,is_primary,alt_text,sort_order)",
-      "product_tags(tags(id,name,slug))",
-      "product_jewel_cats(id,jewel_type,sub_type1,sub_type2)",
-      "product_size_variants(id,size_label,sort_order)",
-      "product_stones(id,stone_type,setting_type,shape,pcs,length_mm,width_mm)",
-      "product_set_links!product_set_links_product_id_fkey(id,linked_product_id)"
-    ].join(",");
-    allProducts=await sb("products?select="+SELECT+"&order=sort_order.asc,name.asc");
+    const {rows,total}=await fetchProductsPage(prodPage*prodPageSize,prodPageSize,true);
+    if(seq!==prodSeq) return;
+    prodTotal=(total==null)?rows.length:total;
+    const last=Math.max(0,Math.ceil(prodTotal/prodPageSize)-1);
+    if(prodPage>last && prodTotal>0){ prodPage=last; return loadProductsPage(); }
+    allProducts=rows;      // allProducts now holds the CURRENT PAGE only
+    await ppLoadManualFlags(allProducts);
     srLoaded = true;
     // Show every image with the correct ImageKit ID straight away (no re-picking needed).
     // _dbUrl keeps what is actually stored, so "Fix Image Extensions" can write the repaired link back.
@@ -2426,14 +2706,22 @@ async function loadProducts(){
       m._dbUrl = m.url;
       m.url = normalizeMediaUrl(m.url);
     }));
-    renderProductsTable(allProducts);
+    renderProductPager();
+    await applyProductClientFilters();
+    if(seq!==prodSeq) return;
     populateMasterDropdowns();
     try{ renderStoneReport(); }catch(e){ console.error("renderStoneReport error:",e); }
   } catch(e){
-    document.getElementById("products-tbody").innerHTML="<tr><td colspan='13' class='state-msg'>Failed to load products.</td></tr>";
+    if(seq!==prodSeq) return;
+    document.getElementById("products-tbody").innerHTML="<tr><td colspan='21' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
   }
 }
+async function applyProductClientFilters(){
+  if(noImageFilterOn){ try{ await Promise.all(allProducts.map(ensureProductMediaChecked)); }catch(e){} }
+  filterProducts();
+}
+
 
 let noImageFilterOn = false;
 
@@ -2453,17 +2741,12 @@ async function toggleNoImageFilter(){
   filterProducts();
 }
 
+// Re-draws the current page (used after an in-place edit and by the "No Images Only" button)
 function filterProducts(){
-  const term=gv("product-search").toLowerCase();
   renderProductsTable(allProducts.filter(p=>{
-    const jc=(p.product_jewel_cats||[]).map(c=>[c.jewel_type,c.sub_type1,c.sub_type2].filter(Boolean).join(" ")).join(" ");
-    const mt=!term||[p.name,p.sku,p.metal,p.stone,jc].filter(Boolean).join(" ").toLowerCase().includes(term);
-    let mi = true;
-    if(noImageFilterOn){
-      const st = productMediaStatus.get(p.id);
-      mi = st ? st.imagesOk===0 : true; // unknown status shouldn't happen (we await checks before enabling), but don't hide if it does
-    }
-    return mt&&mi;
+    if(!noImageFilterOn) return true;
+    const st = productMediaStatus.get(p.id);
+    return st ? st.imagesOk===0 : true;
   }));
 }
 
@@ -2683,7 +2966,7 @@ function ceManageSizes(){
 // Supabase and refreshes just that row (no modal, no full reload).
 let cellEd = null;
 const CE_TITLES = {name:"Name", sku:"SKU", short_description:"Short Description", description:"Product Story",
-  weights:"Metal Net Weights (grams)", status:"Status", jewel:"Jewelry Category", stones:"Diamond & Stone Details", sizes:"Size"};
+  weights:"Metal Net Weights (grams)", status:"Status", display:"Display", displaytype:"Display Type", filetypes:"File Type", price:"Price (USD)", jewel:"Jewelry Category", stones:"Diamond & Stone Details", sizes:"Size"};
 const ceFind = pid => allProducts.find(x=>String(x.id)===String(pid));
 function ceOpts(list,val){
   const vals=[...list]; if(val && !vals.includes(val)) vals.push(val);
@@ -2739,6 +3022,15 @@ function openCellEditor(td){
     else body=`<input id="ce-size-custom" class="ce-in" type="text" value="${esc(p.size||"")}" placeholder="${cfg.mode==="bracelet"?"Length in inches, e.g. 7.5 in":"Size"}" />`+manage;
     cellEd.sizeMode=cfg.mode;
   }
+  else if(field==="filetypes") body=`<div id="ce-ft" style="display:flex;flex-direction:column;gap:8px;padding:4px 0">${allFileTypeOptions.map(o=>`<label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" class="ce-ft-chk" value="${esc(o)}"${(p.file_types||[]).includes(o)?" checked":""}/> ${esc(o)}</label>`).join("")}</div>`;
+  else if(field==="price"){
+    const auto=ppAutoPrice(ppJewelOf(p),p.file_types||[]); cellEd.auto=auto;
+    const have=(p.price_usd!=null&&p.price_usd!=="")?Number(p.price_usd):"";
+    const rule=auto?`Rule price: <b>$${auto.price.toFixed(2)}</b> (${esc(ppJewelOf(p)||"any jewelry type")} &middot; ${auto.parts.map(x=>esc(x.file)+" $"+x.price.toFixed(2)).join(" + ")}).`:"No pricing rule matches this product's Jewelry Type / File Type.";
+    body=`<input id="ce-input" class="ce-in" type="number" step="0.01" min="0" value="${have}" placeholder="USD" /><div class="ce-hint" style="margin-top:6px">${rule} ${p.price_manual?"This price was typed by hand, so it stays when rules change.":"Typing a different price makes it a hand-typed price."}</div><div style="margin-top:6px"><button type="button" class="btn btn-secondary btn-sm" onclick="ceResetPrice()">Reset to rule price</button></div>`;
+  }
+  else if(field==="displaytype") body=`<select id="ce-input" class="ce-in">${ceOpts(allDisplayTypeOptions,p.display_type||"")}</select>`;
+  else if(field==="display") body=`<select id="ce-input" class="ce-in">${allDisplayOptions.map(o=>`<option value="${esc(o)}"${(p.display||"Admin Only")===o?" selected":""}>${esc(o)}</option>`).join("")}</select>`;
   else if(field==="status") body=`<select id="ce-input" class="ce-in"><option value="true"${p.is_active!==false?" selected":""}>Active</option><option value="false"${p.is_active===false?" selected":""}>Hidden</option></select>`;
   else if(field==="jewel"){ cls="ce-mid"; cellEd.rows=(p.product_jewel_cats||[]).map(c=>({jewel_type:c.jewel_type||"",sub_type1:c.sub_type1||"",sub_type2:c.sub_type2||""})); }
   else if(field==="stones"){ cls="ce-wide"; cellEd.rows=(p.product_stones||[]).map(s=>({stone_type:s.stone_type||"",setting_type:s.setting_type||"",shape:s.shape||"",pcs:s.pcs??"",length_mm:s.length_mm??"",width_mm:s.width_mm??""}));
@@ -2842,11 +3134,20 @@ async function saveCellEditor(){
   if(ed.field==="name"){ const v=val("ce-input"); if(!v){ toast("Name cannot be empty.","error"); return; } patch={name:v}; }
   else if(ed.field==="sku"){
     const v=val("ce-input"); if(!v){ toast("SKU cannot be empty.","error"); return; }
-    if(allProducts.some(x=>String(x.id)!==String(p.id)&&(x.sku||"").toLowerCase()===v.toLowerCase())){ toast("Another product already uses this SKU.","error"); return; }
+    { const dup=await sb("products?select=id&sku=eq."+encodeURIComponent(v)+"&id=neq."+encodeURIComponent(p.id)+"&limit=1"); if(dup&&dup.length){ toast("Another product already uses this SKU.","error"); return; } }
     patch={sku:v};
   }
   else if(ed.field==="short_description"||ed.field==="description") patch={[ed.field]:val("ce-input")||null};
   else if(ed.field==="weights") patch={net_weight_18k:parseFloat(val("ce-w-18k"))||0,net_weight_14k:parseFloat(val("ce-w-14k"))||0,net_weight_10k:parseFloat(val("ce-w-10k"))||0,net_weight_silver:parseFloat(val("ce-w-silver"))||0};
+  else if(ed.field==="filetypes") patch={file_types:[...document.querySelectorAll("#ce-ft .ce-ft-chk:checked")].map(c=>c.value)};
+  else if(ed.field==="display") patch={display:val("ce-input")||"Admin Only"};
+  else if(ed.field==="price"){
+    const raw=val("ce-input"); if(raw===""){ toast("Enter a price, or use Reset to rule price.","error"); return; }
+    const n=num(raw); if(n==null||n<0){ toast("Enter a valid price.","error"); return; }
+    const price=Math.round(n*100)/100, auto=ed.auto;
+    patch={price_usd:price, price_manual:!(auto&&auto.price===price)};
+  }
+  else if(ed.field==="displaytype") patch={display_type:val("ce-input")||null};
   else if(ed.field==="status") patch={is_active:val("ce-input")==="true"};
   else if(ed.field==="sizes") patch={size:(val("ce-size-sel")||val("ce-size-custom"))||null};
 
@@ -2868,6 +3169,7 @@ async function saveCellEditor(){
       await sb("products?id=eq."+p.id,"PATCH",patch);
       Object.assign(p,patch);
     }
+    if(ed.field==="filetypes"||ed.field==="jewel") await ppSyncProduct(p);
     closeCellEditor(); filterProducts(); toast("Saved.");
   }catch(err){
     console.error("cell edit failed:",err); ed.saving=false;
@@ -2925,7 +3227,7 @@ function completenessCell(c,field){
 
 function renderProductsTable(products){
   const tbody=document.getElementById("products-tbody");
-  if(!products.length){ tbody.innerHTML="<tr><td colspan='13' class='state-msg'>No products found.</td></tr>"; return; }
+  if(!products.length){ tbody.innerHTML="<tr><td colspan='21' class='state-msg'>No products found.</td></tr>"; return; }
   tbody.innerHTML=products.map(p=>{
     const pm=(p.product_media||[]);
     const primary=pm.find(m=>m.is_primary)||pm[0];
@@ -2948,11 +3250,12 @@ function renderProductsTable(products){
       ? `<select class="media-host-select" style="font-size:11px;font-weight:700;color:${hostColor}" title="${esc(hostInfo.title)}" onchange="setProductRowHost('${esc(String(p.id))}',this.value,this)"><option value="">${esc(hostInfo.label)}</option>${hostOpts}<option value="auto">Find on any host</option></select>`
       : `<select class="media-host-select" style="font-size:11px;font-weight:700;color:var(--text-muted)" title="No images yet — pick a host to add this SKU's W / Y / R / Model / Spot images" onchange="setProductRowHost('${esc(String(p.id))}',this.value,this)"><option value="">—</option>${Object.entries(CLOUD_PROVIDERS).map(([key,pv])=>`<option value="${key}">Add from ${esc(pv.label)}</option>`).join("")}<option value="auto">Find on any host</option></select>`;
     const badge=p.is_active?`<span class="badge badge-active">Active</span>`:`<span class="badge badge-inactive">Hidden</span>`;
+    const dispCls=(p.display||"Admin Only")==="Main Website"?"badge-active":((p.display||"Admin Only")==="Registered User"?"badge-active":"badge-inactive");
     // data-sort="-1" so the Media column parses as numeric from the very first
     // render (unchecked products briefly sort as "less than zero" until their
     // real count lands) instead of flipping between numeric and alphabetic
     // sort depending on whether checks have finished yet.
-    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name" title="${esc(p.name)}"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td><td class="cell-edit" data-edit="sizes">${productSizesCell(p)}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name" title="${esc(p.name)}"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td><td class="cell-edit" data-edit="sizes">${productSizesCell(p)}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td class="cell-edit" data-edit="display"><span class="badge ${dispCls}">${esc(p.display||"Admin Only")}</span></td><td class="cell-edit" data-edit="displaytype" title="Display Type — click to edit">${p.display_type?esc(p.display_type):'<span style="color:var(--text-muted)">—</span>'}</td>${FILE_TYPE_SHEET_NAMES.map(o=>`<td class="cell-edit" data-edit="filetypes" title="File Type: ${esc(o)} — click to edit" style="text-align:center;font-size:12px">${(p.file_types||[]).includes(o)?`<span class="badge badge-active">Yes</span>`:`<span style="color:var(--text-muted)">—</span>`}</td>`).join("")}${ppPriceCell(p)}<td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
   products.forEach(p=>updateMediaCountCell(p));
 }
@@ -3176,23 +3479,28 @@ function renderStoneDetailRows(){
 }
 
 // ── PART OF A SET search ──────────────────────────────────────────────────
+let setSearchSeq=0, setSearchTimer=null;
 function searchSetProducts(){
-  const q = (document.getElementById('f-set-search').value||'').toLowerCase().trim();
+  const q = (document.getElementById('f-set-search').value||'').trim();
   const dd = document.getElementById('f-set-dropdown');
-  if(!q){ dd.style.display='none'; return; }
-  const matches = allProducts.filter(p=>
-    String(p.id) !== String(editingProductId) &&
-    !productSetLinks.some(l=>l.id===p.id) &&
-    ((p.sku||'').toLowerCase().includes(q)||(p.name||'').toLowerCase().includes(q))
-  ).slice(0,8);
-  if(!matches.length){ dd.style.display='none'; return; }
-  dd.style.display='block';
-  dd.innerHTML = matches.map(p=>`
+  clearTimeout(setSearchTimer);
+  const t = q.replace(/[*,()%\\]/g," ").replace(/\s+/g," ").trim();
+  if(!t){ dd.style.display='none'; return; }
+  setSearchTimer = setTimeout(async ()=>{
+    const seq=++setSearchSeq, e=encodeURIComponent(t);
+    let rows=[];
+    try{ rows = await sb("products?select=id,sku,name&or=(sku.ilike.*"+e+"*,name.ilike.*"+e+"*)&order=sku.asc&limit=20") || []; }catch(err){ return; }
+    if(seq!==setSearchSeq) return;
+    const matches = rows.filter(p=>String(p.id)!==String(editingProductId) && !productSetLinks.some(l=>l.id===p.id)).slice(0,8);
+    if(!matches.length){ dd.style.display='none'; return; }
+    dd.style.display='block';
+    dd.innerHTML = matches.map(p=>`
     <div onclick="addSetLink(${p.id},'${esc(p.sku||'')}','${esc(p.name||'')}')"
       style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);"
       onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
       <strong>${esc(p.sku||'—')}</strong> <span style="color:var(--text-muted)">${esc(p.name||'')}</span>
     </div>`).join('');
+  },250);
 }
 
 function addSetLink(id,sku,name){
@@ -3222,10 +3530,12 @@ document.addEventListener('click', e=>{
 });
 
 // ── AUTO SORT ORDER ───────────────────────────────────────────────────────
-function autoAssignSortOrder(){
+async function autoAssignSortOrder(){
   if(!editingProductId){
-    const maxOrder = allProducts.reduce((m,p)=>Math.max(m,p.sort_order||0),0);
-    sv('f-sort-order', maxOrder+1);
+    try{
+      const r = await sb("products?select=sort_order&order=sort_order.desc.nullslast&limit=1");
+      sv('f-sort-order', ((r&&r[0]&&r[0].sort_order)||0)+1);
+    }catch(e){}
   }
 }
 
@@ -3236,8 +3546,7 @@ function openProductModal(id=null){
   productJewelCats=[];
   productStoneRows=[];
   productSetLinks=[];
-  productMediaRows=[];
-  pmPreviewIdx=0;
+  productMediaRows=[]; _pmPrev=-1;
   document.getElementById("product-modal-title").textContent=id?"Edit Product":"Add Product";
 
   populateProductJewelTypeDropdown();
@@ -3249,7 +3558,7 @@ function openProductModal(id=null){
     sv("f-sku",p.sku||""); sv("f-name",p.name||"");
     sv("f-short-desc",p.short_description||""); sv("f-description",p.description||"");
     sv("f-stock-status",p.stock_status||""); sv("f-sort-order",p.sort_order||0);
-    sv("f-active",String(p.is_active!==false));
+    sv("f-active",String(p.is_active!==false)); sv("f-display",p.display||"Admin Only"); setDisplayTypeSelect(p.display_type||""); setFileTypeChecks(p.file_types);
     // Net weights
     sv("f-wt-18k",(p.net_weight_18k||0).toFixed(3));
     sv("f-wt-14k",(p.net_weight_14k||0).toFixed(3));
@@ -3282,7 +3591,7 @@ function openProductModal(id=null){
     productMediaRows = mergeStdImages(productMediaRows, p.sku);
   } else {
     ["f-sku","f-name","f-short-desc","f-description","f-size-custom"].forEach(i=>sv(i,""));
-    sv("f-stock-status",""); sv("f-active","true");
+    sv("f-stock-status",""); sv("f-active","true"); sv("f-display","Admin Only"); setDisplayTypeSelect(""); setFileTypeChecks([]);
     sv("f-wt-18k","0.000"); sv("f-wt-14k","0.000"); sv("f-wt-10k","0.000"); sv("f-wt-silver","0.000");
     document.getElementById('f-size').innerHTML='<option value="">Select size...</option>';
     autoAssignSortOrder();
@@ -3299,63 +3608,13 @@ function openProductModal(id=null){
   document.querySelectorAll(".tag-chip").forEach(chip=>chip.classList.toggle("selected",selectedTags.includes(parseInt(chip.dataset.tagId))));
   document.getElementById("product-modal").classList.add("open");
   pmUpdateNav();
-  pmSnap = pmSnapshot();
-}
-
-
-// ── Prev / Next between products (follows the Products table order: current search, filter and sort) ──
-let pmSnap = "";
-function pmNavIds(){
-  return Array.from(document.querySelectorAll("#products-tbody tr[data-pid]")).map(tr=>tr.dataset.pid);
-}
-function pmSnapshot(){
-  const vals = Array.from(document.querySelectorAll("#product-modal input, #product-modal select, #product-modal textarea"))
-    .filter(el=>!el.closest("#f-media-list") && !el.closest(".media-add-row") && el.id!=="f-media-host" && el.id!=="f-set-search")
-    .map(el=>el.type==="checkbox" ? el.checked : el.value);
-  return JSON.stringify([vals, selectedTags, productJewelCats, productStoneRows, productSetLinks]);
-}
-function pmUpdateNav(){
-  const nav=document.getElementById("pm-nav");
-  if(!nav) return;
-  if(!editingProductId){ nav.style.display="none"; return; }
-  const ids=pmNavIds(), i=ids.indexOf(String(editingProductId));
-  if(i<0){ nav.style.display="none"; return; }          // product not in the current list (e.g. filtered out)
-  nav.style.display="flex";
-  document.getElementById("pm-nav-pos").textContent=(i+1)+" of "+ids.length;
-  document.getElementById("pm-prev").disabled = i<=0;
-  document.getElementById("pm-next").disabled = i>=ids.length-1;
-}
-let pmNavBusy = false;
-async function pmNavigate(dir){
-  if(pmNavBusy) return;
-  const ids=pmNavIds(), i=ids.indexOf(String(editingProductId)), j=i+dir;
-  if(i<0 || j<0 || j>=ids.length) return;
-  const currentId=String(editingProductId), targetId=ids[j];   // destination is fixed BEFORE saving
-  pmNavBusy=true;
-  document.getElementById("pm-prev").disabled=true;
-  document.getElementById("pm-next").disabled=true;
-  try{
-    if(pmSnapshot()!==pmSnap){                                  // only save when something changed
-      const ok = await saveProduct({keepOpen:true});
-      if(!ok) return;                                           // error already shown; stay on this product
-      const after=pmNavIds();
-      if(!after.includes(currentId) || !after.includes(targetId)){
-        pmSnap=pmSnapshot();
-        toast("Saved. The product list changed to match your filters, so I stayed on this product.");
-        return;
-      }
-    }
-    openProductModal(targetId);
-    const body=document.querySelector("#product-modal .modal-body"); if(body) body.scrollTop=0;
-  } finally {
-    pmNavBusy=false;
-    pmUpdateNav();                                              // re-enables the arrows for whichever product is open
-  }
+  const _pb=document.querySelector("#product-modal .modal-body"); if(_pb) _pb.scrollTop=0;
+  _pmDirty=false;
 }
 
 function closeProductModal(){
   document.getElementById("product-modal").classList.remove("open");
-  editingProductId=null; selectedTags=[]; productJewelCats=[]; productStoneRows=[]; productSetLinks=[]; productMediaRows=[];
+  editingProductId=null; selectedTags=[]; productJewelCats=[]; productStoneRows=[]; productSetLinks=[]; productMediaRows=[]; _pmDirty=false;
 }
 
 function toggleTag(chip){
@@ -3365,42 +3624,12 @@ function toggleTag(chip){
 }
 
 // ── PHOTOS / VIDEO (product_media) ─────────────────────────────────────
-// ── Main image preview (top-left box of the Add / Edit Product window) ──
-let pmPreviewIdx = 0, pmAutoSkips = 0;
-function pmImageCandidates(){
-  const imgs = productMediaRows.filter(m=>m && m.media_type!=="video" && m.url);
-  return imgs.filter(m=>m.is_primary).concat(imgs.filter(m=>!m.is_primary));   // primary first
-}
-function renderProductImagePreview(){
-  const img=document.getElementById("pm-main-img"), empty=document.getElementById("pm-image-empty"), th=document.getElementById("pm-image-thumbs");
-  if(!img||!empty||!th) return;
-  const c=pmImageCandidates();
-  if(pmPreviewIdx>=c.length) pmPreviewIdx=0;
-  if(!c.length){
-    img.style.display="none"; img.removeAttribute("src");
-    empty.style.display=""; empty.textContent="Enter the SKU to load the product image";
-    th.innerHTML=""; return;
-  }
-  const cur=c[pmPreviewIdx];
-  empty.style.display="none"; img.style.display="";
-  if(img.getAttribute("src")!==cur.url) img.src=cur.url;
-  th.innerHTML = c.length>1 ? c.map((m,k)=>`<button type="button" class="pm-thumb${k===pmPreviewIdx?" sel":""}" onclick="pmSelectPreview(${k})" title="${esc(m.alt_text||"")}"><img src="${esc(m.url)}" alt="" onerror="this.closest('.pm-thumb').style.display='none'" /></button>`).join("") : "";
-}
-function pmSelectPreview(k){ pmPreviewIdx=k; pmAutoSkips=c_len(); renderProductImagePreview(); }
-function c_len(){ return pmImageCandidates().length; }
-// If the shown image fails to load, move on to the next image automatically
-function pmMainImgError(){
-  const c=pmImageCandidates();
-  if(pmAutoSkips < c.length-1 && pmPreviewIdx < c.length-1){ pmAutoSkips++; pmPreviewIdx++; renderProductImagePreview(); return; }
-  const img=document.getElementById("pm-main-img"), empty=document.getElementById("pm-image-empty");
-  img.style.display="none"; empty.style.display=""; empty.textContent="Image not found — check the SKU / host";
-}
 function renderProductMedia(){
-  pmAutoSkips=0; renderProductImagePreview();
   const wrap=document.getElementById("f-media-list");
   if(!wrap) return;
   if(!productMediaRows.length){
     wrap.innerHTML='<p style="font-size:12px;color:var(--text-muted);margin:0">No photos or video added yet.</p>';
+    renderProductPhotoPreview();
     return;
   }
   wrap.innerHTML=productMediaRows.map((m,i)=>{
@@ -3426,7 +3655,88 @@ function renderProductMedia(){
       </div>
     </div>`;
   }).join("");
+  renderProductPhotoPreview();
 }
+
+// ── Photo window (top-left of the product window) ─────────────────────────
+let _pmPrev=-1, _pmDirty=false;
+function renderProductPhotoPreview(){
+  const main=document.getElementById("pm-photo-main"), th=document.getElementById("pm-photo-thumbs");
+  if(!main||!th) return;
+  const imgs=productMediaRows.map((m,i)=>({m,i})).filter(x=>x.m.media_type!=="video" && x.m.url);
+  if(!imgs.length){ main.innerHTML='<div class="pm-photo-empty">No photo yet</div>'; th.innerHTML=""; return; }
+  let sel=imgs.find(x=>x.i===_pmPrev) || imgs.find(x=>x.m.is_primary) || imgs[0];
+  _pmPrev=sel.i;
+  main.innerHTML='<img src="'+esc(sel.m.url)+'" alt="" onerror="this.outerHTML=\'<div class=&quot;pm-photo-empty&quot;>Image not found</div>\'" />';
+  th.innerHTML=imgs.map(x=>'<button type="button" class="pm-thumb'+(x.i===_pmPrev?" active":"")+'" onclick="pmPickPhoto('+x.i+')"><img src="'+esc(x.m.url)+'" alt="" onerror="this.parentNode.style.display=\'none\'" /></button>').join("");
+}
+function pmPickPhoto(i){ _pmPrev=i; renderProductPhotoPreview(); }
+
+// ── Prev / Next between products (follows the list you are looking at) ────
+function pmVisibleList(){
+  // Follow the table exactly as it is shown on screen (including any column sort you clicked),
+  // not the order the database returned the page in.
+  const byId=new Map(allProducts.map(p=>[String(p.id),p]));
+  const shown=[...document.querySelectorAll("#products-tbody tr[data-pid]")].map(tr=>byId.get(String(tr.dataset.pid))).filter(Boolean);
+  if(shown.length) return shown;
+  return allProducts.filter(p=>{
+    if(!noImageFilterOn) return true;
+    const st=productMediaStatus.get(p.id);
+    return st ? st.imagesOk===0 : true;
+  });
+}
+function pmUpdateNav(){
+  const bar=document.getElementById("pm-nav"); if(!bar) return;
+  if(!editingProductId){ bar.style.display="none"; return; }
+  const list=pmVisibleList();
+  const i=list.findIndex(p=>String(p.id)===String(editingProductId));
+  if(i<0){ bar.style.display="none"; return; }
+  const pos=prodPage*prodPageSize+i+1;
+  document.getElementById("pm-pos").textContent=pos.toLocaleString()+" of "+Math.max(prodTotal,pos).toLocaleString();
+  document.getElementById("pm-prev").disabled=(pos<=1);
+  document.getElementById("pm-next").disabled=(pos>=prodTotal);
+  bar.style.display="flex";
+}
+let _pmBusy=false;
+async function pmNav(dir){
+  if(!editingProductId || _pmBusy) return;
+  let list=pmVisibleList();
+  const i=list.findIndex(p=>String(p.id)===String(editingProductId));
+  if(i<0) return;
+  const ni=i+dir;
+  const crossPage=(ni<0 || ni>=list.length);
+  if(crossPage){
+    const np=prodPage+dir;
+    if(np<0 || np*prodPageSize>=prodTotal) return;
+  }
+  const targetId = crossPage ? null : list[ni].id;     // decided BEFORE saving, so a re-sort cannot change where we go
+  _pmBusy=true;
+  const pb=document.getElementById("pm-prev"), nb=document.getElementById("pm-next");
+  if(pb) pb.disabled=true; if(nb) nb.disabled=true;
+  try{
+    if(_pmDirty){
+      const ok=await saveProduct({stay:true});          // auto-save the product being left
+      if(!ok) return;                                    // save failed: stay here so nothing is lost
+    }
+    if(crossPage){
+      prodPage=prodPage+dir;
+      await loadProductsPage();
+      list=pmVisibleList();
+      if(!list.length) return;
+      openProductModal((dir>0?list[0]:list[list.length-1]).id);
+    } else {
+      if(!allProducts.some(p=>String(p.id)===String(targetId))){ toast("That product is no longer in this list (your filters changed it).","error"); return; }
+      openProductModal(targetId);
+    }
+  } finally {
+    _pmBusy=false;
+    pmUpdateNav();
+  }
+}
+// anything typed or clicked inside the product window counts as an unsaved change
+document.addEventListener("input",e=>{ if(e.target.closest && e.target.closest("#product-modal .modal-body")) _pmDirty=true; });
+document.addEventListener("change",e=>{ if(e.target.closest && e.target.closest("#product-modal .modal-body")) _pmDirty=true; });
+document.addEventListener("click",e=>{ if(e.target.closest && e.target.closest("#product-modal .modal-body") && e.target.closest("button,.tag-chip") && !e.target.closest(".pm-thumb")) _pmDirty=true; });
 
 // Per-image host picker: shows where this image is hosted now and lets you move just this one
 // image to another host (or let the admin find it on any host) without touching the others.
@@ -3569,9 +3879,8 @@ function removeProductMedia(index){
   renderProductMedia();
 }
 
-// opts.keepOpen: save but leave the window open (used by Prev / Next). Returns true when saved, false otherwise.
 async function saveProduct(opts){
-  const keepOpen = !!(opts && opts.keepOpen === true);
+  opts = (opts && opts.stay) ? opts : {};          // {stay:true} = save, keep the window open, report true/false (used by Prev / Next)
   const sku = gv("f-sku");
   if(!sku){ toast("SKU is required.","error"); return false; }
   productMediaRows = mergeStdImages(productMediaRows, sku);
@@ -3597,6 +3906,9 @@ async function saveProduct(opts){
     stock_status: gv("f-stock-status")||'In Stock',
     sort_order: parseInt(gv("f-sort-order"))||0,
     is_active: gv("f-active")==="true",
+    display: gv("f-display")||"Admin Only",
+    display_type: gv("f-display-type")||null,
+    file_types: getFileTypeChecks(),
     size: sizeVal,
     stone: stoneText,
     net_weight_18k:   parseFloat(gv("f-wt-18k"))||0,
@@ -3618,6 +3930,7 @@ async function saveProduct(opts){
       // Jewel categories
       try{ await sb("product_jewel_cats?product_id=eq."+pid,"DELETE"); } catch(e){}
       for(const c of productJewelCats) try{ await sb("product_jewel_cats","POST",{product_id:pid,...c}); } catch(e){}
+      try{ await ppSyncById(pid,(productJewelCats[0]||{}).jewel_type||"",payload.file_types||[]); }catch(e){}
 
       // Stone detail rows
       try{ await sb("product_stones?product_id=eq."+pid,"DELETE"); } catch(e){}
@@ -3636,8 +3949,8 @@ async function saveProduct(opts){
     }
 
     toast(editingProductId?"Product updated.":"Product added.");
-    if(!keepOpen) closeProductModal();
-    await loadProducts();
+    if(opts.stay){ await loadProductsPage(); return true; }
+    closeProductModal(); await loadProducts();
     return true;
   } catch(e){ toast("Error: "+e.message,"error"); console.error(e); return false; }
   finally { btn.disabled=false; btn.textContent="Save Product"; }
@@ -3893,6 +4206,7 @@ function svmDeleteVariant(variantId){
 
 // Bulk import columns — matches original software styles fields
 // ── Products sheet columns (used by both template download and export) ──────
+const FILE_TYPE_SHEET_NAMES = ["3DM","JCD","3DM (Mesh with Diamonds)","STL","MGX"];
 const PRODUCT_SHEET_HEADERS = [
   "name","sku","slug","style_no",
   "category_name","jewel_categories","jewel_type","jewel_sub1","jewel_sub2",
@@ -3901,7 +4215,8 @@ const PRODUCT_SHEET_HEADERS = [
   "gross_weight","dimensions","size","stock_status",
   "short_description","description","tags",
   "image_url","image_url_w","image_url_y","image_url_r","image_url_model","image_url_spot","video_url",
-  "sort_order","is_active"
+  "sort_order","is_active","display","display_type",
+  "File Type: 3DM","File Type: JCD","File Type: 3DM (Mesh with Diamonds)","File Type: STL","File Type: MGX"
 ];
 const PRODUCT_SHEET_NOTES = [
   "Product display name *","SKU","URL slug (auto-gen if blank)","Style / design number",
@@ -3911,7 +4226,9 @@ const PRODUCT_SHEET_NOTES = [
   "Gross weight e.g. 4.2g","Dimensions e.g. 16mm dia","Size e.g. 16 / US 7","In Stock / Made to Order / Out of Stock",
   "One-line summary","Product story / full description","Tags — comma separated e.g. Bridal, Solitaire",
   "Primary image URL (must be a real, working URL — not the example row's placeholder)","White gold image URL","Yellow gold image URL","Rose gold image URL","Model/lifestyle image URL","Spotlight image URL","Video URL",
-  "Sort order (lower = first)","true = visible / false = hidden"
+  "Sort order (lower = first)","true = visible / false = hidden","Admin Only / Main Website / Registered User",
+  "Display Type e.g. HK Line / India Line / Product / Vacant / Order / client name (new values are added to the master automatically)",
+  "Yes if available","Yes if available","Yes if available","Yes if available","Yes if available"
 ];
 
 // ── Stone Rows sheet columns ──────────────────────────────────────────────
@@ -3935,7 +4252,8 @@ function downloadTemplate(){
     "Classic solitaire diamond ring","A timeless piece crafted in 18K gold with a brilliant solitaire diamond.",
     "Bridal, Solitaire",
     "REPLACE-WITH-YOUR-CLOUDINARY-URL/VJ-RNG-001-Y.jpg","","","","","","",
-    "10","true"
+    "10","true","Main Website","Product",
+    "Yes","","","Yes",""
   ];
   const ws = XLSX.utils.aoa_to_sheet([PRODUCT_SHEET_HEADERS, PRODUCT_SHEET_NOTES, exampleProduct]);
   ws["!cols"] = PRODUCT_SHEET_HEADERS.map(h=>({wch: h.includes("description")||h.includes("url")||h.includes("categories")||h.includes("story") ? 45 : h.includes("name")||h.includes("tags") ? 28 : 16}));
@@ -3988,13 +4306,19 @@ function downloadTemplate(){
 }
 
 async function exportProductsXlsx(){
+  if(!prodTotal){ toast("No products to export.","error"); return; }
+  if(prodTotal>3000 && !confirm("This will export "+prodTotal.toLocaleString()+" products (everything matching the current search and filters). It can take several minutes.\n\nTip: use the filters first to export fewer.\n\nContinue?")) return;
+  toast("Collecting products for export...");
+  let allProducts;     // the whole filtered list (not just the page on screen)
+  try{ allProducts = await fetchAllFilteredProducts(); }catch(e){ toast("Export failed: "+(e.message||e),"error"); return; }
+  allProducts.forEach(p=>(p.product_media||[]).forEach(m=>{ if(m.url){ m._dbUrl=m.url; m.url=normalizeMediaUrl(m.url); } }));
   if(!allProducts.length){ toast("No products to export.","error"); return; }
 
   // Make sure every product's media has actually been checked (broken vs. working)
   // before we export, so the media_status column below is accurate rather than blank.
   const btn = document.getElementById("export-products-btn");
   if(btn){ btn.disabled = true; btn.dataset.origText = btn.textContent; btn.textContent = "⏳ Checking media..."; }
-  try { await Promise.all(allProducts.map(ensureProductMediaChecked)); }
+  try { if(allProducts.length<=500) await Promise.all(allProducts.map(ensureProductMediaChecked)); }
   finally { if(btn){ btn.disabled = false; btn.textContent = btn.dataset.origText; } }
 
   const CLOUD = CLOUD_BASE();
@@ -4059,7 +4383,8 @@ async function exportProductsXlsx(){
       getImgBySuffix(p,"Model") || (sku?cld("Model"):""),
       getImgBySuffix(p,"Spot")  || (sku?cld("Spot"):""),
       getVideo(p),
-      p.sort_order||0, p.is_active!==false?"true":"false",
+      p.sort_order||0, p.is_active!==false?"true":"false", p.display||"Admin Only", p.display_type||"",
+      ...FILE_TYPE_SHEET_NAMES.map(n=>(p.file_types||[]).includes(n)?"Yes":""),
       getMediaStatus(p), getMissingMedia(p)
     ];
   });
@@ -4124,6 +4449,21 @@ function handleFileSelect(e){ const f=e.target.files[0]; if(f) processFile(f); }
 let bulkStoneRows = [];   // [{sku, stone_type, setting_type, shape, pcs, length_mm, width_mm}]
 let bulkJcatRows  = [];   // [{sku, jewel_type, sub_type1, sub_type2}]
 
+// Make sure every Jewelry Category used by an import also exists in Masters → Jewelry Categories
+let _jcMasterKeys=null;
+async function ensureJewelCatMaster(t,s1,s2){
+  const key=(x)=>[t,s1,s2].map(v=>String(v||"").trim().toLowerCase()).join("|");
+  if(!_jcMasterKeys){
+    const cur=await sb("jewel_categories?select=jewel_type,sub_type1,sub_type2");
+    _jcMasterKeys=new Set(cur.map(r=>[r.jewel_type,r.sub_type1,r.sub_type2].map(v=>String(v||"").trim().toLowerCase()).join("|")));
+  }
+  const k=key();
+  if(_jcMasterKeys.has(k)) return;
+  const saved=await sb("jewel_categories","POST",{jewel_type:t,sub_type1:s1||null,sub_type2:s2||null});
+  _jcMasterKeys.add(k);
+  try{ if(Array.isArray(allJewelCats) && saved && saved[0]) allJewelCats.push(saved[0]); }catch(e){}
+}
+
 function processFile(file){
   const __st=document.getElementById("import-status"); if(__st) __st.style.display="none";
   const reader = new FileReader();
@@ -4133,6 +4473,11 @@ function processFile(file){
     // ── Products sheet (first sheet or named "Products") ──────────────
     const prodSheetName = wb.SheetNames.includes("Products") ? "Products" : wb.SheetNames[0];
     const allRows = XLSX.utils.sheet_to_json(wb.Sheets[prodSheetName], {defval:""});
+    // Headers are matched ignoring capitals and extra spaces (e.g. "Display", "File Type: STL")
+    allRows.forEach(r=>{ Object.keys(r).forEach(k=>{ const k2=String(k).replace(/\s+/g," ").trim().toLowerCase(); if(k2!==k && !(k2 in r)) r[k2]=r[k]; }); });
+    // The sheet's "Type" column is the Jewelry Category (jewel_type), unless a jewel_type column is already filled
+    allRows.forEach(r=>{ if(!String(r.jewel_type||"").trim() && String(r.type||"").trim()) r.jewel_type=String(r.type).trim(); });
+    _jcMasterKeys=null;
     // Skip the notes row (row 2 in template — has no real product name)
     bulkRows = allRows.filter(r => {
       const n = String(r.name||"").trim().toLowerCase();
@@ -4819,6 +5164,9 @@ async function importProductsCore(){
         description:       String(row.description||"").trim()||null,
         sort_order:        parseInt(row.sort_order)||0,
         is_active:         String(row.is_active||"true").trim().toLowerCase()!=="false",
+        ...(Object.keys(row).some(k=>String(k).toLowerCase().startsWith("file type:")) ? {file_types:(()=>{ const out=[]; FILE_TYPE_SHEET_NAMES.concat(allFileTypeOptions.filter(o=>!FILE_TYPE_SHEET_NAMES.includes(o))).forEach(n=>{ const key="file type: "+n.toLowerCase(); const v=String(row[key]??"").trim().toLowerCase(); if(["yes","y","true","1"].includes(v) && !out.includes(n)) out.push(n); }); return out; })()} : {}),
+        ...((("display_type" in row)||("display type" in row)) ? {display_type: await ensureDisplayTypeValue(row.display_type ?? row["display type"])} : {}),
+        ...(("display" in row) ? {display:(["Admin Only","Main Website","Registered User"].find(o=>o.toLowerCase()===String(row.display||"").trim().toLowerCase())||"Admin Only")} : {}),
       };
 
       // ── UPSERT: PATCH if SKU exists, POST if new ──
@@ -4860,6 +5208,7 @@ async function importProductsCore(){
         jcatPayload = [{product_id:pid,jewel_type:String(row.jewel_type).trim(),sub_type1:String(row.jewel_sub1||"").trim()||null,sub_type2:String(row.jewel_sub2||"").trim()||null}];
       }
       if(jcatPayload.length){
+        for(const jc of jcatPayload){ try{ await ensureJewelCatMaster(jc.jewel_type,jc.sub_type1,jc.sub_type2); }catch(e){ impWarn(row,e); } }
         try{ await sbBulk("product_jewel_cats","POST",jcatPayload); }catch(e){ impWarn(row,e); }
       }
 
@@ -4977,11 +5326,9 @@ function calcStoneWebsite(){
 
 function getStoneDerivedRates(rateINR, stone){
   // Get live margin/currency values — margin depends on the stone group (Natural / Lab Grown / Gemstone)
-  const { inr: marginFlatINR, pct: marginPct, pctInr: marginPctINR } = marginRatesFor(marginGroupOf(stone));
+  const { inr: marginINR, pct: marginPct } = marginRatesFor(marginGroupOf(stone));
   const usdRate   = parseFloat(allCurrencies.find(c=>c.code==='USD')?.rate_to_inr)||0; // INR per 1 USD (e.g. 83)
   const rate = parseFloat(rateINR)||0;
-  // Per-carat price list: margin = higher of (flat ₹/ct, INR % of rate)
-  const marginINR = marginAmountINR(marginFlatINR, marginPctINR, rate);
   const priceINR  = rate>0 ? rate + marginINR : null;
   const rateUSD   = rate>0 && usdRate>0 ? rate / usdRate : null;
   const priceUSD  = (priceINR!=null && usdRate>0) ? (priceINR / usdRate) * (1 + marginPct/100) : null;
@@ -5226,40 +5573,6 @@ function renderStoneGrid(){
 }
 
 function splToggleIssuesOnly(){ _splIssuesOnly = !_splIssuesOnly; renderStoneGrid(); }
-// Delete All Rows: removes EVERY row of the stone price list (typed confirmation required)
-function splDeleteAllOpen(){
-  if(!allStones.length){ toast('The stone price list is already empty.','error'); return; }
-  document.getElementById('spl-delall-count').textContent = allStones.length;
-  const inp = document.getElementById('spl-delall-input'); inp.value = '';
-  document.getElementById('spl-delall-go').disabled = true;
-  document.getElementById('spl-delall-modal').classList.add('open');
-  setTimeout(()=>inp.focus(),50);
-}
-function splDeleteAllClose(){ document.getElementById('spl-delall-modal').classList.remove('open'); }
-function splDeleteAllCheck(){
-  document.getElementById('spl-delall-go').disabled = document.getElementById('spl-delall-input').value.trim() !== 'DELETE ALL';
-}
-async function splDeleteAllRun(){
-  if(document.getElementById('spl-delall-input').value.trim() !== 'DELETE ALL') return;
-  const go = document.getElementById('spl-delall-go'); go.disabled = true; go.textContent = 'Deleting…';
-  try{
-    await sb('stone_types?id=not.is.null','DELETE');
-    allStones = [];
-    splDeleteAllClose();
-    _splIssuesOnly = false;
-    renderStoneGrid();
-    try{ if(typeof srLoaded!=='undefined' && srLoaded) renderStoneReport(); }catch(e){}
-    toast('All stone price rows deleted.');
-  } catch(e){
-    toast('Error: '+e.message,'error');
-  } finally { go.textContent = 'Delete All Rows'; go.disabled = false; }
-}
-// Clear All: reset every Stone Prices filter (and the "show only these" issues view) — no data is deleted
-function splClearFilters(){
-  ['spl-f-category','spl-f-type','spl-f-shape','spl-f-color','spl-f-quality'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  _splIssuesOnly = false;
-  renderStoneGrid();
-}
 
 // Rewrites spellings that differ from the Stone Master (e.g. type "Pear" -> "Pearl", "lab grown" -> "Lab Grown")
 function splAutoFix(){
@@ -5493,9 +5806,8 @@ function exportStonesXlsx(){
     [""],
     ["CALCULATION FORMULAS"],
     [`Margin per ct (INR): Natural ${mN.inr} | Lab Grown ${mL.inr} | Gemstone ${mG.inr}`],
-    [`Margin % (INR): Natural ${mN.pctInr}% | Lab Grown ${mL.pctInr}% | Gemstone ${mG.pctInr}%`],
     [`Margin % (USD): Natural ${mN.pct}% | Lab Grown ${mL.pct}% | Gemstone ${mG.pct}%`],
-    [`Price/ct (INR) = Rate/ct (INR) + the higher of (margin per ct INR, Rate/ct × margin % INR) for the stone's group`],
+    [`Price/ct (INR) = Rate/ct (INR) + margin per ct INR of the stone's group`],
     [`Rate/ct (USD)  = Rate/ct (INR) ÷ ${inrPerUsd} (INR rate)`],
     [`Price/ct (USD) = Price/ct (INR) ÷ ${inrPerUsd} (INR rate) × (1 + margin % of the stone's group)`],
   ]);
@@ -5513,7 +5825,7 @@ async function importStonesXlsx(e){
       const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
       const sheetName=wb.SheetNames.includes("Stone Prices")?"Stone Prices":wb.SheetNames.includes("Stones")?"Stones":wb.SheetNames[0];
       const ws=wb.Sheets[sheetName];
-      const raw=XLSX.utils.sheet_to_json(ws,{defval:""}).map((r,i)=>Object.assign(r,{__xl:i+2}));   // __xl = real Excel row number
+      const raw=XLSX.utils.sheet_to_json(ws,{defval:""});
       // Skip sub-header row if present (row 2 in export has formula descriptions)
       const rows=raw.filter(r=>{
         const t=String(r["Type"]||r["Stone Type"]||r["type"]||"").trim().toLowerCase();
@@ -5529,15 +5841,6 @@ async function importStonesXlsx(e){
       const payload=[];
       const byKey = new Map(allStones.map(x=>[V.priceKey(x), x]));
       const seen = new Set();
-      // Excel stores a Size Basis typed as 2.00 or 1.50 as the plain number 2 / 1.5, so a plain number is
-      // matched by value ("2" = "2.00"); anything else ("-2", "1/6", "-6½+2") still has to match exactly.
-      const PLAIN_NUM = /^\d+(\.\d+)?$/;
-      const matchSizeBasis = (ctx, v) => {
-        const exact = V.canonSizeBasis(allDiamonds, ctx, v);
-        if(exact || !PLAIN_NUM.test(String(v).trim())) return exact;
-        const n = parseFloat(v);
-        return V.sizeBasisOptions(allDiamonds, ctx).find(o => PLAIN_NUM.test(String(o).trim()) && parseFloat(o) === n) || "";
-      };
 
       rows.forEach((row,ri)=>{
         const get2=(keys)=>String(get(row,keys)||"").trim();
@@ -5551,13 +5854,13 @@ async function importStonesXlsx(e){
         const quality = qual0 ? V.canon("quality", qual0) : "";
         const size_basis0 = get2(["Size Basis","size_basis","SizeBasis"]);
         const size_basis = (size_basis0 && allDiamonds.length && category && type && shape)
-          ? (matchSizeBasis({category,type,shape},size_basis0) || "") : size_basis0;
+          ? (V.canonSizeBasis(allDiamonds,{category,type,shape},size_basis0) || "") : size_basis0;
         const rate_inr = parseFloat(get(row,["Rate/ct (INR)","Rate INR","rate_inr","Rate/CT (INR)"]))||null;
         if(!type0 && !shape && !size_basis){ skipped++; return; }
         const why = !category ? "category/type not recognised" : !type ? `type "${type0}" is not a ${category} type` :
                     !shape ? "shape not recognised" : (color0 && !color) ? `color "${color0}" is not valid for ${category}` :
                     (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
-        if(why){ invalid++; invalidNotes.push(`row ${row.__xl}: ${why}`); return; }
+        if(why){ invalid++; if(invalidNotes.length<8) invalidNotes.push(`row ${ri+2}: ${why}`); return; }
         const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ");
         const d = getStoneDerivedRates(rate_inr, {category, type});
         const rec = withCat({
@@ -5903,6 +6206,7 @@ async function loadJewelCats(){
     allJewelCats=await sb("jewel_categories?order=jewel_type.asc,sub_type1.asc,sub_type2.asc");
     populateJewelTypeFilter();
     renderJewelCatsTable();
+    try{ ppRenderMatrix(); }catch(e){}
   }catch(e){ toast("Failed to load jewelry categories: "+e.message,"error"); }
 }
 
@@ -6552,7 +6856,7 @@ async function sbBulk(table,method,rows){
     method,
     headers:{
       apikey:SUPABASE_KEY,
-      Authorization:"Bearer "+SUPABASE_KEY,
+      Authorization:"Bearer "+(SB_TOKEN||SUPABASE_KEY),
       "Content-Type":"application/json",
       Prefer:"return=minimal"
     },
@@ -6967,10 +7271,6 @@ const MARGIN_INR_NAME = 'margin_per_ct_inr';   // legacy shared record
 const MARGIN_PCT_NAME = 'margin_pct_usd';      // legacy shared record
 const marginInrName = g => MARGIN_INR_NAME+'_'+g;
 const marginPctName = g => MARGIN_PCT_NAME+'_'+g;
-// New in the INR % / per-stone update (no legacy fallback — an unsaved value means 0)
-const marginPctInrCtName      = g => 'margin_pct_inr_'+g;          // % of stone cost, per-carat rows (INR)
-const marginInrStoneName      = g => 'margin_per_stone_inr_'+g;    // flat ₹ per stone, per-stone rows
-const marginPctInrStoneName   = g => 'margin_pct_stone_inr_'+g;    // % of stone cost, per-stone rows (INR)
 
 // Which margin group a stone belongs to. Accepts a stone row, a draft or {category,type}.
 function marginGroupOf(x){
@@ -6985,31 +7285,7 @@ function marginRecVal(name){ const r = allMargins.find(m=>m.name===name); return
 function marginRatesFor(group){
   const inr = marginRecVal(marginInrName(group)), pct = marginRecVal(marginPctName(group));
   const li = marginRecVal(MARGIN_INR_NAME),        lp = marginRecVal(MARGIN_PCT_NAME);
-  const z = v => (!isNaN(v) && v>0) ? v : 0;
-  return {
-    inr: !isNaN(inr)?inr:(!isNaN(li)?li:0),          // flat ₹ / ct
-    pct: !isNaN(pct)?pct:(!isNaN(lp)?lp:0),          // % (USD)
-    pctInr:       z(marginRecVal(marginPctInrCtName(group))),     // % (INR), per carat
-    stoneInr:     z(marginRecVal(marginInrStoneName(group))),     // flat ₹ / stone
-    stonePctInr:  z(marginRecVal(marginPctInrStoneName(group))),  // % (INR), per stone
-  };
-}
-
-// The margin rule, in one place: when both a flat margin and a % margin are set,
-// the higher margin AMOUNT wins (compared in rupees, not as raw numbers).
-function marginAmountINR(flatAmount, pct, cost){
-  const f = flatAmount>0 ? flatAmount : 0;
-  const p = (pct>0 && cost>0) ? cost*pct/100 : 0;
-  return Math.max(f, p);
-}
-// Margin (INR) for one priced line.
-//   basis 'ct'    -> cost is the cost of `units` carats; flat = margin/ct × carats
-//   basis 'stone' -> cost is the cost of `units` stones; flat = margin/stone × stones
-function marginForLineINR(group, basis, cost, units){
-  const m = marginRatesFor(group);
-  return basis==='stone'
-    ? marginAmountINR(m.stoneInr * units, m.stonePctInr, cost)
-    : marginAmountINR(m.inr * units,      m.pctInr,      cost);
+  return { inr: !isNaN(inr)?inr:(!isNaN(li)?li:0), pct: !isNaN(pct)?pct:(!isNaN(lp)?lp:0) };
 }
 
 function initMarginCards(){
@@ -7020,10 +7296,6 @@ function initMarginCards(){
     const pctRec = allMargins.find(m=>m.name===marginPctName(g)) || allMargins.find(m=>m.name===MARGIN_PCT_NAME);
     if(inrEl) inrEl.value = inrRec?.percentage ?? '';
     if(pctEl) pctEl.value = pctRec?.percentage ?? '';
-    const put = (id, name) => { const el = document.getElementById(id); if(el) el.value = allMargins.find(m=>m.name===name)?.percentage ?? ''; };
-    put('margin-pct-inr-ct-'+g,     marginPctInrCtName(g));
-    put('margin-inr-stone-'+g,      marginInrStoneName(g));
-    put('margin-pct-inr-stone-'+g,  marginPctInrStoneName(g));
   });
 }
 
@@ -7035,10 +7307,9 @@ function marginLiveUpdate(){
 async function saveMarginRates(){
   const status = document.getElementById('margin-save-status');
 
-  const upsert = async (name, value, blankAsZero) => {
+  const upsert = async (name, value) => {
+    if(isNaN(value)) return;
     const existing = allMargins.find(m=>m.name===name);
-    // New fields: clearing a box resets a saved value to 0 (otherwise the old % would silently stay in force)
-    if(isNaN(value)){ if(!(blankAsZero && existing && parseFloat(existing.percentage)!==0)) return; value = 0; }
     if(existing){
       await sb('margins?id=eq.'+existing.id,'PATCH',{percentage:value});
     } else {
@@ -7051,9 +7322,6 @@ async function saveMarginRates(){
     for(const g of MARGIN_GROUPS){
       await upsert(marginInrName(g), parseFloat(document.getElementById('margin-inr-ct-'+g)?.value));
       await upsert(marginPctName(g), parseFloat(document.getElementById('margin-pct-usd-'+g)?.value));
-      await upsert(marginPctInrCtName(g),    parseFloat(document.getElementById('margin-pct-inr-ct-'+g)?.value),    true);
-      await upsert(marginInrStoneName(g),    parseFloat(document.getElementById('margin-inr-stone-'+g)?.value),     true);
-      await upsert(marginPctInrStoneName(g), parseFloat(document.getElementById('margin-pct-inr-stone-'+g)?.value), true);
     }
     toast('Margin rates saved.');
     if(status) status.textContent = '';
@@ -7359,51 +7627,13 @@ function renderStonePrices(r){
 function renderStoneReport(){
   if(!document.getElementById("sr-style-tbody")) return;
   if(!srLoaded) return;                       // products still loading — keep the "Loading..." message
-  srDbg.renders++;
-  srDbg.caller = ((new Error().stack||"").split("\n")[2]||"").trim().replace(/^at\s+/,"").slice(0,90);
-  srDbg.at = new Date().toLocaleTimeString();
-  srInRender = true;
   try{ srRenderInner(); }
   catch(e){
     console.error("Stone report error:", e);
     const n = document.getElementById("sr-note");
     if(n){ n.style.color = "#e5484d"; n.textContent = "Report error: " + (e && e.message || e); }
   }
-  finally{ try{ srObs && srObs.takeRecords(); }catch(e){} srInRender = false; srShowDebug(); }
 }
-
-// ── live debug line: shows what last drew the report and whether anything else changed the table ──
-let srInRender = false, srObs = null;
-const srDbg = { renders:0, caller:"", at:"", outside:0, outsideAt:"", outsideRows:0, heals:0 };
-let srHealT = null, srHealLog = [];
-function srShowDebug(){
-  const el = document.getElementById("sr-debug"); if(!el) return;
-  const tb = document.getElementById("sr-style-tbody");
-  el.textContent = `debug · products ${allProducts.length} · draws ${srDbg.renders} · last ${srDbg.at} by ${srDbg.caller || "-"}` +
-    ` · rows now ${tb ? tb.rows.length : "-"} · changed outside report ${srDbg.outside} · auto-repairs ${srDbg.heals}` + (srDbg.outside ? ` (last ${srDbg.outsideAt}, ${srDbg.outsideRows} rows after)` : "");
-}
-(function(){
-  const tb = document.getElementById("sr-style-tbody"); if(!tb) return;
-  srObs = new MutationObserver(()=>{
-    if(srInRender) return;
-    srDbg.outside++; srDbg.outsideAt = new Date().toLocaleTimeString(); srDbg.outsideRows = tb.rows.length; srShowDebug();
-    clearTimeout(srHealT);
-    srHealT = setTimeout(srHeal, 250);
-  });
-  window.srHeal = function(){
-    if(!srLoaded || !srCache) return;
-    let expected = 0; try{ expected = srMatrix(srCache).rows.length; }catch(e){ return; }
-    if(!expected) return;                                   // genuinely nothing to show
-    const shown = [...tb.rows].filter(r => r.style.display !== "none" && r.querySelector("td:not(.state-msg)")).length;
-    if(shown >= expected) return;                           // table is fine
-    const now = Date.now(); srHealLog = srHealLog.filter(t => now - t < 60000);
-    if(srHealLog.length >= 5) return;                       // safety: never loop
-    srHealLog.push(now); srDbg.heals++;
-    renderStoneReport();
-  };
-  srObs.observe(tb, { childList:true, subtree:true, attributes:true, attributeFilter:["style","hidden","class"] });
-  setInterval(srShowDebug, 1000);
-})();
 
 function srRenderInner(){
   const noteEl = document.getElementById("sr-note"); if(noteEl) noteEl.style.color = "";
