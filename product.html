@@ -281,6 +281,14 @@
     .price-line-label { font-size: 13px; color: var(--text); font-weight: 500; }
     .price-line-sub { font-size: 11px; color: var(--text-light); }
     .price-line-value { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; padding-left: 16px; }
+    /* Stone Charges breakup: one indented line each for Diamonds and Gemstones */
+    .price-line.price-line-break { padding: 8px 0 8px 14px; border-bottom: none; }
+    .price-line.price-line-break + .price-line.price-line-break { padding-top: 0; }
+    .price-line.price-line-break .price-line-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .price-line.price-line-break .price-line-value { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+    .price-line.price-line-has-break { border-bottom: none; padding-bottom: 4px; }
+    .price-line.price-line-has-break + .price-line.price-line-break { border-top: none; }
+    .price-line-break-end { border-bottom: 1px solid var(--border-light); }
     .price-total-row {
       display: flex; justify-content: space-between; align-items: baseline;
       padding-top: 16px; margin-top: 2px; border-top: 1px solid var(--border);
@@ -466,7 +474,7 @@
             </div>
             <div class="pd-card-row">
               <div class="pd-field">
-                <label>Stone Type</label>
+                <label>Diamond Type</label>
                 <select data-filter-stone-type></select>
               </div>
               <div class="pd-field">
@@ -668,24 +676,10 @@
       if (!el) return;
       _pdLastCosts = costs;
       const ctaPriceEl = document.querySelector('[data-pd-cta-price]');
-      if (costs && costs.stoneIncomplete) {
-        console.warn('Price on request: these stones could not be sized/priced →',
-          (costs.stoneMissing || []).map(l => `${l.type} ${l.shape} ${l.stone?.length_mm || ''}x${l.stone?.width_mm || ''}mm (${l.status === 'no-size' ? 'no matching size in Stone Sizes' : 'no matching price in Stone Prices'})`));
-      }
 
       if (!costs || costs.total === 0) {
         el.innerHTML = `<p class="price-breakdown-loading">Price on request — contact us for details.</p>`;
         if (ctaPriceEl) ctaPriceEl.textContent = 'Price on request';
-        return;
-      }
-
-      // Flat-priced product (no metal / stone breakdown): one price line
-      if (costs.flatPrice) {
-        el.innerHTML = `<div class="price-total-row">
-          <span class="price-total-label">Price</span>
-          <span class="price-total-value">${esc(costs.fmtTotal)}</span>
-        </div>`;
-        if (ctaPriceEl) ctaPriceEl.textContent = costs.fmtTotal;
         return;
       }
 
@@ -701,9 +695,55 @@
           <span class="price-line-value">${esc(value)}</span>
         </div>`;
 
+      // Stone Charges breakup — Diamonds and Gemstones each get their own line:
+      // stone type(s) · colour · quality · carat weight, plus that group's share of the stone charge.
+      const money = (amount) => costs.symbol + ' ' + _fmtNum(amount, costs.locale, costs.decimals);
+      const stoneGroups = [
+        { cat: 'Diamond',   label: 'Diamonds',  sel: [_selectedCatalogDiamondColor, _selectedCatalogDiamondQuality] },
+        { cat: 'Gem Stone', label: 'Gemstones', sel: [_selectedCatalogGemColor,     _selectedCatalogGemQuality] },
+      ].map((g) => {
+        const ls = (costs.stoneLines || []).filter((l) => l.category === g.cat);
+        if (!ls.length) return null;
+        const ct  = ls.reduce((a, l) => a + (l.totalCt || 0), 0);
+        const inr = ls.reduce((a, l) => a + (l.cost || 0), 0);
+        const types = [...new Set(ls.map((l) => l.type).filter(Boolean))];
+        const parts = [...types, ...g.sel.filter(Boolean), ct ? ct.toFixed(3) + ' ct' : ''].filter(Boolean);
+        return { label: g.label, text: parts.join(' · '), inr };
+      }).filter(Boolean);
+
+      let stoneRowsHtml;
+      if (stoneGroups.length >= 2) {
+        // Amounts are converted per group; the last group takes the remainder so the lines add up exactly
+        let used = 0;
+        const amounts = stoneGroups.map((g, i) => {
+          const a = i === stoneGroups.length - 1 ? costs.stoneCost - used : _convertFromInr(g.inr, costs.currency).amount;
+          used += a; return a;
+        });
+        stoneRowsHtml =
+          `<div class="price-line price-line-has-break">
+            <div class="price-line-info"><span class="price-line-label">Stone Charges</span></div>
+            <span class="price-line-value">${esc(costs.fmtStone)}</span>
+          </div>` +
+          stoneGroups.map((g, i) => `
+          <div class="price-line price-line-break${i === stoneGroups.length - 1 ? ' price-line-break-end' : ''}">
+            <div class="price-line-info">
+              <span class="price-line-label">${esc(g.label)}</span>
+              <span class="price-line-sub">${esc(g.text)}</span>
+            </div>
+            <span class="price-line-value">${esc(money(amounts[i]))}</span>
+          </div>`).join('');
+      } else if (stoneGroups.length === 1) {
+        stoneRowsHtml = row('Stone Charges', stoneGroups[0].label + ' · ' + stoneGroups[0].text, costs.fmtStone);
+      } else if (!(costs.stoneLines || []).length && !costs.stoneIncomplete && !(costs.stoneCost > 0)) {
+        // Plain metal piece: no diamonds or gemstones, so there is no Stone Charges line at all
+        stoneRowsHtml = '';
+      } else {
+        stoneRowsHtml = row('Stone Charges', diamondSub, costs.fmtStone);
+      }
+
       el.innerHTML =
         row('Metal Charges', metalSub, costs.fmtMetal) +
-        row('Stone Charges', diamondSub, costs.fmtStone) +
+        stoneRowsHtml +
         row('Labour Charges', 'Hand-finished', costs.fmtLabour) +
         (costs.certAvailable ? `
         <label class="price-line pd-cert-option">
@@ -756,13 +796,13 @@
         quality: _selectedCatalogDiamondQuality || '',
         stoneType: _selectedCatalogStoneType || '',
       };
-      const currency = _displayCurrency?.code || 'USD';
+      const currency = _displayCurrency?.code || 'INR';
       if (!_pdCertInit) {
         _pdCertInit = true;
         const existing = getStored('vj_cart').find((x) => String(x.id) === String(product.id));
         if (existing?.options?.certification) _pdCertSelected = true;
       }
-      const costs = applyFlatPrice(product, calcProductPrice(product, selectedMetal, selectedDiamond, currency), currency);
+      const costs = calcProductPrice(product, selectedMetal, selectedDiamond, currency);
       renderProductDetailsGrid(product, selectedMetal, selectedDiamond, costs);
       pdFormatSkuLine(product);
       renderPriceBreakdown(costs);
@@ -794,7 +834,7 @@
         const stoneTypeSel = document.querySelector('[data-filter-stone-type]');
         const diamondColorSel = document.querySelector('[data-filter-diamond-color]');
         const diamondQualitySel = document.querySelector('[data-filter-diamond-quality]');
-        if (hasOptions(stoneTypeSel) && !stoneTypeSel.value) missing.push({ label: 'Stone Type', els: [stoneTypeSel] });
+        if (hasOptions(stoneTypeSel) && !stoneTypeSel.value) missing.push({ label: 'Diamond Type', els: [stoneTypeSel] });
         if (hasOptions(diamondColorSel) && !diamondColorSel.value) missing.push({ label: 'Diamond Color', els: [diamondColorSel] });
         if (hasOptions(diamondQualitySel) && !diamondQualitySel.value) missing.push({ label: 'Diamond Quality', els: [diamondQualitySel] });
       }
