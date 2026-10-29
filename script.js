@@ -3,8 +3,8 @@
    Reads the same Supabase tables that admin.html writes to.
 */
 
-const SUPABASE_URL = "https://lcicrgbodblggfmthusb.supabase.co";
-const SUPABASE_KEY = "sb_publishable_qbYpKkR0EGLDd1nMqbcBPg_8qS52k54";
+const SUPABASE_URL = "https://efiajmmxlrvyppdwwfug.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-VEloc-EI4CfRx4K9_si3g_E7QDIpfk";
 
 // Neutral inline placeholder (no external host needed)
 const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
@@ -25,7 +25,7 @@ const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
 // folder path and file name must be the same on ImageKit as they were on
 // Cloudinary. Once the product_media.url rows in Supabase have been updated
 // to ImageKit URLs, this mapping is simply never triggered.
-const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/wsb15dsbc";
+const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/fr43kcknv";
 
 function toImageKitUrl(url) {
   if (!url || typeof url !== "string") return url;
@@ -62,74 +62,78 @@ function cldImg(url, width) {
   return `${url}${sep}tr=w-${width},q-90,c-at_max,f-auto`;
 }
 
-// ── STAFF (ADMIN) SESSION ───────────────────────────────────────────────
-// Set by staff-login.html (kept in sessionStorage, so it ends when the tab closes).
-// Everyone else browses with the public key and only sees what the database allows.
-function vjStaffSession() {
-  try { return JSON.parse(sessionStorage.getItem("vj_staff") || "null"); } catch (e) { return null; }
-}
-function vjIsStaff() { const s = vjStaffSession(); return !!(s && s.access_token); }
-async function vjAuthToken() {
-  const s = vjStaffSession();
-  if (!s || !s.access_token) return SUPABASE_KEY;
-  const now = Math.floor(Date.now() / 1000);
-  if (s.expires_at && s.expires_at - now < 60 && s.refresh_token) {
-    try {
-      const r = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
-        method: "POST", headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh_token: s.refresh_token }),
-      });
-      if (r.ok) {
-        const d = await r.json();
-        const ns = { access_token: d.access_token, refresh_token: d.refresh_token || s.refresh_token, expires_at: d.expires_at || (now + (d.expires_in || 3600)) };
-        sessionStorage.setItem("vj_staff", JSON.stringify(ns));
-        return ns.access_token;
-      }
-    } catch (e) {}
-    sessionStorage.removeItem("vj_staff");
-    return SUPABASE_KEY;
-  }
-  return s.access_token;
-}
 async function sbGet(path) {
-  const go = async (token) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + token },
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + SUPABASE_KEY,
+    },
   });
-  let res = await go(await vjAuthToken());
-  if (res.status === 401 && vjIsStaff()) { sessionStorage.removeItem("vj_staff"); res = await go(SUPABASE_KEY); }
   if (!res.ok) throw new Error("Supabase error " + res.status);
   return res.json();
-}
-
-// Thin bar shown only while a staff member is signed in on the storefront
-function initStaffBar() {
-  if (!vjIsStaff() || document.getElementById("vj-staff-bar")) return;
-  const bar = document.createElement("div");
-  bar.id = "vj-staff-bar";
-  bar.setAttribute("style", "position:sticky;top:0;z-index:9999;background:#1f1f1f;color:#fff;font:600 12px/1.4 system-ui,sans-serif;padding:8px 14px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap");
-  bar.innerHTML = '<span>STAFF VIEW &mdash; you can see every product, including Admin Only and Main Website.</span>' +
-    '<a href="admin.html" style="color:#f0d9a0">Open admin</a>' +
-    '<button type="button" style="background:#fff;color:#1f1f1f;border:0;border-radius:4px;padding:3px 10px;font:600 12px system-ui;cursor:pointer">Sign out of staff view</button>';
-  bar.querySelector("button").addEventListener("click", () => { sessionStorage.removeItem("vj_staff"); location.reload(); });
-  document.body.insertBefore(bar, document.body.firstChild);
 }
 
 function esc(v) {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// ── DEFAULT FILTER-BAR SELECTIONS ───────────────────────────────────────
+// What the top filter bar shows (and prices are worked out for) until the visitor changes it.
+// A visitor's own changes are remembered for the rest of their browser session, so the gallery
+// and the product page always agree. A new session starts from these defaults again.
+const CATALOG_DEFAULTS = {
+  metalType:      "Gold",
+  metalQuality:   "14K",
+  metalColor:     "White",
+  stoneType:      "Lab Grown",     // shown as "Diamond Type"
+  diamondColor:   "G-H",
+  diamondQuality: "VVS-VS",
+  currency:       "USD",
+};
+const _PREF_KEY = "vj_catalog_prefs_v2";
+function _prefGet(name) {
+  try {
+    const o = JSON.parse(sessionStorage.getItem(_PREF_KEY) || "{}");
+    if (Object.prototype.hasOwnProperty.call(o, name)) return o[name];
+  } catch (e) {}
+  return CATALOG_DEFAULTS[name];
+}
+function _prefSet(name, value) {
+  try {
+    const o = JSON.parse(sessionStorage.getItem(_PREF_KEY) || "{}");
+    o[name] = value || "";
+    sessionStorage.setItem(_PREF_KEY, JSON.stringify(o));
+  } catch (e) {}
+}
+// Puts every pricing selector in the top filter bar back to its default (used by "Clear All Filters").
+function _resetCatalogToDefaults() {
+  try { sessionStorage.removeItem(_PREF_KEY); } catch (e) {}
+  // Dependency order: type -> quality, color -> quality. Firing "change" runs each control's own
+  // handler so prices / images follow; the grid is redrawn once by the caller.
+  const order = [
+    ["[data-filter-metal-type]", "metalType"], ["[data-filter-metal-quality]", "metalQuality"],
+    ["[data-filter-metal-color]", "metalColor"], ["[data-filter-stone-type]", "stoneType"],
+    ["[data-filter-diamond-color]", "diamondColor"], ["[data-filter-diamond-quality]", "diamondQuality"],
+    ["[data-filter-currency]", "currency"],
+  ];
+  const before = _suppressApply;
+  _suppressApply = true;
+  try {
+    order.forEach(([sel, key]) => {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      const want = CATALOG_DEFAULTS[key];
+      el.value = [...el.options].some((o) => o.value === want) ? want : "";
+      el.dispatchEvent(new Event("change"));
+    });
+  } finally { _suppressApply = before; }
+  _livePriceCache.clear();
+}
+// Diamond rows are Natural / Lab Grown (or the legacy word "Diamond"); everything else is a gemstone.
+const _isDiamondStoneType = (t) => /^(diamond|natural|lab[\s-]*grown)$/i.test(String(t || "").trim());
+
 // ── DISPLAY CURRENCY (set via top filter bar) ───────────────────────────
 let _displayCurrency = null; // {code, symbol, rate_to_inr} or null = use product's native currency
-
-// Default display currency is USD. The shopper's choice (USD / INR / ...) is
-// remembered so the main page filter and the product page stay in sync.
-const _CURRENCY_KEY = "vj_currency";
-function _storedCurrencyCode() {
-  try { return localStorage.getItem(_CURRENCY_KEY) || "USD"; } catch (e) { return "USD"; }
-}
-function _saveCurrencyCode(code) {
-  try { localStorage.setItem(_CURRENCY_KEY, code); } catch (e) {}
-}
 
 function getBaseUSD(p) {
   if (p.price_usd != null && p.price_usd !== "") return Number(p.price_usd);
@@ -141,38 +145,11 @@ function getBaseUSD(p) {
   return null;
 }
 
-// ── FLAT PRICE (per-product price from the admin Product Pricing master / CSV) ──
-// Products with no metal weight have nothing for the metal + stone + labour engine to
-// price, so they carry one flat USD price (products.price_usd). This wraps the engine's
-// result: when the product has a flat price and the engine has nothing (or no metal
-// weights), return that flat price in the shopper's currency in the same shape.
-function _hasAnyNetWeight(p) {
-  return ["net_weight_18k", "net_weight_14k", "net_weight_10k", "net_weight_silver"].some(k => Number(p && p[k]) > 0);
-}
-function applyFlatPrice(product, costs, currencyCode) {
-  const usd = getBaseUSD(product);
-  if (!(usd > 0)) return costs;
-  if (costs && costs.total > 0 && _hasAnyNetWeight(product)) return costs;   // weight-based price wins
-  const cur = currencyCode || _displayCurrency?.code || "USD";
-  const out = _convertFromUsd(usd, cur);
-  const locale = cur === "INR" ? "en-IN" : "en-US";
-  const decimals = cur === "INR" ? 0 : 2;
-  const fmt = out.symbol + " " + _fmtNum(out.amount, locale, decimals);
-  return {
-    metalCost: 0, stoneCost: 0, labourCost: 0, total: out.amount, symbol: out.symbol, currency: cur,
-    fmtMetal: "", fmtStone: "", fmtLabour: "", fmtTotal: fmt,
-    certAvailable: false, certCost: 0, fmtCert: "", locale, decimals,
-    netWeightG: 0, totalStoneCtWt: 0,
-    stoneIncomplete: false, stoneMissing: [], stoneLines: [],
-    flatPrice: true,
-  };
-}
-
 function fmtPrice(p) {
   // Prefer live-computed price from the pricing engine (metal + stone + labour),
   // using whichever currency is currently selected in the top filter bar.
   if (_pmMetals) {
-    const currencyCode = _displayCurrency?.code || "USD";
+    const currencyCode = _displayCurrency?.code || "INR";
     const costs = computeLivePriceCosts(p, currencyCode);
     if (costs && costs.total > 0) return costs.fmtTotal;
   }
@@ -453,6 +430,33 @@ async function renderCategoryGrid() {
     .join("");
 }
 
+// ── DIAMONDS / GEMSTONES LINES ON GALLERY TILES ────────────────────────────
+// Same split as the Price Breakdown on the product page: one small line for Diamonds and one
+// for Gemstones, each with its carat weight. Only groups the product really has are shown, and
+// nothing is shown when the price is "on request" (a stone that cannot be sized or priced).
+(function () {
+  if (document.getElementById("vj-tile-stone-css")) return;
+  const st = document.createElement("style");
+  st.id = "vj-tile-stone-css";
+  st.textContent = `
+    .product-card-stones { display:flex; flex-direction:column; gap:2px; margin-top:6px; }
+    .product-card-stone-line { font-size:11px; letter-spacing:.02em; color:var(--text-light, #8a8176); line-height:1.4; }
+    .product-card-stone-line b { font-weight:600; color:var(--text-muted, #6b645a); margin-right:4px; }`;
+  document.head.appendChild(st);
+})();
+function productCardStonesHtml(p) {
+  if (!_pmMetals) return "";                                   // pricing masters not loaded yet
+  let costs = null;
+  try { costs = computeLivePriceCosts(p, _displayCurrency?.code || "INR"); } catch (e) { return ""; }
+  if (!costs || costs.stoneIncomplete || !(costs.stoneLines || []).length) return "";
+  const line = ([cat, label]) => {
+    const ct = costs.stoneLines.filter((l) => l.category === cat).reduce((a, l) => a + (l.totalCt || 0), 0);
+    return ct > 0 ? `<span class="product-card-stone-line"><b>${label}</b>${ct.toFixed(3)} ct</span>` : "";
+  };
+  const html = [["Diamond", "Diamonds"], ["Gem Stone", "Gemstones"]].map(line).join("");
+  return html ? `<div class="product-card-stones">${html}</div>` : "";
+}
+
 // ── PRODUCT GRID ────────────────────────────────────────────────────────
 function productCardHtml(p) {
   const orig = primaryImage(p);
@@ -464,6 +468,7 @@ function productCardHtml(p) {
       ${p.sku ? `<p class="product-card-sku">${esc(p.sku)}</p>` : ""}
       ${p.short_description ? `<p class="product-card-desc">${esc(p.short_description)}</p>` : ""}
       <p class="product-card-price">${fmtPrice(p)}</p>
+      ${productCardStonesHtml(p)}
     </div>
   </a>`;
 }
@@ -540,7 +545,6 @@ function parseMetal(p) {
 async function renderProductGrid() {
   const el = document.querySelector("[data-product-grid]");
   if (!el) return;
-  if (window.VJ_SERVER_CATALOG && typeof renderServerCatalog === "function") return renderServerCatalog();
   // The grid is filled in after products load, so the browser's own scroll
   // restoration fires too early (page still short). We restore it ourselves.
   if (_isPaged()) { try { history.scrollRestoration = "manual"; } catch (e) {} }
@@ -775,17 +779,8 @@ async function renderProductGrid() {
         const input = document.querySelector(sel);
         if (input) input.value = "";
       });
-      ["[data-filter-metal-quality]", "[data-filter-stone-type]", "[data-filter-diamond-color]", "[data-filter-diamond-quality]"].forEach((sel) => {
-        const dd = document.querySelector(sel);
-        if (dd) dd.value = "";
-      });
-      _selectedCatalogMetalQuality = null;
-      try { localStorage.removeItem("vj_metal_quality"); } catch (e) {}
-      _selectedCatalogDiamondColor = null;
-      _selectedCatalogDiamondQuality = null;
-      _selectedCatalogStoneType = null;
-      _livePriceCache.clear();
-      populateDiamondFilters(); // rebuild Diamond Quality options for the cleared color
+      // The pricing selectors (metal / diamond / currency) go back to the DEFAULTS, not to blank
+      _resetCatalogToDefaults();
       const search = document.querySelector("[data-product-search]");
       if (search) search.value = "";
       applyFilters();
@@ -809,6 +804,10 @@ async function renderProductGrid() {
       applyFilters();
     });
   });
+
+  if (!_restoredState || !_restoredState.sort) {
+    document.querySelectorAll("[data-sort]").forEach((b) => b.classList.toggle("active", b.dataset.sort === _currentSort));
+  }
 
   finishCollectionsRestore(_restoredState);
 }
@@ -842,8 +841,14 @@ async function setupCatalogFilterBar() {
 
   // Stone types sourced from the Stone Prices master (_pmStoneTypes.type),
   // so any type added in admin automatically appears here.
+  // The "Diamond Type" dropdown lists diamond types only (Natural / Lab Grown); if none can be
+  // told apart, it falls back to every type so the dropdown is never empty.
+  const _diamondRows = (_pmStoneTypes || []).filter(s => {
+    const c = String(s.category || "").toLowerCase();
+    return c ? c === "diamond" : _isDiamondStoneType(s.type);
+  });
   const stoneTypesSet = new Set(
-    (_pmStoneTypes || []).map(s => s.type).filter(Boolean)
+    (_diamondRows.length ? _diamondRows : (_pmStoneTypes || [])).map(s => s.type).filter(Boolean)
   );
 
   const fillSelect = (sel, values, placeholder) => {
@@ -855,10 +860,14 @@ async function setupCatalogFilterBar() {
     sel.addEventListener("change", onCatalogFilterChange);
   };
 
-  fillSelect(stoneTypeSel, stoneTypesSet, "Stone Type");
+  fillSelect(stoneTypeSel, stoneTypesSet, "Diamond Type");
   if (stoneTypeSel) {
+    const wantType = _prefGet("stoneType");
+    stoneTypeSel.value = [...stoneTypesSet].includes(wantType) ? wantType : "";
+    _selectedCatalogStoneType = stoneTypeSel.value || null;
     stoneTypeSel.addEventListener("change", () => {
       _selectedCatalogStoneType = stoneTypeSel.value || null;
+      _prefSet("stoneType", stoneTypeSel.value);
       _livePriceCache.clear();
       onCatalogFilterChange();
     });
@@ -866,7 +875,7 @@ async function setupCatalogFilterBar() {
 
   // ── METAL TYPE: hardcoded Gold / Silver ──────────────────────────────
   if (metalTypeSel) {
-    const cur = metalTypeSel.value;
+    const cur = _prefGet("metalType");
     metalTypeSel.innerHTML = `<option value="">Metal Type</option>` +
       ["Gold", "Silver"].map(t => `<option value="${esc(t)}"${t === cur ? " selected" : ""}>${esc(t)}</option>`).join("");
   }
@@ -893,26 +902,26 @@ async function setupCatalogFilterBar() {
 
     // Keep the preferred value only if it's still valid for this type
     const valid = options.some(o => o.quality === preferredValue);
-    metalQualitySel.value = valid ? preferredValue : "";
+    // If the old quality no longer fits the chosen Metal Type, pick that type's usual one
+    // (Gold -> 14K, Silver -> 925) instead of leaving the dropdown blank.
+    const fallback = typeFilter ? ((options.find(o => o.quality === "14K") || options[0] || {}).quality || "") : "";
+    metalQualitySel.value = valid ? preferredValue : fallback;
     _selectedCatalogMetalQuality = metalQualitySel.value || null;
     try { localStorage.setItem("vj_metal_quality", _selectedCatalogMetalQuality || ""); } catch (e) {}
   };
 
   if (metalTypeSel) {
     metalTypeSel.addEventListener("change", () => {
+      _prefSet("metalType", metalTypeSel.value);
       populateMetalQuality(_selectedCatalogMetalQuality || "");
+      _prefSet("metalQuality", _selectedCatalogMetalQuality || "");
       onCatalogFilterChange();
     });
   }
 
   if (metalQualitySel) {
-    const cur = metalQualitySel.value;
-
-    // Restore last-used quality (persisted across pages) if nothing else is set yet
-    let storedQuality = null;
-    try { storedQuality = localStorage.getItem("vj_metal_quality"); } catch (e) {}
-
-    const preferredValue = cur || _selectedCatalogMetalQuality || storedQuality || "";
+    // This session's choice, else the default (14K)
+    const preferredValue = _selectedCatalogMetalQuality || _prefGet("metalQuality") || "";
 
     // If we have a preferred quality but no Metal Type selected yet, infer
     // the Metal Type from it so the dropdown opens already filtered.
@@ -925,6 +934,7 @@ async function setupCatalogFilterBar() {
 
     metalQualitySel.addEventListener("change", () => {
       _selectedCatalogMetalQuality = metalQualitySel.value || null;
+      _prefSet("metalQuality", metalQualitySel.value);
       try { localStorage.setItem("vj_metal_quality", _selectedCatalogMetalQuality || ""); } catch (e) {}
       onCatalogFilterChange();
     });
@@ -932,28 +942,21 @@ async function setupCatalogFilterBar() {
 
   if (currencySel) {
     const currencies = await getAllCurrencies();
-    const cur = currencySel.value;
-    // USD is the default and listed first, then INR, then all others from DB
-    const ordered = [
-      { code: "USD", symbol: "$" },
+    const cur = _prefGet("currency");
+    // INR is the base currency — always listed first, then all others from DB
+    const inrFirst = [
       { code: "INR", symbol: "₹" },
-      ...currencies.filter(c => c.code !== "INR" && c.code !== "USD"),
+      ...currencies.filter(c => c.code !== "INR"),
     ];
-    currencySel.innerHTML = ordered
+    currencySel.innerHTML = inrFirst
       .map(c => `<option value="${esc(c.code)}">${esc(c.symbol)} ${esc(c.code)}</option>`)
       .join("");
-    currencySel.value = cur || _storedCurrencyCode();
-    if (!currencySel.value) currencySel.value = "USD";
-    const findCur = code => currencies.find(c => c.code === code)
-      || (code === "INR" ? { code: "INR", symbol: "₹", rate_to_inr: 1 } : { code: "USD", symbol: "$" });
+    currencySel.value = inrFirst.some(c => c.code === cur) ? cur : "INR";
+    const findCur = code => currencies.find(c => c.code === code) || { code: "INR", symbol: "₹", rate_to_inr: 1 };
     _displayCurrency = findCur(currencySel.value);
-    _saveCurrencyCode(_displayCurrency.code);
-    try { syncPriceFilterCurrency(); } catch (e) { console.error("price filter sync failed", e); }
     currencySel.addEventListener("change", () => {
       _displayCurrency = findCur(currencySel.value);
-      _saveCurrencyCode(_displayCurrency.code);
-      _livePriceCache.clear();
-      try { syncPriceFilterCurrency(); } catch (e) { console.error("price filter sync failed", e); }
+      _prefSet("currency", currencySel.value);
       onCatalogFilterChange();
     });
   }
@@ -961,13 +964,14 @@ async function setupCatalogFilterBar() {
   // ── METAL COLOR: display-only — selects which tagged product image to show ──
   // Does NOT affect pricing or technical details.
   if (metalColorSel) {
-    const cur = metalColorSel.value;
+    const cur = _prefGet("metalColor");
     metalColorSel.innerHTML = `<option value="">Metal Color</option>` +
       ["White", "Yellow", "Rose", "Multi-Tone", "Model Showcase", "Spotlight View"]
         .map(c => `<option value="${esc(c)}"${c === cur ? " selected" : ""}>${esc(c)}</option>`).join("");
     _selectedMetalColor = metalColorSel.value || null;
     metalColorSel.addEventListener("change", () => {
       _selectedMetalColor = metalColorSel.value || null;
+      _prefSet("metalColor", metalColorSel.value);
       onCatalogFilterChange();
     });
   }
@@ -1000,6 +1004,7 @@ function onCatalogFilterChange() {
 // calcProductPrice()'s stone-rate lookup but never hide products that don't
 // have a matching stone (graceful fallback to type+shape rate).
 let _diamondFiltersWired = false;
+let _diamondDefaultsApplied = false;   // the default Color / Quality are applied once, never over a later choice
 function populateDiamondFilters() {
   const colorSel = document.querySelector("[data-filter-diamond-color]");
   const qualitySel = document.querySelector("[data-filter-diamond-quality]");
@@ -1007,7 +1012,9 @@ function populateDiamondFilters() {
 
   const stoneTypes = _pmStoneTypes || [];
 
-  const refreshQualities = () => {
+  const firstRun = !_diamondDefaultsApplied && stoneTypes.length > 0;
+
+  const refreshQualities = (forced) => {
     if (!qualitySel) return;
     const colorFilter = colorSel?.value || "";
     const qualities = [...new Set(
@@ -1016,7 +1023,7 @@ function populateDiamondFilters() {
         .map((s) => s.quality)
         .filter(Boolean)
     )].sort();
-    const cur = qualitySel.value;
+    const cur = forced !== undefined ? forced : qualitySel.value;
     qualitySel.innerHTML = `<option value="">Diamond Quality</option>` +
       qualities.map((q) => `<option value="${esc(q)}">${esc(q)}</option>`).join("");
     qualitySel.value = qualities.includes(cur) ? cur : "";
@@ -1025,14 +1032,15 @@ function populateDiamondFilters() {
 
   if (colorSel) {
     const colors = [...new Set(stoneTypes.map((s) => s.color).filter(Boolean))].sort();
-    const cur = colorSel.value;
+    const cur = firstRun ? _prefGet("diamondColor") : colorSel.value;
     colorSel.innerHTML = `<option value="">Diamond Color</option>` +
       colors.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
     colorSel.value = colors.includes(cur) ? cur : "";
     _selectedCatalogDiamondColor = colorSel.value || null;
   }
 
-  refreshQualities();
+  refreshQualities(firstRun ? _prefGet("diamondQuality") : undefined);
+  if (firstRun) _diamondDefaultsApplied = true;
 
   if (!_diamondFiltersWired) {
     if (colorSel) {
@@ -1040,12 +1048,15 @@ function populateDiamondFilters() {
         _selectedCatalogDiamondColor = colorSel.value || null;
         _livePriceCache.clear();
         refreshQualities();
+        _prefSet("diamondColor", colorSel.value);
+        _prefSet("diamondQuality", qualitySel ? qualitySel.value : "");
         onCatalogFilterChange();
       });
     }
     if (qualitySel) {
       qualitySel.addEventListener("change", () => {
         _selectedCatalogDiamondQuality = qualitySel.value || null;
+        _prefSet("diamondQuality", qualitySel.value);
         _livePriceCache.clear();
         onCatalogFilterChange();
       });
@@ -1080,76 +1091,7 @@ function updateProductsHeading() {
   }
 }
 
-// ── PRICE RANGE FILTER (follows the selected display currency) ──────────
-// The Min / Max inputs are typed in whichever currency is selected (USD by
-// default). _priceFilterCurrency remembers which currency the current values
-// are expressed in, so switching currency converts them instead of silently
-// reinterpreting e.g. 500 USD as 500 INR.
-let _priceFilterCurrency = null;
-
-function _displayToUsd(amount, code) {
-  if (code === "USD") return amount;
-  const inrPerUSD = _inrPerUsd();
-  if (code === "INR") return amount / inrPerUSD;
-  const rec = (_allCurrencies || []).find(c => c.code === code);
-  if (rec?.rate_to_inr) return amount / rec.rate_to_inr / inrPerUSD;
-  return amount / inrPerUSD;
-}
-
-function syncPriceFilterCurrency() {
-  const code = _displayCurrency?.code || "USD";
-  const sym = _displayCurrency?.symbol || (code === "INR" ? "₹" : code === "USD" ? "$" : code);
-  const minEl = document.querySelector("[data-price-min]");
-  const maxEl = document.querySelector("[data-price-max]");
-  const prev = _priceFilterCurrency;
-  if (prev && prev !== code && !_suppressApply) {
-    [minEl, maxEl].forEach((el) => {
-      if (!el) return;
-      const n = numOrNull(el.value);
-      if (n == null) return;
-      el.value = String(Math.round(_convertFromUsd(_displayToUsd(n, prev), code).amount));
-    });
-  }
-  _priceFilterCurrency = code;
-  if (minEl) minEl.placeholder = `Min (${sym})`;
-  if (maxEl) maxEl.placeholder = `Max (${sym})`;
-  document.querySelectorAll("[data-price-currency-label]").forEach((el) => { el.textContent = sym; });
-  updatePriceRangeTitle(code, minEl || maxEl);
-}
-
-// Keeps the sidebar heading ("Price Range (USD)") in step with the selected
-// currency. Finds the text node containing "Price Range" near the Min/Max
-// inputs and swaps only its "(XXX)" part, so any arrow/icon beside it stays.
-function updatePriceRangeTitle(code, anchor) {
-  if (!anchor) return;
-  let scope = anchor.parentElement;
-  for (let i = 0; i < 5 && scope; i++, scope = scope.parentElement) {
-    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
-    let n;
-    while ((n = walker.nextNode())) {
-      if (!/price\s*range/i.test(n.nodeValue)) continue;
-      n.nodeValue = /\(\s*[A-Za-z]{3}\s*\)/.test(n.nodeValue)
-        ? n.nodeValue.replace(/\(\s*[A-Za-z]{3}\s*\)/, `(${code})`)
-        : n.nodeValue.replace(/(price\s*range)/i, `$1 (${code})`);
-      return;
-    }
-  }
-}
-
-// Price of a product in the selected display currency — same source as the
-// price shown on the tile, so the filter matches what the shopper sees.
-function getPriceInDisplayCurrency(p) {
-  const code = _displayCurrency?.code || "USD";
-  if (_pmMetals) {
-    const costs = computeLivePriceCosts(p, code);
-    if (costs && costs.total > 0) return costs.total;
-  }
-  const usd = getPriceUSD(p);
-  return usd == null ? null : _convertFromUsd(usd, code).amount;
-}
-
 function applyFilters() {
-  if (window.VJ_SERVER_CATALOG && typeof serverCatalogApply === "function") { serverCatalogApply(); return; }
   if (_suppressApply) return;
   updateProductsHeading();
   const products = _allProductsCache || [];
@@ -1215,7 +1157,7 @@ function applyFilters() {
 
   if (priceMin != null || priceMax != null) {
     list = list.filter((p) => {
-      const price = getPriceInDisplayCurrency(p);
+      const price = getPriceUSD(p);
       if (price == null) return false;
       if (priceMin != null && price < priceMin) return false;
       if (priceMax != null && price > priceMax) return false;
@@ -1225,7 +1167,7 @@ function applyFilters() {
 
   if (weightMin != null || weightMax != null) {
     list = list.filter((p) => {
-      const w = p.metal_weight;
+      const w = productMetalWeightG(p);
       if (w == null) return false;
       if (weightMin != null && w < weightMin) return false;
       if (weightMax != null && w > weightMax) return false;
@@ -1235,7 +1177,7 @@ function applyFilters() {
 
   if (diamondMin != null || diamondMax != null) {
     list = list.filter((p) => {
-      const w = p.stone_weight;
+      const w = productDiamondCt(p);
       if (w == null) return false;
       if (diamondMin != null && w < diamondMin) return false;
       if (diamondMax != null && w > diamondMax) return false;
@@ -2213,6 +2155,9 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   // ── 2. STONE COST ─────────────────────────────────────────────────────
   let stoneCostINR = 0;
   let totalStoneCtWt = 0;
+  let diamondCtWt = 0;            // diamonds only: the basis for the optional EGL certification
+  const stoneLines = [];          // one entry per priced stone row: { category, type, totalCt, cost (INR) }
+  let stoneIncomplete = false;    // true if any stone row could not be sized or priced
 
   const stoneRows = product.product_stones || [];
   stoneRows.forEach(row => {
@@ -2223,6 +2168,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     const stoneType = row.stone_type || "";
 
     if (!pcs || !stoneType) return;
+    const _rowCat = _isDiamondStoneType(stoneType) ? "Diamond" : "Gem Stone";
 
     // Step 1+2: Find avg weight from diamond_sizes (match shape + dims)
     let avgWtCt = 0;
@@ -2239,19 +2185,21 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
 
     const totalWtCt = pcs * avgWtCt;
     totalStoneCtWt += totalWtCt;
+    if (_rowCat === "Diamond") diamondCtWt += totalWtCt;
 
-    if (!totalWtCt) return;
+    if (!totalWtCt) { stoneIncomplete = true; return; }
 
     // Step 3+4: Find price from stone_types (match type + shape + color + quality + size_basis)
     // "Natural" and "Lab Grown" are separate rows in stone_types with their own rates.
     // Technical details (avg wt, size basis) come from diamond_sizes which is shared (matched by shape+dims only).
     // If the user has selected a stone type override (e.g. "Lab Grown"), use that instead of
     // the product's stored stone_type so the price reflects the chosen material.
-    const selStoneType = (selectedDiamond?.stoneType || "").toLowerCase();
+    const rowIsDiamond = _isDiamondStoneType(stoneType);
+    const selStoneType = rowIsDiamond ? (selectedDiamond?.stoneType || "").toLowerCase() : "";
     const lookupType = selStoneType || stoneType.toLowerCase();
 
-    const selColor   = (selectedDiamond?.color   || "").toLowerCase();
-    const selQuality = (selectedDiamond?.quality || "").toLowerCase();
+    const selColor   = rowIsDiamond ? (selectedDiamond?.color   || "").toLowerCase() : "";
+    const selQuality = rowIsDiamond ? (selectedDiamond?.quality || "").toLowerCase() : "";
 
     const stoneRec = stoneTypes.find(s =>
       (s.type  || "").toLowerCase() === lookupType &&
@@ -2267,7 +2215,13 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
 
     if (stoneRec) {
       // Use price_inr / price_usd (margin-included) not rate_inr / rate_usd (base rate)
-      stoneCostINR += totalWtCt * Number(stoneRec.price_inr || stoneRec.rate_inr || 0);
+      const _lineInr = totalWtCt * Number(stoneRec.price_inr || stoneRec.rate_inr || 0);
+      stoneCostINR += _lineInr;
+      // Category comes from the stone's own name (Natural / Lab Grown / Diamond = Diamond; anything
+      // else = Gem Stone) so a gemstone can never be filed under Diamonds by a stray master value.
+      stoneLines.push({ category: _rowCat, type: stoneRec.type || stoneType, totalCt: totalWtCt, cost: _lineInr });
+    } else {
+      stoneIncomplete = true;
     }
   });
 
@@ -2317,10 +2271,10 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
 
   // 3c. Certification (EGL) is an OPTIONAL add-on the customer ticks on the product page,
   // so it is NOT part of labour or the base total. Rate and minimum are stored in INR;
-  // INR ÷ USD rate = USD. Cost = rate × total diamond ct, raised to the minimum if lower.
+  // INR ÷ USD rate = USD. Cost = rate × total DIAMOND ct (gemstones excluded), raised to the minimum if lower.
   const certRateInr = Number(labour.find(l => l.category === "__cert_rate_inr__")?.charge || 0);
   const certMinInr  = Number(labour.find(l => l.category === "__cert_min_inr__")?.charge  || 0);
-  const certCalcUSD = (certRateInr / inrPerUSD) * totalStoneCtWt;
+  const certCalcUSD = (certRateInr / inrPerUSD) * diamondCtWt;   // diamonds only, gemstones are not certified
   const certCostUSD = certCalcUSD > 0 ? Math.max(certCalcUSD, certMinInr / inrPerUSD) : 0;
 
   const labourCostUSD = settingCostUSD + makingCostUSD;
@@ -2355,6 +2309,8 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     // raw data for detail display
     netWeightG,
     totalStoneCtWt,
+    stoneLines,
+    stoneIncomplete,
   };
 }
 
@@ -2402,6 +2358,11 @@ let _selectedCatalogMetalQuality = null;
 let _selectedCatalogDiamondColor = null;
 let _selectedCatalogDiamondQuality = null;
 
+// Colour / quality shown against the Gemstones line of the Price Breakdown (gem rows are priced by
+// type + shape + size, so these are display-only and stay null unless a gem selector sets them).
+let _selectedCatalogGemColor = null;
+let _selectedCatalogGemQuality = null;
+
 // Globally selected stone type override (e.g. "Natural", "Lab Grown").
 // When set, substitutes product_stones.stone_type in the pricing lookup so
 // users can see what the same piece costs in Natural vs Lab Grown stones.
@@ -2441,6 +2402,33 @@ function computeLivePriceCosts(product, currencyCode) {
   _livePriceCache.set(cacheKey, result);
   return result;
 }
+// ── WEIGHTS FOR THE SIDEBAR FILTERS ─────────────────────────────────────
+// "Metal Weight" = net metal weight in grams for the metal quality currently selected in the
+// top filter bar (else the product's first available quality).
+// "Diamond Weight" = total stone carat weight, worked out exactly as the price is: every
+// product stone's pcs × average carat weight from the Stone Sizes master.
+// Both come from the same calculation that prices the tile, so the filter always agrees with
+// what the tile shows. Returns null when a weight cannot be determined.
+function _filterCosts(p) {
+  if (!_pmMetals) return null;                       // pricing masters not loaded yet
+  try { return computeLivePriceCosts(p, "USD"); } catch (e) { return null; }
+}
+function productMetalWeightG(p) {
+  const c = _filterCosts(p);
+  if (c && Number(c.netWeightG) > 0) return Number(c.netWeightG);
+  // Fallback (masters not ready): net weight of the selected quality, else the first one the product has
+  const f = { "18K": "net_weight_18k", "14K": "net_weight_14k", "10K": "net_weight_10k", "925": "net_weight_silver" };
+  const sel = _selectedCatalogMetalQuality && Number(p[f[_selectedCatalogMetalQuality]]) > 0 ? _selectedCatalogMetalQuality : null;
+  const q = sel || productMetalQualities(p)[0];
+  const w = q ? Number(p[f[q]]) : 0;
+  return w > 0 ? w : null;
+}
+function productDiamondCt(p) {
+  const c = _filterCosts(p);
+  if (c) return Number(c.totalStoneCtWt) || 0;       // 0 = no sized stones on this product
+  return null;
+}
+
 // Returns the live total price in USD for sorting/filtering, or null if unavailable.
 function getLivePriceUSD(product) {
   if (!_pmMetals) return null; // pricing masters not loaded yet
@@ -2463,7 +2451,8 @@ async function runProductPricing(rawProduct) {
   // product is available in that quality). Only applies on first render.
   if (_selectedProductMetalQuality === null) {
     let storedQuality = null;
-    try { storedQuality = localStorage.getItem("vj_metal_quality"); } catch (e) {}
+    storedQuality = _prefGet("metalQuality") || null;
+    if (!storedQuality) { try { storedQuality = localStorage.getItem("vj_metal_quality"); } catch (e) {} }
     if (storedQuality && available.some(a => a.quality === storedQuality)) {
       _selectedProductMetalQuality = storedQuality;
     }
@@ -2573,9 +2562,9 @@ function renderProductPricingForSelection(product, available) {
     stoneType: _selectedCatalogStoneType || "",
   };
 
-  const currency = _displayCurrency?.code || "USD";
+  const currency = _displayCurrency?.code || "INR";
 
-  const costs = applyFlatPrice(product, calcProductPrice(product, selectedMetal, selectedDiamond, currency), currency);
+  const costs = calcProductPrice(product, selectedMetal, selectedDiamond, currency);
   renderPriceBreakdown(costs);
   renderProductDetailsGrid(product, selectedMetal, selectedDiamond, costs);
 }
@@ -2591,15 +2580,6 @@ function renderPriceBreakdown(costs) {
   }
 
   const dot = `<span class="price-line-dots"></span>`;
-
-  if (costs.flatPrice) {
-    el.innerHTML = `
-    <div class="price-total-row">
-      <span class="price-total-label">Price</span>
-      <span class="price-total-value">${esc(costs.fmtTotal)}</span>
-    </div>`;
-    return;
-  }
 
   el.innerHTML = `
     <div class="price-line">
@@ -2656,7 +2636,10 @@ function renderProductDetailsGrid(product, selectedMetal, selectedDiamond, costs
   const diamEl = document.querySelector("[data-pd-diamond-display]");
   if (diamEl) {
     const parts = [selectedDiamond?.color, selectedDiamond?.quality].filter(Boolean);
-    const ctWt  = costs?.totalStoneCtWt;
+    // Diamond carats only (gemstone carats are shown on their own line in the price breakdown)
+    const ctWt  = costs?.stoneLines
+      ? costs.stoneLines.filter(l => l.category === "Diamond").reduce((a, l) => a + (l.totalCt || 0), 0)
+      : costs?.totalStoneCtWt;
     if (ctWt) parts.push(Number(ctWt).toFixed(3) + " ct");
     diamEl.textContent = parts.length ? parts.join(" · ") : (product.stone || "—");
   }
@@ -2716,7 +2699,6 @@ async function renderProductDetail() {
 // ── INIT ───────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
   initImageProtection();
-  initStaffBar();
   updateNavBadges();
   await setupCatalogFilterBar();
   renderCategoryGrid();
