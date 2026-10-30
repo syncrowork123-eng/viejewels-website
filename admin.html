@@ -471,7 +471,8 @@
   <div class="login-card">
     <p class="brand">Vie Jewels</p>
     <h1>Admin Panel</h1>
-    <input type="password" id="pin-input" placeholder="Enter admin password" />
+    <input type="email" id="admin-email" placeholder="Admin email" autocomplete="username" style="letter-spacing:0;" />
+    <input type="password" id="pin-input" placeholder="Password" autocomplete="current-password" />
     <div class="login-error" id="login-error"></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In</button>
   </div>
@@ -1734,7 +1735,6 @@
 const SUPABASE_URL = "https://efiajmmxlrvyppdwwfug.supabase.co";
 
 const SUPABASE_KEY = "sb_publishable_-VEloc-EI4CfRx4K9_si3g_E7QDIpfk";
-const ADMIN_PASSWORD = "viejewels2024";
 
 const CLOUD_PROVIDERS = {
   cloudinary: { label: "Cloudinary", base: "https://res.cloudinary.com/dnvajljoc/image/upload/viejewels/products/" },
@@ -1813,24 +1813,77 @@ document.querySelectorAll(".tab-btn, .sub-tab-btn").forEach(b=>b.addEventListene
 let _navT; window.addEventListener("scroll", ()=>{ clearTimeout(_navT); _navT = setTimeout(navSave,250); }, {passive:true});
 window.addEventListener("pagehide", navSave);
 
-function doLogin(){
-  const val=document.getElementById("pin-input").value;
-  if(val===ADMIN_PASSWORD){ sessionStorage.setItem("vj_admin","1"); showApp(); }
-  else { document.getElementById("login-error").textContent="Incorrect password."; document.getElementById("pin-input").value=""; }
+// ── ADMIN SIGN-IN (Supabase Auth) ────────────────────────────────────────
+// The admin signs in with a real Supabase login. Every database call below then carries that
+// login's token instead of the public key, so row-level security can tell the admin apart from visitors.
+const ADMIN_SESSION_KEY = "vj_admin_session";
+function adminSession(){ try{ return JSON.parse(sessionStorage.getItem(ADMIN_SESSION_KEY)||"null"); }catch(e){ return null; } }
+function adminSetSession(d){
+  sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({
+    access_token:d.access_token, refresh_token:d.refresh_token,
+    expires_at: d.expires_at || (Math.floor(Date.now()/1000)+(d.expires_in||3600))
+  }));
+}
+async function adminAuthRequest(grant, body){
+  const res=await fetch(SUPABASE_URL+"/auth/v1/token?grant_type="+grant,{
+    method:"POST", headers:{apikey:SUPABASE_KEY,"Content-Type":"application/json"}, body:JSON.stringify(body)
+  });
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error_description||data.msg||data.message||"Sign-in failed");
+  return data;
+}
+function adminForceLogout(msg){
+  sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  if(msg) sessionStorage.setItem("vj_admin_msg", msg);
+  location.reload();
+}
+let _adminRefreshing=null;
+async function adminToken(){                       // a valid access token, refreshed shortly before it expires
+  const s=adminSession();
+  if(!s){ adminForceLogout("Please sign in again."); throw new Error("Not signed in"); }
+  if(s.expires_at - Math.floor(Date.now()/1000) > 60) return s.access_token;
+  if(!_adminRefreshing){
+    _adminRefreshing = adminAuthRequest("refresh_token",{refresh_token:s.refresh_token})
+      .then(d=>{ adminSetSession(d); return d.access_token; })
+      .catch(e=>{ adminForceLogout("Your session expired. Please sign in again."); throw e; })
+      .finally(()=>{ _adminRefreshing=null; });
+  }
+  return _adminRefreshing;
+}
+async function doLogin(){
+  const email=document.getElementById("admin-email").value.trim();
+  const pw=document.getElementById("pin-input").value;
+  const err=document.getElementById("login-error");
+  err.textContent="";
+  if(!email||!pw){ err.textContent="Enter your admin email and password."; return; }
+  try{
+    const d=await adminAuthRequest("password",{email,password:pw});
+    // Only accept logins that the database itself treats as admin (is_admin())
+    const r=await fetch(SUPABASE_URL+"/rest/v1/rpc/is_admin",{
+      method:"POST", headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+d.access_token,"Content-Type":"application/json"}, body:"{}"
+    });
+    if(!r.ok){ err.textContent="Could not verify admin access (HTTP "+r.status+")."; return; }
+    if((await r.json())!==true){ err.textContent="This account does not have admin access."; return; }
+    adminSetSession(d); showApp();
+  }catch(e){ err.textContent=e.message||"Sign-in failed."; }
+  document.getElementById("pin-input").value="";
 }
 document.getElementById("pin-input").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
-function doLogout(){ sessionStorage.removeItem("vj_admin"); location.reload(); }
+document.getElementById("admin-email").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
+function doLogout(){ sessionStorage.removeItem(ADMIN_SESSION_KEY); location.reload(); }
 function showApp(){ document.getElementById("login-screen").style.display="none"; document.getElementById("app").style.display="block"; setTimeout(navRestoreSelection,0); init(); }   /* after the tab buttons are wired */
-if(sessionStorage.getItem("vj_admin")==="1") showApp();
+{ const _m=sessionStorage.getItem("vj_admin_msg"); if(_m){ document.getElementById("login-error").textContent=_m; sessionStorage.removeItem("vj_admin_msg"); } }
+if(adminSession()) showApp();
 
 async function sbUpsert(table, conflictCol, rows){
   // Supabase upsert: POST with on-conflict + merge-duplicates
+  const _tok = await adminToken();
   const url = SUPABASE_URL + "/rest/v1/" + table + "?on_conflict=" + conflictCol;
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "apikey": SUPABASE_KEY,
-      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Authorization": "Bearer " + _tok,
       "Content-Type": "application/json",
       "Prefer": "resolution=merge-duplicates,return=minimal"
     },
@@ -1843,7 +1896,8 @@ async function sbUpsert(table, conflictCol, rows){
 }
 
 async function sb(path,method="GET",body=null){
-  const opts={method,headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json",Prefer:"return=representation"}};
+  const _tok=await adminToken();
+  const opts={method,headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+_tok,"Content-Type":"application/json",Prefer:"return=representation"}};
   if(body) opts.body=JSON.stringify(body);
   const res=await fetch(SUPABASE_URL+"/rest/v1/"+path,opts);
   if(!res.ok){ const e=await res.text(); throw new Error(e); }
@@ -6548,11 +6602,12 @@ function closeBangleSizeModal(){}
 
 // Bulk insert helper — sends array body, no return=representation (faster)
 async function sbBulk(table,method,rows){
+  const _tok=await adminToken();
   const res=await fetch(SUPABASE_URL+"/rest/v1/"+table,{
     method,
     headers:{
       apikey:SUPABASE_KEY,
-      Authorization:"Bearer "+SUPABASE_KEY,
+      Authorization:"Bearer "+_tok,
       "Content-Type":"application/json",
       Prefer:"return=minimal"
     },
