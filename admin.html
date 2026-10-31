@@ -2228,8 +2228,8 @@ async function updateEnquiryStatus(id, status){
 
 
 // ── Selected options per product (shared by Enquiries, Customers and product activity) ──
-const OPT_ORDER = ["metalQuality","metalColor","stoneType","diamond","size","certification","certificationAmount"];
-const OPT_LABELS = { metalQuality:"Metal", metalColor:"Metal colour", stoneType:"Diamond type", diamond:"Diamond", size:"Size", certification:"Certification", certificationAmount:"Certification charge" };
+const OPT_ORDER = ["metalQuality","metalColor","stoneType","diamond","gemType","gemstone","size","certification","certificationAmount"];
+const OPT_LABELS = { metalQuality:"Metal", metalColor:"Metal colour", stoneType:"Diamond type", diamond:"Diamond", gemType:"Gemstone type", gemstone:"Gemstone", size:"Size", certification:"Certification", certificationAmount:"Certification charge" };
 function optionLabel(k){ return OPT_LABELS[k] || String(k).replace(/_/g," ").replace(/([A-Z])/g," $1").replace(/^./,c=>c.toUpperCase()); }
 function optionPairs(opts, item){
   const o = Object.assign({}, (opts && typeof opts === "object") ? opts : {});
