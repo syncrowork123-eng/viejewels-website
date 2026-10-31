@@ -997,6 +997,101 @@ function onCatalogFilterChange() {
   }
 }
 
+
+// ── WHICH STONES DOES THIS PRODUCT USE? ───────────────────────────────────
+// Decides what the product page shows: diamond dropdowns only for products that have diamonds, gemstone
+// dropdowns only for products that have gemstones, both for both, neither for plain metal pieces.
+function productStoneKinds(product) {
+  let diamond = false, gem = false;
+  ((product && product.product_stones) || []).forEach((r) => {
+    if (!r.stone_type || !Number(r.pcs || 0)) return;          // unpriced rows are ignored, as in the price calculation
+    if (_isDiamondStoneType(r.stone_type)) diamond = true; else gem = true;
+  });
+  return { diamond, gem };
+}
+
+// Gemstone choices (product page only). Pre-selected to the product's own gemstone and the rate row the price
+// already used, so nothing changes in the price until the client changes a dropdown.
+let _selectedCatalogGemType = null;
+let _gemSelProductId = null;        // the gem choices belong to this product only, never to other tiles
+let _gemWired = false;
+let _gemTypeChanged = false;
+function gemSelectionFor(product) {
+  if (!product || _gemSelProductId == null || String(_gemSelProductId) !== String(product.id)) return null;
+  return { type: _selectedCatalogGemType || "", color: _selectedCatalogGemColor || "", quality: _selectedCatalogGemQuality || "" };
+}
+function populateGemFilters(product) {
+  const typeSel = document.querySelector("[data-filter-gem-type]");
+  const colorSel = document.querySelector("[data-filter-gem-color]");
+  const qualSel = document.querySelector("[data-filter-gem-quality]");
+  if (!typeSel) return;
+  const lc = (v) => String(v || "").toLowerCase();
+  const gemRows = (product.product_stones || []).filter((r) => r.stone_type && Number(r.pcs || 0) && !_isDiamondStoneType(r.stone_type));
+  if (!gemRows.length) return;
+
+  const shapes = new Set(gemRows.map((r) => lc(r.shape)));
+  const master = (_pmStoneTypes || []).filter((s) => s.type && !_isDiamondStoneType(s.type));
+  const forShapes = master.filter((s) => shapes.has(lc(s.shape)));
+  const pool = forShapes.length ? forShapes : master;
+  const ownType = gemRows[0].stone_type;
+
+  const typeMap = new Map();
+  pool.forEach((s) => { if (!typeMap.has(lc(s.type))) typeMap.set(lc(s.type), s.type); });
+  if (!typeMap.has(lc(ownType))) typeMap.set(lc(ownType), ownType);
+  const types = [...typeMap.values()].sort();
+  const rowsFor = (t) => pool.filter((s) => lc(s.type) === lc(t));
+
+  const setDefaults = (t) => {
+    _selectedCatalogGemType = types.find((x) => lc(x) === lc(t)) || types[0];
+    const first = rowsFor(_selectedCatalogGemType)[0] || {};   // same row the price used before any choice
+    _selectedCatalogGemColor = first.color || null;
+    _selectedCatalogGemQuality = first.quality || null;
+  };
+  if (String(_gemSelProductId) !== String(product.id)) { _gemSelProductId = product.id; _gemTypeChanged = false; setDefaults(ownType); }
+  else if (_gemTypeChanged) { _gemTypeChanged = false; setDefaults(_selectedCatalogGemType); }
+
+  const fill = (sel, values, cur) => {
+    sel.innerHTML = values.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+    sel.value = values.includes(cur) ? cur : (values[0] || "");
+  };
+  fill(typeSel, types, _selectedCatalogGemType);
+  _selectedCatalogGemType = typeSel.value;
+
+  const typeRows = rowsFor(_selectedCatalogGemType);
+  const colors = [...new Set(typeRows.map((s) => s.color).filter(Boolean))].sort();
+  const colorField = colorSel && colorSel.closest("[data-pd-gem-color-field]");
+  if (colorSel) {
+    fill(colorSel, colors, _selectedCatalogGemColor);
+    _selectedCatalogGemColor = colors.length ? colorSel.value : null;
+    if (colorField) colorField.style.display = colors.length ? "" : "none";   // no colours in the price list: no empty dropdown
+  }
+  const qualities = [...new Set(typeRows.filter((s) => !_selectedCatalogGemColor || s.color === _selectedCatalogGemColor).map((s) => s.quality).filter(Boolean))].sort();
+  const qualField = qualSel && qualSel.closest("[data-pd-gem-quality-field]");
+  if (qualSel) {
+    fill(qualSel, qualities, _selectedCatalogGemQuality);
+    _selectedCatalogGemQuality = qualities.length ? qualSel.value : null;
+    if (qualField) qualField.style.display = qualities.length ? "" : "none";
+  }
+
+  if (!_gemWired) {
+    _gemWired = true;
+    typeSel.addEventListener("change", () => { _selectedCatalogGemType = typeSel.value; _gemTypeChanged = true; _livePriceCache.clear(); onCatalogFilterChange(); });
+    if (colorSel) colorSel.addEventListener("change", () => { _selectedCatalogGemColor = colorSel.value || null; _selectedCatalogGemQuality = null; _livePriceCache.clear(); onCatalogFilterChange(); });
+    if (qualSel) qualSel.addEventListener("change", () => { _selectedCatalogGemQuality = qualSel.value || null; _livePriceCache.clear(); onCatalogFilterChange(); });
+  }
+}
+// Shows or hides the Diamond and Gemstone cards (and their rows in the hidden details grid) for this product.
+function syncStoneUI(product) {
+  const kinds = productStoneKinds(product);
+  const show = (sel, on) => { const el = document.querySelector(sel); if (el) el.style.display = on ? "" : "none"; };
+  show("[data-pd-diamond-card]", kinds.diamond);
+  show("[data-pd-diamond-row]", kinds.diamond);
+  show("[data-pd-gem-card]", kinds.gem);
+  show("[data-pd-gem-row]", kinds.gem);
+  if (kinds.gem) populateGemFilters(product); else _gemSelProductId = null;
+  return kinds;
+}
+
 // ── DIAMOND COLOR / QUALITY FILTERS ─────────────────────────────────────
 // Populates "Diamond Color" and "Diamond Quality" from stone_types (Stone
 // Price List in admin). Diamond Quality cascades from the selected Color.
@@ -2197,11 +2292,12 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     // If the user has selected a stone type override (e.g. "Lab Grown"), use that instead of
     // the product's stored stone_type so the price reflects the chosen material.
     const rowIsDiamond = _isDiamondStoneType(stoneType);
-    const selStoneType = rowIsDiamond ? (selectedDiamond?.stoneType || "").toLowerCase() : "";
+    const gemSel = rowIsDiamond ? null : (selectedDiamond?.gem || null);   // gemstone choices made on the product page
+    const selStoneType = rowIsDiamond ? (selectedDiamond?.stoneType || "").toLowerCase() : (gemSel?.type || "").toLowerCase();
     const lookupType = selStoneType || stoneType.toLowerCase();
 
-    const selColor   = rowIsDiamond ? (selectedDiamond?.color   || "").toLowerCase() : "";
-    const selQuality = rowIsDiamond ? (selectedDiamond?.quality || "").toLowerCase() : "";
+    const selColor   = rowIsDiamond ? (selectedDiamond?.color   || "").toLowerCase() : (gemSel?.color   || "").toLowerCase();
+    const selQuality = rowIsDiamond ? (selectedDiamond?.quality || "").toLowerCase() : (gemSel?.quality || "").toLowerCase();
 
     const stoneRec = stoneTypes.find(s =>
       (s.type  || "").toLowerCase() === lookupType &&
@@ -2379,7 +2475,7 @@ let _selectedCatalogStoneType = null;
 const _livePriceCache = new Map();
 function computeLivePriceCosts(product, currencyCode) {
   const cur = currencyCode || "USD";
-  const cacheKey = `${product.id}|${cur}|${_selectedCatalogMetalQuality || ""}|${_selectedCatalogDiamondColor || ""}|${_selectedCatalogDiamondQuality || ""}|${_selectedCatalogStoneType || ""}`;
+  const cacheKey = `${product.id}|${cur}|${_selectedCatalogMetalQuality || ""}|${_selectedCatalogDiamondColor || ""}|${_selectedCatalogDiamondQuality || ""}|${_selectedCatalogStoneType || ""}|${(() => { const g = gemSelectionFor(product); return g ? [g.type, g.color, g.quality].join("/") : ""; })()}`;
   if (_livePriceCache.has(cacheKey)) return _livePriceCache.get(cacheKey);
 
   const available = getAvailableMetalQualities(product);
@@ -2398,6 +2494,7 @@ function computeLivePriceCosts(product, currencyCode) {
     color: _selectedCatalogDiamondColor || "",
     quality: _selectedCatalogDiamondQuality || "",
     stoneType: _selectedCatalogStoneType || "",
+    gem: gemSelectionFor(product),
   };
 
   const result = calcProductPrice(product, selectedMetal, selectedDiamond, cur);
@@ -2562,6 +2659,7 @@ function renderProductPricingForSelection(product, available) {
     color: _selectedCatalogDiamondColor || "",
     quality: _selectedCatalogDiamondQuality || "",
     stoneType: _selectedCatalogStoneType || "",
+    gem: gemSelectionFor(product),
   };
 
   const currency = _displayCurrency?.code || "INR";
@@ -2635,8 +2733,11 @@ function renderProductDetailsGrid(product, selectedMetal, selectedDiamond, costs
   }
 
   // Diamond display: "D-G · VVS-VS · 0.50ct"
+  const _kinds = productStoneKinds(product);
   const diamEl = document.querySelector("[data-pd-diamond-display]");
-  if (diamEl) {
+  if (diamEl && !_kinds.diamond) {
+    diamEl.textContent = "";                         // no diamonds on this product
+  } else if (diamEl) {
     const parts = [selectedDiamond?.color, selectedDiamond?.quality].filter(Boolean);
     // Diamond carats only (gemstone carats are shown on their own line in the price breakdown)
     const ctWt  = costs?.stoneLines
@@ -2644,6 +2745,20 @@ function renderProductDetailsGrid(product, selectedMetal, selectedDiamond, costs
       : costs?.totalStoneCtWt;
     if (ctWt) parts.push(Number(ctWt).toFixed(3) + " ct");
     diamEl.textContent = parts.length ? parts.join(" · ") : (product.stone || "—");
+  }
+
+  // Gemstone display: "Ruby · Red · AA · 0.40 ct"
+  const gemEl = document.querySelector("[data-pd-gem-display]");
+  if (gemEl) {
+    if (!_kinds.gem) { gemEl.textContent = ""; }
+    else {
+      const g = selectedDiamond?.gem || {};
+      const gemCt = (costs?.stoneLines || []).filter(l => l.category === "Gem Stone").reduce((a, l) => a + (l.totalCt || 0), 0);
+      const gemType = g.type || ((costs?.stoneLines || []).find(l => l.category === "Gem Stone") || {}).type || "";
+      const gParts = [gemType, g.color, g.quality].filter(Boolean);
+      if (gemCt) gParts.push(Number(gemCt).toFixed(3) + " ct");
+      gemEl.textContent = gParts.join(" · ") || "—";
+    }
   }
 
   // Size
