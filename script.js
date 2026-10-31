@@ -1845,7 +1845,7 @@ function toggleStored(key, product, label, notes, options) {
       qty: 1,
       options: options || null,  // selected metal/color/stone/diamond/size summary
     });
-    if (key === "vj_cart") vjTrack("add_to_enquiry", product);
+    if (key === "vj_cart") vjTrack("add_to_enquiry", product, null, options || (_selectedSize ? { size: _selectedSize } : null));
   }
   setStored(key, list);
 }
@@ -2868,7 +2868,7 @@ function vjCheckStaff() {                              // resolves true when thi
   }
   return _vjStaffCheck;
 }
-function vjTrack(type, product, page) {
+function vjTrack(type, product, page, options) {
   try {
     if (vjConsent() !== "granted") return;
     const visitor = vjVisitorId(); if (!visitor) return;
@@ -2883,6 +2883,7 @@ function vjTrack(type, product, page) {
         sku: (product && product.sku) || null,
         product_name: (product && product.name) || null,
         page: page || location.pathname,                // path only; the query string is never stored
+        options: options || null,                       // selections made when adding to the enquiry list
       });
     });
   } catch (e) { /* tracking must never break the page */ }
