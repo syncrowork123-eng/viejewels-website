@@ -131,6 +131,12 @@
     .no-img { width:48px; height:48px; background:var(--surface2); border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:18px; }
     .badge { display:inline-block; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; }
     .badge-active { background:rgba(39,174,96,0.15); color:#27ae60; }
+    .badge-done { background:rgba(39,174,96,0.15); color:#1e8449; }
+    .badge-abandoned { background:rgba(230,126,34,0.16); color:#b9650f; }
+    .enq-view-toggle { display:flex; gap:8px; margin:0 0 14px; flex-wrap:wrap; }
+    .enq-view-btn { padding:9px 16px; border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font); }
+    .enq-view-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .enq-view-btn .cnt { opacity:.75; font-weight:500; margin-left:4px; }
     .badge-inactive { background:rgba(192,57,43,0.15); color:#e74c3c; }
     .actions-cell { display:flex; gap:6px; align-items:center; }
     /* Products table: every column auto-fits its content (minimal widths); long text is cut with … (hover for the full text) */
@@ -521,7 +527,7 @@
     <div class="enquiries-panel">
       <div class="enquiries-toolbar">
         <div class="toolbar-left">
-          <input class="search-input" id="enquiry-search" placeholder="Search by name, email, phone..." oninput="renderEnquiriesTable()" />
+          <input class="search-input" id="enquiry-search" placeholder="Search by name, email, phone..." oninput="renderEnquiryViews()" />
           <select class="filter-select" id="enquiry-status-filter" onchange="renderEnquiriesTable()">
             <option value="">All statuses</option>
             <option value="new">New</option>
@@ -532,7 +538,12 @@
         </div>
         <button class="btn btn-secondary" onclick="loadEnquiries()">↻ Refresh</button>
       </div>
-      <div class="enquiry-table-wrap">
+      <div class="enq-view-toggle">
+        <button class="enq-view-btn active" id="enq-view-done" onclick="setEnquiryView('done')">✓ Checkout completed<span class="cnt" id="enq-cnt-done"></span></button>
+        <button class="enq-view-btn" id="enq-view-abandoned" onclick="setEnquiryView('abandoned')">Added to enquiry list, checkout not completed<span class="cnt" id="enq-cnt-abandoned"></span></button>
+      </div>
+      <div id="enq-abandoned-note" class="state-msg" style="display:none;text-align:left;padding:0 0 12px"></div>
+      <div class="enquiry-table-wrap" id="enq-done-wrap">
         <table class="enquiry-table">
           <thead>
             <tr>
@@ -546,6 +557,12 @@
             </tr>
           </thead>
           <tbody id="enquiries-tbody"><tr><td colspan="7" class="state-msg">Loading enquiries...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="enquiry-table-wrap" id="enq-abandoned-wrap" style="display:none">
+        <table class="enquiry-table">
+          <thead><tr><th>Customer</th><th>Products added (checkout not completed)</th><th>Items</th><th>Last added</th><th>Label</th></tr></thead>
+          <tbody id="enq-abandoned-tbody"><tr><td colspan="5" class="state-msg">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2024,6 +2041,87 @@ async function loadEnquiries(){
   } catch (e) {
     toast("Failed to load enquiries: " + e.message, "error");
   }
+  await loadAbandoned();
+}
+
+// ── Enquiries: "checkout completed" vs "added to enquiry list but checkout not completed" ──
+let allAddEvents = [], enquiryView = "done";
+function setEnquiryView(v){
+  enquiryView = v;
+  document.getElementById("enq-view-done").classList.toggle("active", v === "done");
+  document.getElementById("enq-view-abandoned").classList.toggle("active", v === "abandoned");
+  document.getElementById("enq-done-wrap").style.display = v === "done" ? "" : "none";
+  document.getElementById("enq-abandoned-wrap").style.display = v === "abandoned" ? "" : "none";
+  document.getElementById("enquiry-status-filter").style.display = v === "done" ? "" : "none";
+  document.getElementById("enq-abandoned-note").style.display = (v === "abandoned" && document.getElementById("enq-abandoned-note").textContent) ? "" : "none";
+}
+function renderEnquiryViews(){ renderEnquiriesTable(); renderAbandonedTable(); }
+async function loadAbandoned(){
+  const note = document.getElementById("enq-abandoned-note");
+  note.textContent = "";
+  try{
+    const since = new Date(Date.now() - 90*864e5).toISOString();
+    allAddEvents = await sbAll("product_events?select=*&event_type=eq.add_to_enquiry&created_at=gte." + encodeURIComponent(since) + "&order=created_at.desc");
+    if(!allMembers.length){ try{ allMembers = await sbAll("members?select=*"); }catch(e){} }
+  }catch(e){
+    allAddEvents = [];
+    note.textContent = "Not available yet: run customer_tracking.sql in the Supabase SQL editor to start recording what visitors add to the enquiry list.";
+  }
+  renderAbandonedTable();
+  setEnquiryView(enquiryView);
+}
+function computeAbandoned(){
+  const enqByUser = {};
+  allEnquiries.forEach(q => { if(q.user_id) (enqByUser[q.user_id] = enqByUser[q.user_id] || []).push(q); });
+  const groups = {};
+  allAddEvents.forEach(ev => {
+    const pid = String(ev.product_id || "");
+    if(ev.user_id){                                   // completed = same customer later submitted an enquiry containing this product
+      const done = (enqByUser[ev.user_id] || []).some(q =>
+        new Date(q.created_at) >= new Date(ev.created_at) &&
+        (Array.isArray(q.items) ? q.items : []).some(i => String(i.id) === pid));
+      if(done) return;
+    }
+    const key = ev.user_id || ("v:" + ev.visitor_id);
+    const g = groups[key] || (groups[key] = { user_id: ev.user_id || null, visitor_id: ev.visitor_id, products: {}, last: ev.created_at });
+    const pk = pid || ev.product_name || "?";
+    const p = g.products[pk] || (g.products[pk] = { name: ev.product_name || pk, sku: ev.sku || "", count: 0 });
+    p.count++;
+    if(ev.created_at > g.last) g.last = ev.created_at;
+  });
+  return Object.values(groups).sort((a, b) => String(b.last).localeCompare(String(a.last)));
+}
+function renderAbandonedTable(){
+  const tb = document.getElementById("enq-abandoned-tbody");
+  if(!tb) return;
+  const search = (document.getElementById("enquiry-search")?.value || "").trim().toLowerCase();
+  const groups = computeAbandoned().map(g => {
+    let name = "", email = "", phone = "";
+    if(g.user_id){
+      const m = allMembers.find(x => x.id === g.user_id) || {};
+      const q = allEnquiries.find(x => x.user_id === g.user_id) || {};
+      name = m.full_name || m.name || q.full_name || "";
+      email = m.email || m.member_email || q.email || "";
+      phone = m.phone || m.mobile || m.whatsapp || q.phone || "";
+    }
+    return Object.assign(g, { name, email, phone });
+  }).filter(g => !search || [g.name, g.email, g.phone, Object.values(g.products).map(p => p.name + " " + p.sku).join(" ")].join(" ").toLowerCase().includes(search));
+  document.getElementById("enq-cnt-done").textContent = " (" + allEnquiries.length + ")";
+  document.getElementById("enq-cnt-abandoned").textContent = " (" + groups.length + ")";
+  if(!groups.length){ tb.innerHTML = '<tr><td colspan="5" class="state-msg">Nothing here. Everything added to an enquiry list was checked out, or no activity has been recorded yet.</td></tr>'; return; }
+  tb.innerHTML = groups.map(g => {
+    const prods = Object.values(g.products);
+    const who = g.user_id
+      ? `<div class="enquiry-name">${esc(g.name || "Registered customer")}</div><div class="enquiry-meta">${esc(g.email || "—")}<br/>${esc(g.phone || "—")}</div>`
+      : `<div class="enquiry-name">Anonymous visitor</div><div class="enquiry-meta">Not registered · ID ${esc(String(g.visitor_id).slice(0, 8))}</div>`;
+    return `<tr>
+      <td>${who}</td>
+      <td><div class="enquiry-summary">${prods.map(p => esc(p.name) + (p.sku ? ' <span style="color:var(--text-muted)">(' + esc(p.sku) + ')</span>' : "") + (p.count > 1 ? " ×" + p.count : "")).join("<br/>")}</div></td>
+      <td>${prods.length}</td>
+      <td><div class="enquiry-meta">${esc(fmtDT(g.last))}</div></td>
+      <td><span class="badge badge-abandoned">Not checked out</span></td>
+    </tr>`;
+  }).join("");
 }
 
 function getEnquiryStatusLabel(status){
@@ -2071,6 +2169,7 @@ function renderEnquiriesTable(){
       <td>
         <div class="enquiry-name">${esc(row.full_name || "Unknown")}</div>
         <div class="enquiry-meta">${esc(row.email || "—")}<br/>${esc(row.phone || "—")}</div>
+        <span class="badge badge-done" style="margin-top:6px">✓ Checkout completed</span>
       </td>
       <td><div class="enquiry-summary">${esc(row.address || "—")}</div></td>
       <td><div class="enquiry-summary">${esc(formatEnquiryItems(row.items))}</div></td>
