@@ -131,6 +131,16 @@
     .no-img { width:48px; height:48px; background:var(--surface2); border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:18px; }
     .badge { display:inline-block; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; }
     .badge-active { background:rgba(39,174,96,0.15); color:#27ae60; }
+    .clickable-row { cursor:pointer; }
+    .clickable-row:hover td { background:var(--surface2); }
+    .opt-card { display:flex; gap:14px; border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin:10px 0; background:var(--surface); }
+    .opt-card img { width:72px; height:72px; object-fit:cover; border-radius:8px; flex-shrink:0; background:var(--surface2); }
+    .opt-body { flex:1; min-width:0; }
+    .opt-name { font-weight:700; font-size:14px; margin-bottom:6px; }
+    .opt-sku { font-weight:500; font-size:12px; color:var(--text-muted); margin-left:6px; }
+    .opt-table { font-size:13px; border-collapse:collapse; }
+    .opt-table td { padding:2px 16px 2px 0; vertical-align:top; }
+    .opt-k { color:var(--text-muted); white-space:nowrap; }
     .badge-done { background:rgba(39,174,96,0.15); color:#1e8449; }
     .badge-abandoned { background:rgba(230,126,34,0.16); color:#b9650f; }
     .enq-view-toggle { display:flex; gap:8px; margin:0 0 14px; flex-wrap:wrap; }
@@ -2055,6 +2065,15 @@ function setEnquiryView(v){
   document.getElementById("enquiry-status-filter").style.display = v === "done" ? "" : "none";
   document.getElementById("enq-abandoned-note").style.display = (v === "abandoned" && document.getElementById("enq-abandoned-note").textContent) ? "" : "none";
 }
+function openAbandonedModal(i){
+  const g = (window._abandonedList || [])[i]; if(!g) return;
+  const who = g.user_id ? `<strong>${esc(g.name || "Registered customer")}</strong><p>${esc(g.email || "—")}</p><p>${esc(g.phone || "—")}</p>`
+                        : `<strong>Anonymous visitor</strong><p>Not registered · ID ${esc(String(g.visitor_id).slice(0,8))}</p>`;
+  openDetailModal("Added to enquiry list, checkout not completed", `
+    <div class="enquiry-detail-card"><div class="detail-label">Who</div>${who}<p>Last added: ${esc(fmtDT(g.last))}</p></div>
+    <div class="enquiry-detail-card"><div class="detail-label">Products &amp; options they selected</div>
+      ${Object.values(g.products).map(p=>renderItemCard({name:p.name, sku:p.sku, options:p.options}, true)).join("")}</div>`);
+}
 function renderEnquiryViews(){ renderEnquiriesTable(); renderAbandonedTable(); }
 async function loadAbandoned(){
   const note = document.getElementById("enq-abandoned-note");
@@ -2087,7 +2106,7 @@ function computeAbandoned(){
     const key = ev.user_id || ("v:" + ev.visitor_id);
     const g = groups[key] || (groups[key] = { user_id: ev.user_id || null, visitor_id: ev.visitor_id, products: {}, last: ev.created_at });
     const pk = pid || ev.product_name || "?";
-    const p = g.products[pk] || (g.products[pk] = { name: ev.product_name || pk, sku: ev.sku || "", count: 0 });
+    const p = g.products[pk] || (g.products[pk] = { name: ev.product_name || pk, sku: ev.sku || "", count: 0, options: ev.options || null });  // events arrive newest first
     p.count++;
     if(ev.created_at > g.last) g.last = ev.created_at;
   });
@@ -2110,13 +2129,14 @@ function renderAbandonedTable(){
   }).filter(g => !search || [g.name, g.email, g.phone, Object.values(g.products).map(p => p.name + " " + p.sku).join(" ")].join(" ").toLowerCase().includes(search));
   document.getElementById("enq-cnt-done").textContent = " (" + allEnquiries.length + ")";
   document.getElementById("enq-cnt-abandoned").textContent = " (" + groups.length + ")";
+  window._abandonedList = groups;
   if(!groups.length){ tb.innerHTML = '<tr><td colspan="5" class="state-msg">Nothing here. Everything added to an enquiry list was checked out, or no activity has been recorded yet.</td></tr>'; return; }
-  tb.innerHTML = groups.map(g => {
+  tb.innerHTML = groups.map((g, gi) => {
     const prods = Object.values(g.products);
     const who = g.user_id
       ? `<div class="enquiry-name">${esc(g.name || "Registered customer")}</div><div class="enquiry-meta">${esc(g.email || "—")}<br/>${esc(g.phone || "—")}</div>`
       : `<div class="enquiry-name">Anonymous visitor</div><div class="enquiry-meta">Not registered · ID ${esc(String(g.visitor_id).slice(0, 8))}</div>`;
-    return `<tr>
+    return `<tr class="clickable-row" onclick="openAbandonedModal(${gi})">
       <td>${who}</td>
       <td><div class="enquiry-summary">${prods.map(p => esc(p.name) + (p.sku ? ' <span style="color:var(--text-muted)">(' + esc(p.sku) + ')</span>' : "") + (p.count > 1 ? " ×" + p.count : "")).join("<br/>")}</div></td>
       <td>${prods.length}</td>
@@ -2167,7 +2187,7 @@ function renderEnquiriesTable(){
     const statusValue = row.status || "new";
     const createdAt = row.created_at ? new Date(row.created_at).toLocaleString("en-IN", { dateStyle:"medium", timeStyle:"short" }) : "—";
     const total = row.total_amount != null ? `${row.currency || ""} ${Number(row.total_amount).toLocaleString("en-US", { maximumFractionDigits: 2 })}`.trim() : "Price on request";
-    return `<tr>
+    return `<tr class="clickable-row" onclick="openEnquiryModal(${row.id})">
       <td>
         <div class="enquiry-name">${esc(row.full_name || "Unknown")}</div>
         <div class="enquiry-meta">${esc(row.email || "—")}<br/>${esc(row.phone || "—")}</div>
@@ -2176,7 +2196,7 @@ function renderEnquiriesTable(){
       <td><div class="enquiry-summary">${esc(row.address || "—")}</div></td>
       <td><div class="enquiry-summary">${esc(formatEnquiryItems(row.items))}</div></td>
       <td><div class="enquiry-summary">${esc(total)}</div></td>
-      <td>
+      <td onclick="event.stopPropagation()">
         <select class="status-select" value="${esc(statusValue)}" onchange="updateEnquiryStatus(${row.id}, this.value)">
           <option value="new" ${statusValue === "new" ? "selected" : ""}>New</option>
           <option value="reviewed" ${statusValue === "reviewed" ? "selected" : ""}>Reviewed</option>
@@ -2185,7 +2205,7 @@ function renderEnquiriesTable(){
         </select>
       </td>
       <td data-sort="${esc(row.created_at||"")}"><div class="enquiry-meta">${esc(createdAt)}</div></td>
-      <td>
+      <td onclick="event.stopPropagation()">
         <div class="enquiry-actions">
           <button class="btn btn-secondary btn-sm" onclick="openEnquiryModal(${row.id})">View</button>
         </div>
@@ -2206,6 +2226,43 @@ async function updateEnquiryStatus(id, status){
   }
 }
 
+
+// ── Selected options per product (shared by Enquiries, Customers and product activity) ──
+const OPT_ORDER = ["metalQuality","metalColor","stoneType","diamond","size","certification","certificationAmount"];
+const OPT_LABELS = { metalQuality:"Metal", metalColor:"Metal colour", stoneType:"Diamond type", diamond:"Diamond", size:"Size", certification:"Certification", certificationAmount:"Certification charge" };
+function optionLabel(k){ return OPT_LABELS[k] || String(k).replace(/_/g," ").replace(/([A-Z])/g," $1").replace(/^./,c=>c.toUpperCase()); }
+function optionPairs(opts, item){
+  const o = Object.assign({}, (opts && typeof opts === "object") ? opts : {});
+  if(item && item.size && !o.size) o.size = item.size;
+  const keys = OPT_ORDER.filter(k=>o[k]).concat(Object.keys(o).filter(k=>!OPT_ORDER.includes(k) && o[k]!=="" && o[k]!=null && typeof o[k]!=="object"));
+  return keys.map(k=>[optionLabel(k), String(o[k])]);
+}
+function optionsInline(opts, item){ const p=optionPairs(opts,item); return p.length ? p.map(([k,v])=>k+": "+v).join(" · ") : "—"; }
+function fmtMoney(sym,n){ return (sym||"")+" "+Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function renderItemCard(item, simple){
+  const qty = Math.max(1, parseInt(item.qty,10)||1);
+  const unit = item.priceValue!=null ? fmtMoney(item.priceSymbol,item.priceValue).trim() : (item.price||"Price on request");
+  const line = item.priceValue!=null ? fmtMoney(item.priceSymbol,item.priceValue*qty).trim() : "Price on request";
+  const rows = optionPairs(item.options, item).map(([k,v])=>`<tr><td class="opt-k">${esc(k)}</td><td>${esc(v)}</td></tr>`).join("");
+  return `<div class="opt-card">
+    ${item.image?`<img src="${esc(item.image)}" alt="" onerror="this.style.display='none'">`:""}
+    <div class="opt-body">
+      <div class="opt-name">${esc(item.name||"Untitled item")}${item.sku?`<span class="opt-sku">${esc(item.sku)}</span>`:""}</div>
+      <table class="opt-table">
+        ${simple?"":`<tr><td class="opt-k">Quantity</td><td>${qty}</td></tr>
+        <tr><td class="opt-k">Unit price</td><td>${esc(unit)}</td></tr>
+        <tr><td class="opt-k">Line total</td><td>${esc(line)}</td></tr>`}
+        ${rows || (simple?'<tr><td class="opt-k" colspan="2">No options recorded</td></tr>':"")}
+        ${item.notes?`<tr><td class="opt-k">Special requirements</td><td>${esc(item.notes)}</td></tr>`:""}
+      </table>
+    </div></div>`;
+}
+function openDetailModal(title, html){
+  document.getElementById("enquiry-modal-title").textContent = title;
+  document.getElementById("enquiry-modal-body").innerHTML = html;
+  document.getElementById("enquiry-modal").classList.add("open");
+}
+
 function openEnquiryModal(id){
   const row = allEnquiries.find((item) => item.id === id);
   if (!row) return;
@@ -2224,8 +2281,8 @@ function openEnquiryModal(id){
         <p>${esc(row.address || "—")}</p>
       </div>
       <div class="enquiry-detail-card">
-        <div class="detail-label">Items</div>
-        <p>${esc(items.length ? items.map((item) => `${item.name || "Untitled item"} ×${Math.max(1, parseInt(item.qty, 10) || 1)}`).join("\n") : "No items listed")}</p>
+        <div class="detail-label">Products &amp; selected options (${items.length})</div>
+        ${items.length ? items.map((it)=>renderItemCard(it)).join("") : "<p>No items listed</p>"}
       </div>
       <div class="enquiry-detail-card">
         <div class="detail-label">Totals</div>
@@ -2346,15 +2403,37 @@ function renderProductActivity(){
   const map={};
   allEvents.forEach(e=>{
     const k=e.product_id||e.sku||e.product_name||"?";
-    const r=map[k]||(map[k]={name:e.product_name||k, sku:e.sku||"", v:0,c:0,a:0,visitors:new Set()});
+    const r=map[k]||(map[k]={pid:e.product_id||"", name:e.product_name||k, sku:e.sku||"", v:0,c:0,a:0,visitors:new Set(), adds:[]});
+    if(e.event_type==="add_to_enquiry") r.adds.push(e);
     if(e.product_name && !r.name) r.name=e.product_name;
     if(e.event_type==="product_view") r.v++; else if(e.event_type==="product_click") r.c++; else if(e.event_type==="add_to_enquiry") r.a++;
     r.visitors.add(e.visitor_id);
   });
   const rows=Object.values(map).sort((a,b)=>(b.v+b.c+b.a*3)-(a.v+a.c+a.a*3)).slice(0,25);
+  window._activityRows = rows;
   document.getElementById("product-activity-tbody").innerHTML = rows.length
-    ? rows.map(r=>`<tr><td>${esc(r.name)}${r.sku?` <span style="color:var(--text-muted);font-size:12px">${esc(r.sku)}</span>`:""}</td><td>${r.v}</td><td>${r.c}</td><td>${r.a}</td><td>${r.visitors.size}</td></tr>`).join("")
+    ? rows.map((r,ri)=>`<tr class="clickable-row" onclick="openProductActivityModal(${ri})"><td>${esc(r.name)}${r.sku?` <span style="color:var(--text-muted);font-size:12px">${esc(r.sku)}</span>`:""}</td><td>${r.v}</td><td>${r.c}</td><td>${r.a}</td><td>${r.visitors.size}</td></tr>`).join("")
     : '<tr><td colspan="5" class="state-msg">No activity recorded yet.</td></tr>';
+}
+function openProductActivityModal(i){
+  const r=(window._activityRows||[])[i]; if(!r) return;
+  const combos={};
+  r.adds.forEach(e=>{ const k=optionsInline(e.options); const c=combos[k]||(combos[k]={k,count:0,last:e.created_at}); c.count++; if(e.created_at>c.last)c.last=e.created_at; });
+  const comboRows=Object.values(combos).sort((a,b)=>b.count-a.count)
+    .map(c=>`<tr><td>${esc(c.k==="—"?"Not recorded":c.k)}</td><td>${c.count}</td><td>${esc(fmtDT(c.last))}</td></tr>`).join("");
+  const th=(cols)=>`<thead><tr>${cols.map(x=>`<th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--text-muted);text-transform:uppercase">${x}</th>`).join("")}</tr></thead>`;
+  const submitted=[];
+  allEnquiries.forEach(q=>(Array.isArray(q.items)?q.items:[]).forEach(it=>{
+    if((r.pid && String(it.id)===String(r.pid)) || (!r.pid && r.sku && it.sku===r.sku)) submitted.push({q,it});
+  }));
+  const subRows=submitted.map(({q,it})=>`<tr><td>#${esc(q.id)}<br><span style="color:var(--text-muted);font-size:12px">${esc(fmtDT(q.created_at))}</span></td><td>${esc(q.full_name||"—")}</td><td>${Math.max(1,parseInt(it.qty,10)||1)}</td><td>${esc(optionsInline(it.options,it))}${it.notes?`<br><span style="color:var(--text-muted)">Note: ${esc(it.notes)}</span>`:""}</td></tr>`).join("");
+  openDetailModal(r.name+(r.sku?" ("+r.sku+")":""), `
+    <div class="enquiry-detail-card"><div class="detail-label">Activity (last 90 days)</div>
+      <p>${r.v} views · ${r.c} clicks · ${r.a} added to enquiry · ${r.visitors.size} unique visitors</p></div>
+    <div class="enquiry-detail-card"><div class="detail-label">Options chosen when added to the enquiry list</div>
+      ${comboRows?`<table style="width:100%;font-size:13px">${th(["Options","Times added","Last"])}<tbody>${comboRows}</tbody></table>`:"<p>Nobody has added this product to an enquiry list yet.</p>"}</div>
+    <div class="enquiry-detail-card"><div class="detail-label">In submitted enquiries (${submitted.length})</div>
+      ${subRows?`<table style="width:100%;font-size:13px">${th(["Enquiry","Customer","Qty","Selected options"])}<tbody>${subRows}</tbody></table>`:"<p>Not in any submitted enquiry yet.</p>"}</div>`);
 }
 function openCustomerModal(id){
   const c=customerRows.find(x=>x.id===id); if(!c) return;
@@ -2362,11 +2441,11 @@ function openCustomerModal(id){
   const m=c.member||{};
   const profile=Object.keys(m).filter(k=>m[k]!==null && m[k]!=="" && typeof m[k]!=="object")
     .map(k=>`<tr><td style="color:var(--text-muted);padding:4px 14px 4px 0;white-space:nowrap">${esc(k.replace(/_/g," "))}</td><td>${esc(m[k])}</td></tr>`).join("");
-  const enq=c.enquiries.map(q=>`<tr><td>#${esc(q.id)}</td><td>${esc(fmtDT(q.created_at))}</td><td>${esc(getEnquiryStatusLabel(q.status))}</td><td>${esc(formatEnquiryItems(q.items))}</td><td>${esc(q.total_amount!=null?`${q.currency||""} ${Number(q.total_amount).toLocaleString("en-US",{maximumFractionDigits:2})}`.trim():"On request")}</td></tr>`).join("");
+  const enq=c.enquiries.map(q=>`<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:600">#${esc(q.id)} · ${esc(fmtDT(q.created_at))} · ${esc(getEnquiryStatusLabel(q.status))} · ${esc(q.total_amount!=null?`${q.currency||""} ${Number(q.total_amount).toLocaleString("en-US",{maximumFractionDigits:2})}`.trim():"Price on request")}</div>${(Array.isArray(q.items)?q.items:[]).map(it=>renderItemCard(it)).join("")}</div>`).join("");
   const counts={};
-  c.events.forEach(e=>{ const k=e.product_id||e.product_name||"?"; const r=counts[k]||(counts[k]={name:e.product_name||k,v:0,c:0,a:0,last:e.created_at}); if(e.event_type==="product_view")r.v++; else if(e.event_type==="product_click")r.c++; else r.a++; });
+  c.events.forEach(e=>{ const k=e.product_id||e.product_name||"?"; const r=counts[k]||(counts[k]={name:e.product_name||k,v:0,c:0,a:0,last:e.created_at,opts:null}); if(e.event_type==="product_view")r.v++; else if(e.event_type==="product_click")r.c++; else { r.a++; if(!r.opts && e.options) r.opts=e.options; } });
   const prod=Object.values(counts).sort((a,b)=>(b.v+b.c+b.a)-(a.v+a.c+a.a)).slice(0,30)
-    .map(r=>`<tr><td>${esc(r.name)}</td><td>${r.v}</td><td>${r.c}</td><td>${r.a}</td><td>${esc(fmtDT(r.last))}</td></tr>`).join("");
+    .map(r=>`<tr><td>${esc(r.name)}</td><td>${r.v}</td><td>${r.c}</td><td>${r.a}</td><td>${r.opts?esc(optionsInline(r.opts)):"—"}</td><td>${esc(fmtDT(r.last))}</td></tr>`).join("");
   const th=(cols)=>`<thead><tr>${cols.map(x=>`<th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--text-muted);text-transform:uppercase">${x}</th>`).join("")}</tr></thead>`;
   document.getElementById("customer-modal-title").textContent=c.name||c.email||"Customer";
   document.getElementById("customer-modal-body").innerHTML=`
@@ -2374,10 +2453,10 @@ function openCustomerModal(id){
       <table style="font-size:13px"><tr><td style="color:var(--text-muted);padding:4px 14px 4px 0">name</td><td>${esc(c.name||"—")}</td></tr>
       <tr><td style="color:var(--text-muted);padding:4px 14px 4px 0">email</td><td>${esc(c.email||"—")}</td></tr>
       <tr><td style="color:var(--text-muted);padding:4px 14px 4px 0">phone</td><td>${esc(c.phone||"—")}</td></tr>${profile}</table></div>
-    <div class="enquiry-detail-card" style="margin-bottom:14px"><div class="detail-label">Enquiries (${c.enquiries.length})</div>
-      ${enq?`<table style="width:100%;font-size:13px">${th(["Ref","Submitted","Status","Items","Total"])}<tbody>${enq}</tbody></table>`:"<p>No enquiries yet.</p>"}</div>
+    <div class="enquiry-detail-card" style="margin-bottom:14px"><div class="detail-label">Enquiries &amp; selected options (${c.enquiries.length})</div>
+      ${enq||"<p>No enquiries yet.</p>"}</div>
     <div class="enquiry-detail-card"><div class="detail-label">Products viewed (last 90 days)</div>
-      ${prod?`<table style="width:100%;font-size:13px">${th(["Product","Views","Clicks","Added","Last seen"])}<tbody>${prod}</tbody></table>`:"<p>No activity recorded. Activity is only recorded if the customer accepted tracking.</p>"}</div>`;
+      ${prod?`<table style="width:100%;font-size:13px">${th(["Product","Views","Clicks","Added","Options selected","Last seen"])}<tbody>${prod}</tbody></table>`:"<p>No activity recorded. Activity is only recorded if the customer accepted tracking.</p>"}</div>`;
   document.getElementById("customer-modal").classList.add("open");
 }
 function closeCustomerModal(){ document.getElementById("customer-modal").classList.remove("open"); }
