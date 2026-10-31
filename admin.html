@@ -490,6 +490,7 @@
   <nav class="admin-tabs">
     <button class="tab-btn active" data-tab="products">Products</button>
     <button class="tab-btn" data-tab="enquiries">Enquiries</button>
+    <button class="tab-btn" data-tab="customers">Customers</button>
     <button class="tab-btn" data-tab="masters">Masters</button>
     <button class="tab-btn" data-tab="bulk">Bulk Upload</button>
     <button class="tab-btn" data-tab="stonereport">Stone Report</button>
@@ -545,6 +546,32 @@
             </tr>
           </thead>
           <tbody id="enquiries-tbody"><tr><td colspan="7" class="state-msg">Loading enquiries...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div class="tab-panel" id="tab-customers">
+    <div class="enquiries-panel">
+      <div class="enquiries-toolbar">
+        <div class="toolbar-left">
+          <input class="search-input" id="customer-search" placeholder="Search by name, email, phone..." oninput="renderCustomersTable()" />
+        </div>
+        <button class="btn btn-secondary" onclick="loadCustomers()">↻ Refresh</button>
+      </div>
+      <div id="customers-note" class="state-msg" style="display:none;text-align:left;padding:0 0 12px"></div>
+      <div class="enquiry-table-wrap">
+        <table class="enquiry-table">
+          <thead><tr><th>Customer</th><th>Phone</th><th>Enquiries</th><th>Product activity</th><th>Last activity</th><th>Actions</th></tr></thead>
+          <tbody id="customers-tbody"><tr><td colspan="6" class="state-msg">Open this tab to load customers...</td></tr></tbody>
+        </table>
+      </div>
+      <h3 style="margin:26px 0 10px;font-size:14px">Most viewed products (last 90 days, all visitors who accepted tracking)</h3>
+      <div class="enquiry-table-wrap">
+        <table class="enquiry-table">
+          <thead><tr><th>Product</th><th>Views</th><th>Clicks</th><th>Added to enquiry</th><th>Unique visitors</th></tr></thead>
+          <tbody id="product-activity-tbody"><tr><td colspan="5" class="state-msg">No activity loaded yet.</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1679,6 +1706,20 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="customer-modal">
+  <div class="modal" style="max-width:860px">
+    <div class="modal-header">
+      <h2 id="customer-modal-title">Customer</h2>
+      <button class="modal-close" onclick="closeCustomerModal()">×</button>
+    </div>
+    <div class="modal-body"><div id="customer-modal-body"></div></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" style="margin-right:auto;color:var(--danger)" id="customer-delete-activity-btn" onclick="deleteCustomerActivity()">Delete this customer's activity data</button>
+      <button class="btn btn-secondary" onclick="closeCustomerModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="enquiry-modal">
   <div class="modal" style="max-width:720px">
     <div class="modal-header">
@@ -1910,6 +1951,7 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
     document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("tab-"+btn.dataset.tab).classList.add("active");
+    if(btn.dataset.tab==="customers") loadCustomers();
   });
 });
 
@@ -2101,6 +2143,125 @@ function openEnquiryModal(id){
     </div>`;
   document.getElementById("enquiry-modal-title").textContent = `Enquiry #${row.id}`;
   document.getElementById("enquiry-modal").classList.add("open");
+}
+
+
+// ── CUSTOMERS (profiles + enquiries + product activity) ────────────────────────────────
+let allMembers=[], allEvents=[], customerRows=[], currentCustomerId=null;
+
+async function sbAll(path, pageSize=1000, maxPages=10){          // PostgREST returns 1000 rows max per request
+  let out=[];
+  for(let i=0;i<maxPages;i++){
+    const rows=await sb(path+(path.includes("?")?"&":"?")+"limit="+pageSize+"&offset="+(i*pageSize));
+    out=out.concat(rows||[]);
+    if(!rows || rows.length<pageSize) break;
+  }
+  return out;
+}
+async function loadCustomers(){
+  const note=document.getElementById("customers-note");
+  note.style.display="none";
+  document.getElementById("customers-tbody").innerHTML='<tr><td colspan="6" class="state-msg">Loading customers...</td></tr>';
+  try{
+    allMembers = await sbAll("members?select=*");
+    if(!allEnquiries.length) allEnquiries = await sb("enquiries?order=created_at.desc");
+  }catch(e){ toast("Failed to load customers: "+e.message,"error"); return; }
+  try{
+    const since=new Date(Date.now()-90*864e5).toISOString();
+    allEvents = await sbAll("product_events?select=*&created_at=gte."+encodeURIComponent(since)+"&order=created_at.desc");
+  }catch(e){
+    allEvents=[];
+    note.textContent="Product activity is not available yet. Run customer_tracking.sql in the Supabase SQL editor to switch it on.";
+    note.style.display="";
+  }
+  buildCustomerRows(); renderCustomersTable(); renderProductActivity();
+}
+function pick(obj, keys){ for(const k of keys){ if(obj && obj[k]) return obj[k]; } return ""; }
+function buildCustomerRows(){
+  const byId={};
+  allMembers.forEach(m=>{
+    byId[m.id]={ id:m.id, member:m,
+      name:pick(m,["full_name","name"]), email:pick(m,["email","member_email"]), phone:pick(m,["phone","mobile","whatsapp"]) };
+  });
+  allEnquiries.forEach(q=>{                                     // customers who enquired but have no members row yet
+    if(!q.user_id) return;
+    const c = byId[q.user_id] || (byId[q.user_id]={ id:q.user_id, member:null, name:"", email:"", phone:"" });
+    c.name=c.name||q.full_name||""; c.email=c.email||q.email||""; c.phone=c.phone||q.phone||"";
+  });
+  customerRows = Object.values(byId).map(c=>{
+    c.enquiries = allEnquiries.filter(q=>q.user_id===c.id);
+    c.events = allEvents.filter(e=>e.user_id===c.id);
+    const times = c.events.map(e=>e.created_at).concat(c.enquiries.map(q=>q.created_at)).filter(Boolean).sort();
+    c.last = times.length ? times[times.length-1] : (c.member && c.member.created_at) || "";
+    return c;
+  }).sort((a,b)=>String(b.last).localeCompare(String(a.last)));
+}
+function fmtDT(v){ return v ? new Date(v).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}) : "—"; }
+function renderCustomersTable(){
+  const q=(document.getElementById("customer-search").value||"").toLowerCase().trim();
+  const rows=customerRows.filter(c=>!q || [c.name,c.email,c.phone].join(" ").toLowerCase().includes(q));
+  const tb=document.getElementById("customers-tbody");
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="6" class="state-msg">No customers found.</td></tr>'; return; }
+  tb.innerHTML=rows.map(c=>{
+    const views=c.events.filter(e=>e.event_type==="product_view").length;
+    const adds=c.events.filter(e=>e.event_type==="add_to_enquiry").length;
+    return `<tr>
+      <td><strong>${esc(c.name||"—")}</strong><br><span style="color:var(--text-muted);font-size:12px">${esc(c.email||"—")}</span></td>
+      <td>${esc(c.phone||"—")}</td>
+      <td>${c.enquiries.length}</td>
+      <td>${views} viewed · ${adds} added</td>
+      <td>${esc(fmtDT(c.last))}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openCustomerModal('${esc(c.id)}')">View</button></td>
+    </tr>`;
+  }).join("");
+}
+function renderProductActivity(){
+  const map={};
+  allEvents.forEach(e=>{
+    const k=e.product_id||e.sku||e.product_name||"?";
+    const r=map[k]||(map[k]={name:e.product_name||k, sku:e.sku||"", v:0,c:0,a:0,visitors:new Set()});
+    if(e.product_name && !r.name) r.name=e.product_name;
+    if(e.event_type==="product_view") r.v++; else if(e.event_type==="product_click") r.c++; else if(e.event_type==="add_to_enquiry") r.a++;
+    r.visitors.add(e.visitor_id);
+  });
+  const rows=Object.values(map).sort((a,b)=>(b.v+b.c+b.a*3)-(a.v+a.c+a.a*3)).slice(0,25);
+  document.getElementById("product-activity-tbody").innerHTML = rows.length
+    ? rows.map(r=>`<tr><td>${esc(r.name)}${r.sku?` <span style="color:var(--text-muted);font-size:12px">${esc(r.sku)}</span>`:""}</td><td>${r.v}</td><td>${r.c}</td><td>${r.a}</td><td>${r.visitors.size}</td></tr>`).join("")
+    : '<tr><td colspan="5" class="state-msg">No activity recorded yet.</td></tr>';
+}
+function openCustomerModal(id){
+  const c=customerRows.find(x=>x.id===id); if(!c) return;
+  currentCustomerId=id;
+  const m=c.member||{};
+  const profile=Object.keys(m).filter(k=>m[k]!==null && m[k]!=="" && typeof m[k]!=="object")
+    .map(k=>`<tr><td style="color:var(--text-muted);padding:4px 14px 4px 0;white-space:nowrap">${esc(k.replace(/_/g," "))}</td><td>${esc(m[k])}</td></tr>`).join("");
+  const enq=c.enquiries.map(q=>`<tr><td>#${esc(q.id)}</td><td>${esc(fmtDT(q.created_at))}</td><td>${esc(getEnquiryStatusLabel(q.status))}</td><td>${esc(formatEnquiryItems(q.items))}</td><td>${esc(q.total_amount!=null?`${q.currency||""} ${Number(q.total_amount).toLocaleString("en-US",{maximumFractionDigits:2})}`.trim():"On request")}</td></tr>`).join("");
+  const counts={};
+  c.events.forEach(e=>{ const k=e.product_id||e.product_name||"?"; const r=counts[k]||(counts[k]={name:e.product_name||k,v:0,c:0,a:0,last:e.created_at}); if(e.event_type==="product_view")r.v++; else if(e.event_type==="product_click")r.c++; else r.a++; });
+  const prod=Object.values(counts).sort((a,b)=>(b.v+b.c+b.a)-(a.v+a.c+a.a)).slice(0,30)
+    .map(r=>`<tr><td>${esc(r.name)}</td><td>${r.v}</td><td>${r.c}</td><td>${r.a}</td><td>${esc(fmtDT(r.last))}</td></tr>`).join("");
+  const th=(cols)=>`<thead><tr>${cols.map(x=>`<th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--text-muted);text-transform:uppercase">${x}</th>`).join("")}</tr></thead>`;
+  document.getElementById("customer-modal-title").textContent=c.name||c.email||"Customer";
+  document.getElementById("customer-modal-body").innerHTML=`
+    <div class="enquiry-detail-card" style="margin-bottom:14px"><div class="detail-label">Profile</div>
+      <table style="font-size:13px"><tr><td style="color:var(--text-muted);padding:4px 14px 4px 0">name</td><td>${esc(c.name||"—")}</td></tr>
+      <tr><td style="color:var(--text-muted);padding:4px 14px 4px 0">email</td><td>${esc(c.email||"—")}</td></tr>
+      <tr><td style="color:var(--text-muted);padding:4px 14px 4px 0">phone</td><td>${esc(c.phone||"—")}</td></tr>${profile}</table></div>
+    <div class="enquiry-detail-card" style="margin-bottom:14px"><div class="detail-label">Enquiries (${c.enquiries.length})</div>
+      ${enq?`<table style="width:100%;font-size:13px">${th(["Ref","Submitted","Status","Items","Total"])}<tbody>${enq}</tbody></table>`:"<p>No enquiries yet.</p>"}</div>
+    <div class="enquiry-detail-card"><div class="detail-label">Products viewed (last 90 days)</div>
+      ${prod?`<table style="width:100%;font-size:13px">${th(["Product","Views","Clicks","Added","Last seen"])}<tbody>${prod}</tbody></table>`:"<p>No activity recorded. Activity is only recorded if the customer accepted tracking.</p>"}</div>`;
+  document.getElementById("customer-modal").classList.add("open");
+}
+function closeCustomerModal(){ document.getElementById("customer-modal").classList.remove("open"); }
+async function deleteCustomerActivity(){
+  const c=customerRows.find(x=>x.id===currentCustomerId); if(!c) return;
+  if(!confirm("Permanently delete all recorded product activity for "+(c.name||c.email||"this customer")+"?\n\nTheir profile and enquiries are not affected. This cannot be undone.")) return;
+  try{
+    await sb("product_events?user_id=eq."+encodeURIComponent(c.id),"DELETE");
+    toast("Activity data deleted.");
+    closeCustomerModal(); await loadCustomers();
+  }catch(e){ toast("Could not delete: "+e.message,"error"); }
 }
 
 function closeEnquiryModal(){
