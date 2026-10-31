@@ -466,8 +466,8 @@
             </div>
           </div>
 
-          <!-- ── DIAMOND CONFIGURATION ── -->
-          <div class="pd-card">
+          <!-- ── DIAMOND CONFIGURATION (shown only for products that have diamonds) ── -->
+          <div class="pd-card" data-pd-diamond-card>
             <div class="pd-card-head">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9l4-6h8l4 6-10 11L4 9z"/><path d="M4 9h16M9 3l1.5 6L9 9m6-6l-1.5 6L15 9"/></svg>
               <span>Diamond Configuration</span>
@@ -485,6 +485,28 @@
             <div class="pd-field">
               <label>Diamond Quality</label>
               <select data-filter-diamond-quality></select>
+            </div>
+          </div>
+
+          <!-- ── GEMSTONE CONFIGURATION (shown only for products that have gemstones) ── -->
+          <div class="pd-card" data-pd-gem-card style="display:none">
+            <div class="pd-card-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12l3 6-9 12L3 9l3-6z"/><path d="M3 9h18M9 3l3 18M15 3l-3 18"/></svg>
+              <span>Gemstone Configuration</span>
+            </div>
+            <div class="pd-card-row">
+              <div class="pd-field">
+                <label>Gemstone Type</label>
+                <select data-filter-gem-type></select>
+              </div>
+              <div class="pd-field" data-pd-gem-color-field>
+                <label>Gemstone Color</label>
+                <select data-filter-gem-color></select>
+              </div>
+            </div>
+            <div class="pd-field" data-pd-gem-quality-field>
+              <label>Gemstone Quality</label>
+              <select data-filter-gem-quality></select>
             </div>
           </div>
 
@@ -522,7 +544,8 @@
               <div class="product-detail-item"><dt>Category</dt><dd data-pd-category>—</dd></div>
               <div class="product-detail-item"><dt>SKU</dt><dd data-pd-sku>—</dd></div>
               <div class="product-detail-item"><dt>Metal</dt><dd data-pd-metal-display>—</dd></div>
-              <div class="product-detail-item"><dt>Diamond</dt><dd data-pd-diamond-display>—</dd></div>
+              <div class="product-detail-item" data-pd-diamond-row><dt>Diamond</dt><dd data-pd-diamond-display>—</dd></div>
+              <div class="product-detail-item" data-pd-gem-row style="display:none"><dt>Gemstone</dt><dd data-pd-gem-display>—</dd></div>
               <div class="product-detail-item" data-pd-size-row style="display:none"><dt>Size</dt><dd data-pd-size-display>—</dd></div>
             </dl>
           </div>
@@ -791,10 +814,12 @@
     function renderProductPricingForSelection(product, available) {
       const selected = available.find(a => a.quality === _selectedProductMetalQuality) || available[0] || null;
       const selectedMetal = selected ? { quality: selected.quality, type: selected.type } : null;
+      syncStoneUI(product);   // diamond / gemstone dropdowns follow the stones this product actually has
       const selectedDiamond = {
         color: _selectedCatalogDiamondColor || '',
         quality: _selectedCatalogDiamondQuality || '',
         stoneType: _selectedCatalogStoneType || '',
+        gem: gemSelectionFor(product),
       };
       const currency = _displayCurrency?.code || 'INR';
       if (!_pdCertInit) {
@@ -829,8 +854,17 @@
         missing.push({ label: 'Metal Color', els: swatchWrap ? [swatchWrap] : [metalColorSel] });
       }
 
-      const hasStones = (product?.product_stones || []).length > 0;
-      if (hasStones) {
+      const kinds = productStoneKinds(_effectiveProductForPricing(product));
+      if (kinds.gem) {
+        const gemTypeSel = document.querySelector('[data-filter-gem-type]');
+        const gemColorSel = document.querySelector('[data-filter-gem-color]');
+        const gemQualSel = document.querySelector('[data-filter-gem-quality]');
+        const _visible = (el) => el && !(el.closest('[data-pd-gem-color-field],[data-pd-gem-quality-field]') || {style:{}}).style.display;
+        if (hasOptions(gemTypeSel) && !gemTypeSel.value) missing.push({ label: 'Gemstone Type', els: [gemTypeSel] });
+        if (_visible(gemColorSel) && hasOptions(gemColorSel) && !gemColorSel.value) missing.push({ label: 'Gemstone Color', els: [gemColorSel] });
+        if (_visible(gemQualSel) && hasOptions(gemQualSel) && !gemQualSel.value) missing.push({ label: 'Gemstone Quality', els: [gemQualSel] });
+      }
+      if (kinds.diamond) {
         const stoneTypeSel = document.querySelector('[data-filter-stone-type]');
         const diamondColorSel = document.querySelector('[data-filter-diamond-color]');
         const diamondQualitySel = document.querySelector('[data-filter-diamond-quality]');
@@ -932,13 +966,20 @@
         }
         const notesEl = document.querySelector('[data-product-notes]');
         const notes = notesEl ? notesEl.value.trim() : '';
+        const _kinds = productStoneKinds(_effectiveProductForPricing(product));
         const options = {
           metalQuality: document.querySelector('[data-pd-metal-display]')?.textContent?.trim() || '',
           metalColor: _selectedMetalColor || '',
-          stoneType: _selectedCatalogStoneType || '',
-          diamond: document.querySelector('[data-pd-diamond-display]')?.textContent?.trim() || '',
-          size: _selectedSize || product.size || '',
         };
+        if (_kinds.diamond) {
+          options.stoneType = _selectedCatalogStoneType || '';
+          options.diamond = document.querySelector('[data-pd-diamond-display]')?.textContent?.trim() || '';
+        }
+        if (_kinds.gem) {
+          options.gemType = _selectedCatalogGemType || '';
+          options.gemstone = [_selectedCatalogGemColor, _selectedCatalogGemQuality].filter(Boolean).join(' · ');
+        }
+        options.size = _selectedSize || product.size || '';
 
         const list = getStored('vj_cart');
         const alreadyInCart = list.some((x) => String(x.id) === String(product.id));
@@ -954,7 +995,8 @@
       const watchSelectors = [
         '[data-metal-type-select]', '[data-metal-quality-select]',
         '[data-filter-metal-color]', '[data-filter-stone-type]',
-        '[data-filter-diamond-color]', '[data-filter-diamond-quality]'
+        '[data-filter-diamond-color]', '[data-filter-diamond-quality]',
+        '[data-filter-gem-type]', '[data-filter-gem-color]', '[data-filter-gem-quality]'
       ];
       watchSelectors.forEach(sel => {
         const el = document.querySelector(sel);
