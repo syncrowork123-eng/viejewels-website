@@ -2063,6 +2063,8 @@ async function loadAbandoned(){
     const since = new Date(Date.now() - 90*864e5).toISOString();
     allAddEvents = await sbAll("product_events?select=*&event_type=eq.add_to_enquiry&created_at=gte." + encodeURIComponent(since) + "&order=created_at.desc");
     if(!allMembers.length){ try{ allMembers = await sbAll("members?select=*"); }catch(e){} }
+    await ensureStaffSet();
+    allAddEvents = removeStaffEvents(allAddEvents);
   }catch(e){
     allAddEvents = [];
     note.textContent = "Not available yet: run customer_tracking.sql in the Supabase SQL editor to start recording what visitors add to the enquiry list.";
@@ -2248,6 +2250,28 @@ function openEnquiryModal(id){
 // ── CUSTOMERS (profiles + enquiries + product activity) ────────────────────────────────
 let allMembers=[], allEvents=[], customerRows=[], currentCustomerId=null;
 
+// Staff are left out of every activity report. Anyone listed in the database's admins table counts as staff;
+// add extra staff or test-account emails here (for example a colleague who browses the shop with their own account).
+const ADMIN_EXTRA_STAFF_EMAILS = [];
+let staffEmailSet = null;
+async function ensureStaffSet(){
+  if(staffEmailSet) return;
+  const set = new Set(ADMIN_EXTRA_STAFF_EMAILS.map(e=>String(e).toLowerCase()));
+  try{ (await sb("admins?select=email")).forEach(r=>{ if(r.email) set.add(String(r.email).toLowerCase()); }); }catch(e){}
+  staffEmailSet = set;
+}
+function staffUserIds(){
+  const ids = new Set(), isStaff = (em)=>em && staffEmailSet && staffEmailSet.has(String(em).toLowerCase());
+  allMembers.forEach(m=>{ if(isStaff(m.email||m.member_email)) ids.add(m.id); });
+  allEnquiries.forEach(q=>{ if(q.user_id && isStaff(q.email)) ids.add(q.user_id); });
+  return ids;
+}
+function removeStaffEvents(events){                     // drops staff events and any earlier anonymous activity from the same browser
+  const ids = staffUserIds(), visitors = new Set();
+  events.forEach(e=>{ if(e.user_id && ids.has(e.user_id)) visitors.add(e.visitor_id); });
+  return events.filter(e=>!(e.user_id && ids.has(e.user_id)) && !visitors.has(e.visitor_id));
+}
+
 async function sbAll(path, pageSize=1000, maxPages=10){          // PostgREST returns 1000 rows max per request
   let out=[];
   for(let i=0;i<maxPages;i++){
@@ -2268,6 +2292,8 @@ async function loadCustomers(){
   try{
     const since=new Date(Date.now()-90*864e5).toISOString();
     allEvents = await sbAll("product_events?select=*&created_at=gte."+encodeURIComponent(since)+"&order=created_at.desc");
+    await ensureStaffSet();
+    allEvents = removeStaffEvents(allEvents);
   }catch(e){
     allEvents=[];
     note.textContent="Product activity is not available yet. Run customer_tracking.sql in the Supabase SQL editor to switch it on.";
@@ -2287,6 +2313,8 @@ function buildCustomerRows(){
     const c = byId[q.user_id] || (byId[q.user_id]={ id:q.user_id, member:null, name:"", email:"", phone:"" });
     c.name=c.name||q.full_name||""; c.email=c.email||q.email||""; c.phone=c.phone||q.phone||"";
   });
+  const _staff = staffUserIds();
+  _staff.forEach(id=>{ delete byId[id]; });                     // staff are not customers
   customerRows = Object.values(byId).map(c=>{
     c.enquiries = allEnquiries.filter(q=>q.user_id===c.id);
     c.events = allEvents.filter(e=>e.user_id===c.id);
