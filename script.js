@@ -2846,19 +2846,44 @@ function vjPost(table, row) {
     body: JSON.stringify(row),
   }).catch(() => {});
 }
+// Staff are never tracked: a browser flagged with ?staff=1, or a login that the database says is an admin.
+function vjIsStaffSync() { try { return localStorage.getItem("vj_staff") === "1"; } catch { return false; } }
+let _vjStaffCheck = null;
+function vjCheckStaff() {                              // resolves true when this visitor is staff
+  if (vjIsStaffSync()) return Promise.resolve(true);
+  const a = vjAuth(); if (!a) return Promise.resolve(false);
+  const key = "vj_staff_chk_" + a.user.id;
+  const cached = sessionStorage.getItem(key);
+  if (cached !== null) return Promise.resolve(cached === "1");
+  if (!_vjStaffCheck) {
+    _vjStaffCheck = fetch(SUPABASE_URL + "/rest/v1/rpc/is_admin", {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + a.access_token, "Content-Type": "application/json" },
+      body: "{}",
+    }).then((r) => (r.ok ? r.json() : false)).then((v) => {
+      sessionStorage.setItem(key, v === true ? "1" : "0");
+      if (v === true) localStorage.setItem("vj_staff", "1");     // remember this browser as staff
+      return v === true;
+    }).catch(() => false);
+  }
+  return _vjStaffCheck;
+}
 function vjTrack(type, product, page) {
   try {
     if (vjConsent() !== "granted") return;
     const visitor = vjVisitorId(); if (!visitor) return;
-    const a = vjAuth();
-    vjPost("product_events", {
-      visitor_id: visitor,
-      user_id: a ? a.user.id : null,
-      event_type: type,
-      product_id: product && product.id != null ? String(product.id) : null,
-      sku: (product && product.sku) || null,
-      product_name: (product && product.name) || null,
-      page: page || location.pathname,                  // path only; the query string is never stored
+    vjCheckStaff().then((staff) => {
+      if (staff) return;                                // ignore staff visits
+      const a = vjAuth();
+      vjPost("product_events", {
+        visitor_id: visitor,
+        user_id: a ? a.user.id : null,
+        event_type: type,
+        product_id: product && product.id != null ? String(product.id) : null,
+        sku: (product && product.sku) || null,
+        product_name: (product && product.name) || null,
+        page: page || location.pathname,                // path only; the query string is never stored
+      });
     });
   } catch (e) { /* tracking must never break the page */ }
 }
@@ -2914,6 +2939,16 @@ function vjShowConsentBanner() {
 }
 function vjInitTracking() {
   if (location.pathname.endsWith("admin.html")) return;                 // never track the admin area
+  // Staff: open the shop once on each device/browser with ?staff=1 to switch tracking off there (?staff=0 switches it back on)
+  try {
+    const sp = new URLSearchParams(location.search).get("staff");
+    if (sp === "1") localStorage.setItem("vj_staff", "1");
+    else if (sp === "0") { localStorage.removeItem("vj_staff"); sessionStorage.clear(); }
+  } catch (e) {}
+  if (vjIsStaffSync()) return;                                          // staff browser: no banner, no tracking
+  vjCheckStaff().then((staff) => {                                      // staff logged in: remove the banner if it was shown
+    if (staff) { const b = document.getElementById("vj-consent"); if (b) b.remove(); const l = document.getElementById("vj-prefs-link"); if (l) l.remove(); }
+  });
   if (vjConsent() === null) vjShowConsentBanner();
   const footer = document.querySelector(".site-footer");
   if (footer && !document.getElementById("vj-prefs-link")) {
