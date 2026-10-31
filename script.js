@@ -1652,6 +1652,7 @@ async function _renderProductDetailBase() {
   }
 
   _lastLoadedProduct = product;
+  vjTrack("product_view", product);
   document.title = `${product.name || "Product"} | Vie Jewels`;
 
   // Category / eyebrow
@@ -1844,6 +1845,7 @@ function toggleStored(key, product, label, notes, options) {
       qty: 1,
       options: options || null,  // selected metal/color/stone/diamond/size summary
     });
+    if (key === "vj_cart") vjTrack("add_to_enquiry", product);
   }
   setStored(key, list);
 }
@@ -2797,3 +2799,144 @@ function initHeaderScrollState() {
   window.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update);
 }
+
+
+// ── VISITOR ACTIVITY (recorded only after the visitor accepts) ───────────────────────────
+// What is recorded: a random visitor ID, which products were viewed / clicked / added to the enquiry
+// list, and when. Nothing is recorded until the visitor presses Accept on the banner. Once the visitor
+// registers and logs in, their earlier activity is attached to their account.
+const VJ_CONSENT_KEY = "vj_consent";          // "granted" | "declined" (absent = not asked yet)
+const VJ_VISITOR_KEY = "vj_visitor";
+const VJ_NOTICE_VERSION = "2026-11";          // change this to ask everyone again after the notice changes
+const VJ_PRIVACY_URL = "privacy-policy.html"; // TODO: point this at your real privacy policy page
+
+function vjConsent() { try { return localStorage.getItem(VJ_CONSENT_KEY); } catch { return null; } }
+function vjUuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0; return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+function vjVisitorId() {
+  try {
+    let v = localStorage.getItem(VJ_VISITOR_KEY);
+    if (!v) { v = vjUuid(); localStorage.setItem(VJ_VISITOR_KEY, v); }
+    return v;
+  } catch { return null; }
+}
+function vjAuth() {
+  try {
+    const a = JSON.parse(localStorage.getItem("vj_auth") || "null");
+    if (!a || !a.access_token || !a.user) return null;
+    if (a.expires_at && Math.floor(Date.now() / 1000) > a.expires_at) return null;   // expired: treat as logged out
+    return a;
+  } catch { return null; }
+}
+function vjPost(table, row) {
+  const a = vjAuth();
+  return fetch(SUPABASE_URL + "/rest/v1/" + table, {
+    method: "POST",
+    keepalive: true,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + (a ? a.access_token : SUPABASE_KEY),
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(row),
+  }).catch(() => {});
+}
+function vjTrack(type, product, page) {
+  try {
+    if (vjConsent() !== "granted") return;
+    const visitor = vjVisitorId(); if (!visitor) return;
+    const a = vjAuth();
+    vjPost("product_events", {
+      visitor_id: visitor,
+      user_id: a ? a.user.id : null,
+      event_type: type,
+      product_id: product && product.id != null ? String(product.id) : null,
+      sku: (product && product.sku) || null,
+      product_name: (product && product.name) || null,
+      page: page || location.pathname,                  // path only; the query string is never stored
+    });
+  } catch (e) { /* tracking must never break the page */ }
+}
+function vjLogConsent(granted) {
+  const visitor = vjVisitorId(); if (!visitor) return;
+  const a = vjAuth();
+  vjPost("consents", { visitor_id: visitor, user_id: a ? a.user.id : null, purpose: "activity_tracking", granted, notice_version: VJ_NOTICE_VERSION });
+}
+// Attach this browser's earlier anonymous activity to the logged-in customer (once per visitor + account).
+function vjLinkEvents() {
+  try {
+    if (vjConsent() !== "granted") return;
+    const a = vjAuth(), visitor = localStorage.getItem(VJ_VISITOR_KEY);
+    if (!a || !visitor) return;
+    const flag = "vj_linked_" + a.user.id;
+    if (localStorage.getItem(flag) === visitor) return;
+    fetch(SUPABASE_URL + "/rest/v1/rpc/link_visitor_events", {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + a.access_token, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_visitor: visitor }),
+    }).then((r) => { if (r.ok) localStorage.setItem(flag, visitor); }).catch(() => {});
+  } catch (e) {}
+}
+
+function vjSetConsent(granted) {
+  try {
+    if (!granted) {
+      vjLogConsent(false);                       // log the withdrawal first, while the visitor ID still exists
+      localStorage.removeItem(VJ_VISITOR_KEY);   // then stop identifying this browser
+    }
+    localStorage.setItem(VJ_CONSENT_KEY, granted ? "granted" : "declined");
+    if (granted) { vjLogConsent(true); vjLinkEvents(); }
+  } catch (e) {}
+  const el = document.getElementById("vj-consent"); if (el) el.remove();
+}
+function vjShowConsentBanner() {
+  if (document.getElementById("vj-consent")) return;
+  const bar = document.createElement("div");
+  bar.id = "vj-consent";
+  bar.setAttribute("role", "dialog");
+  bar.setAttribute("aria-label", "Privacy choices");
+  bar.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;max-width:760px;margin:0 auto;background:#fff;color:#1a1a1a;border:1px solid #d9d9d9;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.18);padding:18px 20px;font:14px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;gap:16px;align-items:center;flex-wrap:wrap";
+  bar.innerHTML =
+    '<p style="margin:0;flex:1 1 320px">We would like to remember which jewelry you view on this site so we can help you better when you send an enquiry. ' +
+    'This is optional. You can change your mind at any time using the link at the bottom of every page. ' +
+    '<a href="' + VJ_PRIVACY_URL + '" style="color:#1a1a1a;text-decoration:underline">Privacy policy</a></p>' +
+    '<div style="display:flex;gap:10px;flex:0 0 auto">' +
+    '<button type="button" id="vj-decline" style="padding:10px 18px;border:1px solid #1a1a1a;background:#fff;color:#1a1a1a;border-radius:8px;cursor:pointer;font:inherit">No thanks</button>' +
+    '<button type="button" id="vj-accept" style="padding:10px 18px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;border-radius:8px;cursor:pointer;font:inherit">Accept</button></div>';
+  document.body.appendChild(bar);
+  document.getElementById("vj-accept").addEventListener("click", () => vjSetConsent(true));
+  document.getElementById("vj-decline").addEventListener("click", () => vjSetConsent(false));
+}
+function vjInitTracking() {
+  if (location.pathname.endsWith("admin.html")) return;                 // never track the admin area
+  if (vjConsent() === null) vjShowConsentBanner();
+  const footer = document.querySelector(".site-footer");
+  if (footer && !document.getElementById("vj-prefs-link")) {
+    const a = document.createElement("a");
+    a.id = "vj-prefs-link"; a.href = "#"; a.textContent = "Privacy choices";
+    a.style.cssText = "display:inline-block;margin-top:12px;font-size:12px;text-decoration:underline;color:inherit;opacity:.8";
+    a.addEventListener("click", (e) => { e.preventDefault(); vjShowConsentBanner(); });
+    footer.appendChild(a);
+  }
+  vjLinkEvents();
+  // Which products were clicked on listing pages (links that open product.html?id=...)
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest && e.target.closest('a[href*="product.html"]');
+    if (!link || vjConsent() !== "granted") return;
+    try {
+      const u = new URL(link.getAttribute("href"), location.href);
+      const id = u.searchParams.get("id") || u.searchParams.get("slug");
+      if (!id) return;
+      const card = link.closest("article, li, div") || link;
+      const nameEl = card.querySelector("h2, h3, h4, [data-name]");
+      vjTrack("product_click", { id, name: nameEl ? nameEl.textContent.trim().slice(0, 200) : null }, location.pathname);
+    } catch (err) {}
+  }, true);
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", vjInitTracking);
+else vjInitTracking();
