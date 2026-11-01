@@ -13,6 +13,16 @@
     .pd-page { max-width: 1600px; padding-top: 36px; padding-bottom: 80px; }
 
     /* Breadcrumb */
+    .pd-topbar .pd-breadcrumb { margin-bottom: 0; }
+    .pd-topbar { margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .pd-pn { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .pd-pn-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface, #fff); color: var(--text); font-weight: 600; text-decoration: none; transition: border-color var(--transition), color var(--transition); }
+    .pd-pn-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .pd-pn-btn.is-disabled { opacity: .35; pointer-events: none; }
+    .pd-pn-pos { color: var(--text-muted); min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; }
+    .pd-pn-back { color: var(--text-muted); text-decoration: underline; margin-right: 6px; }
+    .pd-pn-back:hover { color: var(--accent); }
+    @media (max-width: 640px) { .pd-pn { width: 100%; justify-content: space-between; } }
     .pd-breadcrumb {
       display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
       font-size: 12px; color: var(--text-light); margin-bottom: 30px;
@@ -419,7 +429,10 @@
     <div class="section pd-page">
 
       <!-- BREADCRUMB -->
-      <nav class="pd-breadcrumb" data-pd-breadcrumb aria-label="Breadcrumb"></nav>
+      <div class="pd-topbar">
+        <nav class="pd-breadcrumb" data-pd-breadcrumb aria-label="Breadcrumb"></nav>
+        <div class="pd-pn" data-pd-prevnext style="display:none" aria-label="Browse products"></div>
+      </div>
 
       <section class="product-detail" data-product-detail>
 
@@ -603,6 +616,25 @@
 
   <script>
     /* ── PRODUCT PAGE OVERRIDES (build on top of script.js) ───────────── */
+
+    // Previous / Next: walks the same list, in the same order, as the gallery the client came from
+    function pdWirePrevNext(product) {
+      const box = document.querySelector('[data-pd-prevnext]');
+      if (!box) return;
+      let nav = null;
+      try { nav = JSON.parse(sessionStorage.getItem('vj_gallery_nav') || 'null'); } catch (e) {}
+      const ids = nav && Array.isArray(nav.ids) ? nav.ids.map(String) : [];
+      const i = ids.indexOf(String(product.id));
+      if (i < 0) { box.style.display = 'none'; return; }      // opened directly: no gallery order to follow
+      const href = (n) => 'product.html?id=' + encodeURIComponent(ids[n]);
+      const name = (n) => (nav.names && nav.names[n]) || '';
+      const btn = (n, label, dirLabel) => n >= 0 && n < ids.length
+        ? `<a class="pd-pn-btn" href="${esc(href(n))}" rel="${dirLabel === 'Previous' ? 'prev' : 'next'}" title="${esc(dirLabel + (name(n) ? ': ' + name(n) : ''))}">${label}</a>`
+        : `<span class="pd-pn-btn is-disabled" aria-disabled="true">${label}</span>`;
+      const back = nav.url && /^[\w.\-]+\.html(\?.*)?$/.test(nav.url) ? `<a class="pd-pn-back" href="${esc(nav.url)}">Back to results</a>` : '';
+      box.innerHTML = back + btn(i - 1, '\u2039 Previous', 'Previous') + `<span class="pd-pn-pos">${i + 1} of ${ids.length}</span>` + btn(i + 1, 'Next \u203A', 'Next');
+      box.style.display = '';
+    }
 
     function pdBuildBreadcrumb(product) {
       const wrap = document.querySelector('[data-pd-breadcrumb]');
@@ -1379,6 +1411,7 @@
       if (!_lastLoadedProduct) return;
       pdSetEyebrow(_lastLoadedProduct);
       pdBuildBreadcrumb(_lastLoadedProduct);
+      pdWirePrevNext(_lastLoadedProduct);
       pdWireMetalSwatches(_lastLoadedProduct);
       pdWireLightbox();
       pdRenderExtraImages(_lastLoadedProduct);
