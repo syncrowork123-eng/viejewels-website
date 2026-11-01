@@ -289,6 +289,11 @@
     .price-line.price-line-has-break { border-bottom: none; padding-bottom: 4px; }
     .price-line.price-line-has-break + .price-line.price-line-break { border-top: none; }
     .price-line-break-end { border-bottom: 1px solid var(--border-light); }
+    .price-line.price-line-cat .price-line-label { color: var(--text); font-weight: 700; }
+    .price-line.price-line-cat .price-line-value { color: var(--text); font-weight: 600; }
+    .price-line.price-line-cat + .price-line-leaf { padding-top: 2px; }
+    .price-line.price-line-leaf { padding-left: 30px; }
+    .price-line.price-line-leaf .price-line-label { font-weight: 500; }
     .price-total-row {
       display: flex; justify-content: space-between; align-items: baseline;
       padding-top: 16px; margin-top: 2px; border-top: 1px solid var(--border);
@@ -726,42 +731,66 @@
       // Stone Charges breakup — Diamonds and Gemstones each get their own line:
       // stone type(s) · colour · quality · carat weight, plus that group's share of the stone charge.
       const money = (amount) => costs.symbol + ' ' + _fmtNum(amount, costs.locale, costs.decimals);
-      const stoneGroups = [
-        { cat: 'Diamond',   label: 'Diamonds',  sel: [_selectedCatalogDiamondColor, _selectedCatalogDiamondQuality] },
-        { cat: 'Gem Stone', label: 'Gemstones', sel: [_selectedCatalogGemColor,     _selectedCatalogGemQuality] },
-      ].map((g) => {
-        const ls = (costs.stoneLines || []).filter((l) => l.category === g.cat);
+      const catDefs = [
+        { cat: 'Diamond',   label: 'Diamonds',  selC: _selectedCatalogDiamondColor, selQ: _selectedCatalogDiamondQuality },
+        { cat: 'Gem Stone', label: 'Gemstones', selC: _selectedCatalogGemColor,     selQ: _selectedCatalogGemQuality },
+      ];
+      // One entry per kind of stone (type · colour · quality) inside each category, with its pieces, carats and cost
+      const stoneCats = catDefs.map((def) => {
+        const ls = (costs.stoneLines || []).filter((l) => l.category === def.cat);
         if (!ls.length) return null;
-        const ct  = ls.reduce((a, l) => a + (l.totalCt || 0), 0);
-        const inr = ls.reduce((a, l) => a + (l.cost || 0), 0);
-        const types = [...new Set(ls.map((l) => l.type).filter(Boolean))];
-        const parts = [...types, ...g.sel.filter(Boolean), ct ? ct.toFixed(3) + ' ct' : ''].filter(Boolean);
-        return { label: g.label, text: parts.join(' · '), inr };
+        const kinds = new Map();
+        ls.forEach((l) => {
+          const color = l.color || def.selC || '', quality = l.quality || def.selQ || '';
+          const key = [l.type, color, quality].join('|');
+          const k = kinds.get(key) || { type: l.type, color, quality, pcs: 0, ct: 0, inr: 0 };
+          k.pcs += l.pcs || 0; k.ct += l.totalCt || 0; k.inr += l.cost || 0;
+          kinds.set(key, k);
+        });
+        const items = [...kinds.values()].map((k) => ({
+          label: k.type || def.label,
+          text: [k.color, k.quality, k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : ''].filter(Boolean).join(' · '),
+          inr: k.inr,
+        }));
+        return { label: def.label, items };
       }).filter(Boolean);
 
+      // Convert each stone line separately; the last one takes the remainder so everything adds up to Stone Charges exactly
+      const leaves = stoneCats.flatMap((c) => c.items);
+      let used = 0;
+      leaves.forEach((it, i) => {
+        it.amount = i === leaves.length - 1 ? costs.stoneCost - used : _convertFromInr(it.inr, costs.currency).amount;
+        used += it.amount;
+      });
+
       let stoneRowsHtml;
-      if (stoneGroups.length >= 2) {
-        // Amounts are converted per group; the last group takes the remainder so the lines add up exactly
-        let used = 0;
-        const amounts = stoneGroups.map((g, i) => {
-          const a = i === stoneGroups.length - 1 ? costs.stoneCost - used : _convertFromInr(g.inr, costs.currency).amount;
-          used += a; return a;
+      if (leaves.length === 1) {
+        // One kind of stone only: a single compact line
+        const c = stoneCats[0], it = c.items[0];
+        stoneRowsHtml = row('Stone Charges', [c.label, it.label, it.text].filter(Boolean).join(' · '), costs.fmtStone);
+      } else if (leaves.length > 1) {
+        const lines = [];
+        stoneCats.forEach((c) => {
+          if (c.items.length === 1) {
+            lines.push({ cls: '', label: c.label, sub: [c.items[0].label, c.items[0].text].filter(Boolean).join(' · '), value: money(c.items[0].amount) });
+          } else {
+            lines.push({ cls: ' price-line-cat', label: c.label, sub: '', value: money(c.items.reduce((a, it) => a + it.amount, 0)) });
+            c.items.forEach((it) => lines.push({ cls: ' price-line-leaf', label: it.label, sub: it.text, value: money(it.amount) }));
+          }
         });
         stoneRowsHtml =
           `<div class="price-line price-line-has-break">
             <div class="price-line-info"><span class="price-line-label">Stone Charges</span></div>
             <span class="price-line-value">${esc(costs.fmtStone)}</span>
           </div>` +
-          stoneGroups.map((g, i) => `
-          <div class="price-line price-line-break${i === stoneGroups.length - 1 ? ' price-line-break-end' : ''}">
+          lines.map((l, i) => `
+          <div class="price-line price-line-break${l.cls}${i === lines.length - 1 ? ' price-line-break-end' : ''}">
             <div class="price-line-info">
-              <span class="price-line-label">${esc(g.label)}</span>
-              <span class="price-line-sub">${esc(g.text)}</span>
+              <span class="price-line-label">${esc(l.label)}</span>
+              ${l.sub ? `<span class="price-line-sub">${esc(l.sub)}</span>` : ''}
             </div>
-            <span class="price-line-value">${esc(money(amounts[i]))}</span>
+            <span class="price-line-value">${esc(l.value)}</span>
           </div>`).join('');
-      } else if (stoneGroups.length === 1) {
-        stoneRowsHtml = row('Stone Charges', stoneGroups[0].label + ' · ' + stoneGroups[0].text, costs.fmtStone);
       } else if (!(costs.stoneLines || []).length && !costs.stoneIncomplete && !(costs.stoneCost > 0)) {
         // Plain metal piece: no diamonds or gemstones, so there is no Stone Charges line at all
         stoneRowsHtml = '';
