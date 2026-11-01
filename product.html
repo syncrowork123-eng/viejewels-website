@@ -289,6 +289,13 @@
     .price-line.price-line-has-break { border-bottom: none; padding-bottom: 4px; }
     .price-line.price-line-has-break + .price-line.price-line-break { border-top: none; }
     .price-line-break-end { border-bottom: 1px solid var(--border-light); }
+    .pd-stone-detail { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+    .pd-stone-detail:empty { display: none; }
+    .pd-stone-detail-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .pd-stone-detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 12.5px; }
+    .pd-stone-detail-row .pd-sd-name { font-weight: 600; color: var(--text); }
+    .pd-stone-detail-row .pd-sd-sub { display: block; font-size: 11.5px; font-weight: 400; color: var(--text-muted); }
+    .pd-stone-detail-row .pd-sd-amt { white-space: nowrap; color: var(--text-muted); }
     .pd-gem-slot + .pd-gem-slot { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light); }
     .pd-gem-slot-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
     .price-line.price-line-cat .price-line-label { color: var(--text); font-weight: 700; }
@@ -493,6 +500,7 @@
               <label>Diamond Quality</label>
               <select data-filter-diamond-quality></select>
             </div>
+            <div class="pd-stone-detail" data-stone-detail="Diamond"></div>
           </div>
 
           <!-- ── GEMSTONE CONFIGURATION (shown only for products that have gemstones) ── -->
@@ -503,6 +511,7 @@
             </div>
             <!-- one block of dropdowns per kind of gemstone the product uses (filled by populateGemFilters) -->
             <div data-gem-slots></div>
+            <div class="pd-stone-detail" data-stone-detail="Gem Stone"></div>
           </div>
 
           <!-- ── SIZE SELECTOR (rendered by renderSizeSelector below) ── -->
@@ -725,25 +734,30 @@
         { cat: 'Diamond',   label: 'Diamonds',  selC: _selectedCatalogDiamondColor, selQ: _selectedCatalogDiamondQuality },
         { cat: 'Gem Stone', label: 'Gemstones', selC: _selectedCatalogGemColor,     selQ: _selectedCatalogGemQuality },
       ];
-      // One entry per kind of stone (type · colour · quality) inside each category, with its pieces, carats and cost
+      // One line per kind of stone inside each category: same type, shape, size, colour and quality are combined,
+      // anything that differs (another gemstone, another shape or size) gets its own line with its own price.
+      const _mm = (n) => { const v = Number(n) || 0; return v ? String(Math.round(v * 100) / 100) : ''; };
       const stoneCats = catDefs.map((def) => {
         const ls = (costs.stoneLines || []).filter((l) => l.category === def.cat);
         if (!ls.length) return null;
         const kinds = new Map();
         ls.forEach((l) => {
           const color = l.color || def.selC || '', quality = l.quality || def.selQ || '';
-          const key = [l.type, color, quality, l.unpriced ? 'x' : ''].join('|');
-          const k = kinds.get(key) || { type: l.type, color, quality, pcs: 0, ct: 0, inr: 0, unpriced: !!l.unpriced };
+          const key = [l.type, l.shape, l.lenMm, l.widMm, color, quality, l.unpriced ? 'x' : ''].join('|');
+          const k = kinds.get(key) || { type: l.type, shape: l.shape || '', lenMm: l.lenMm, widMm: l.widMm, color, quality, pcs: 0, ct: 0, inr: 0, unpriced: !!l.unpriced };
           k.pcs += l.pcs || 0; k.ct += l.totalCt || 0; k.inr += l.cost || 0;
           kinds.set(key, k);
         });
-        const items = [...kinds.values()].map((k) => ({
-          label: k.type || def.label,
-          text: [k.color, k.quality, k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : '', k.unpriced ? 'rate not set' : ''].filter(Boolean).join(' · '),
-          inr: k.inr,
-          unpriced: k.unpriced,
-        }));
-        return { label: def.label, items };
+        const items = [...kinds.values()].map((k) => {
+          const size = _mm(k.lenMm) ? _mm(k.lenMm) + (_mm(k.widMm) && _mm(k.widMm) !== _mm(k.lenMm) ? ' × ' + _mm(k.widMm) : '') + ' mm' : '';
+          return {
+            label: k.type || def.label,
+            text: [[k.shape, size].filter(Boolean).join(' '), k.color, k.quality, k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : '', k.unpriced ? 'rate not set' : ''].filter(Boolean).join(' · '),
+            inr: k.inr,
+            unpriced: k.unpriced,
+          };
+        });
+        return { cat: def.cat, label: def.label, items };
       }).filter(Boolean);
 
       // Convert each stone line separately; the last one takes the remainder so everything adds up to Stone Charges exactly
@@ -753,6 +767,13 @@
         it.amount = i === leaves.length - 1 ? costs.stoneCost - used : _convertFromInr(it.inr, costs.currency).amount;
         used += it.amount;
         it.shown = it.unpriced ? '\u2014' : null;               // an unpriced stone shows a dash instead of an amount
+      });
+
+      // The Diamond and Gemstone configuration cards list the same stones, with the same details and prices
+      document.querySelectorAll('[data-stone-detail]').forEach((box) => {
+        const c = stoneCats.find((x) => x.cat === box.dataset.stoneDetail);
+        box.innerHTML = c ? `<div class="pd-stone-detail-title">${esc(c.label)} in this design</div>` + c.items.map((it) =>
+          `<div class="pd-stone-detail-row"><span><span class="pd-sd-name">${esc(it.label)}</span>${it.text ? `<span class="pd-sd-sub">${esc(it.text)}</span>` : ''}</span><span class="pd-sd-amt">${esc(it.shown || money(it.amount))}</span></div>`).join('') : '';
       });
 
       let stoneRowsHtml;
@@ -790,6 +811,10 @@
         stoneRowsHtml = row('Stone Charges', diamondSub, costs.fmtStone);
       }
 
+      if (/[?&]debugstones=1/.test(location.search)) {
+        const dbgRows = (costs.stoneDebug || []).map((d) => `<tr><td>${esc(d.type)}</td><td>${esc(d.category)}</td><td>${esc(d.shape)}</td><td>${esc(d.pcs)}</td><td>${esc(d.length_mm)}×${esc(d.width_mm)}</td><td>${esc(d.avgWtCt)}</td><td>${esc(d.note)}</td></tr>`).join('');
+        window._stoneDebugHtml = `<table style="font-size:12px;border-collapse:collapse;margin-top:14px" border="1" cellpadding="4"><tr><th>stone_type</th><th>treated as</th><th>shape</th><th>pcs</th><th>mm</th><th>avg ct</th><th>result</th></tr>${dbgRows || '<tr><td colspan="7">This design has no stone rows</td></tr>'}</table>`;
+      }
       el.innerHTML =
         row('Metal Charges', metalSub, costs.fmtMetal) +
         stoneRowsHtml +
@@ -809,6 +834,8 @@
           <span class="price-total-label">Total Price</span>
           <span class="price-total-value">${esc(pdTotalWithCert(costs).fmt)}</span>
         </div>`;
+
+      if (window._stoneDebugHtml) { el.insertAdjacentHTML('beforeend', window._stoneDebugHtml); window._stoneDebugHtml = ''; }   // only with ?debugstones=1
 
       const toggle = el.querySelector('[data-pd-cert-toggle]');
       if (toggle) toggle.addEventListener('change', () => {
