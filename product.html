@@ -603,10 +603,15 @@
     function pdBuildBreadcrumb(product) {
       const wrap = document.querySelector('[data-pd-breadcrumb]');
       if (!wrap) return;
-      const crumbs = [{ label: 'All Products', href: 'collections.html' }, { label: 'Jewelry' }];
+      // Every level links to the matching collection page; only the product itself (the current page) is plain text.
+      const crumbs = [{ label: 'All Products', href: 'collections.html' }, { label: 'Jewelry', href: 'collections.html' }];
       const jc = (product.product_jewel_cats || [])[0];
       if (jc?.jewel_type) crumbs.push({ label: jc.jewel_type, href: 'collections.html?jewelcat=' + encodeURIComponent(jc.jewel_type) });
-      if (jc?.sub_type1) crumbs.push({ label: jc.sub_type1 });
+      if (jc?.jewel_type && jc?.sub_type1) {
+        crumbs.push({ label: jc.sub_type1, href: 'collections.html?jewelcat=' + encodeURIComponent(jc.jewel_type) + '&jewelsub=' + encodeURIComponent(jc.sub_type1) });
+      } else if (jc?.sub_type1) {
+        crumbs.push({ label: jc.sub_type1 });
+      }
       const tagName = (product.product_tags || [])[0]?.tags?.name;
       if (tagName) crumbs.push({ label: tagName });
       crumbs.push({ label: [product.name, product.sku].filter(Boolean).join(' ') || 'Product' });
