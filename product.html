@@ -734,27 +734,29 @@
         { cat: 'Diamond',   label: 'Diamonds',  selC: _selectedCatalogDiamondColor, selQ: _selectedCatalogDiamondQuality },
         { cat: 'Gem Stone', label: 'Gemstones', selC: _selectedCatalogGemColor,     selQ: _selectedCatalogGemQuality },
       ];
-      // One line per kind of stone inside each category: same type, shape, size, colour and quality are combined,
-      // anything that differs (another gemstone, another shape or size) gets its own line with its own price.
-      const _mm = (n) => { const v = Number(n) || 0; return v ? String(Math.round(v * 100) / 100) : ''; };
+      // One line per stone TYPE inside each category (Diamonds / Gemstones): every row of the same type is combined
+      // into one total (pieces, carats, price), whatever its shape or size.
       const stoneCats = catDefs.map((def) => {
         const ls = (costs.stoneLines || []).filter((l) => l.category === def.cat);
         if (!ls.length) return null;
         const kinds = new Map();
         ls.forEach((l) => {
+          const key = String(l.type || '').trim().toLowerCase();
+          const k = kinds.get(key) || { type: l.type, colors: new Set(), qualities: new Set(), pcs: 0, ct: 0, inr: 0, rows: 0, unpricedRows: 0 };
           const color = l.color || def.selC || '', quality = l.quality || def.selQ || '';
-          const key = [l.type, l.shape, l.lenMm, l.widMm, color, quality, l.unpriced ? 'x' : ''].join('|');
-          const k = kinds.get(key) || { type: l.type, shape: l.shape || '', lenMm: l.lenMm, widMm: l.widMm, color, quality, pcs: 0, ct: 0, inr: 0, unpriced: !!l.unpriced };
+          if (!l.unpriced) { if (color) k.colors.add(color); if (quality) k.qualities.add(quality); }
           k.pcs += l.pcs || 0; k.ct += l.totalCt || 0; k.inr += l.cost || 0;
+          k.rows++; if (l.unpriced) k.unpricedRows++;
           kinds.set(key, k);
         });
         const items = [...kinds.values()].map((k) => {
-          const size = _mm(k.lenMm) ? _mm(k.lenMm) + (_mm(k.widMm) && _mm(k.widMm) !== _mm(k.lenMm) ? ' × ' + _mm(k.widMm) : '') + ' mm' : '';
+          const allUnpriced = k.unpricedRows === k.rows;
           return {
             label: k.type || def.label,
-            text: [[k.shape, size].filter(Boolean).join(' '), k.color, k.quality, k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : '', k.unpriced ? 'rate not set' : ''].filter(Boolean).join(' · '),
+            text: [[...k.colors].join(' / '), [...k.qualities].join(' / '), k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : '',
+                   allUnpriced ? 'rate not set' : (k.unpricedRows ? 'some stones not priced' : '')].filter(Boolean).join(' · '),
             inr: k.inr,
-            unpriced: k.unpriced,
+            unpriced: allUnpriced,
           };
         });
         return { cat: def.cat, label: def.label, items };
