@@ -2263,7 +2263,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   let stoneCostINR = 0;
   let totalStoneCtWt = 0;
   let diamondCtWt = 0;            // diamonds only: the basis for the optional EGL certification
-  const stoneLines = [];          // one entry per priced stone row: { category, type, totalCt, cost (INR) }
+  const stoneLines = [];          // one entry per priced stone row: { category, type, color, quality, pcs, totalCt, cost (INR) }
   let stoneIncomplete = false;    // true if any stone row could not be sized or priced
 
   const stoneRows = product.product_stones || [];
@@ -2327,7 +2327,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
       stoneCostINR += _lineInr;
       // Category comes from the stone's own name (Natural / Lab Grown / Diamond = Diamond; anything
       // else = Gem Stone) so a gemstone can never be filed under Diamonds by a stray master value.
-      stoneLines.push({ category: _rowCat, type: stoneRec.type || stoneType, totalCt: totalWtCt, cost: _lineInr });
+      stoneLines.push({ category: _rowCat, type: stoneRec.type || stoneType, color: stoneRec.color || "", quality: stoneRec.quality || "", pcs, totalCt: totalWtCt, cost: _lineInr });
     } else {
       stoneIncomplete = true;
     }
