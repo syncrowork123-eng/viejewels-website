@@ -105,6 +105,15 @@ function _prefSet(name, value) {
     sessionStorage.setItem(_PREF_KEY, JSON.stringify(o));
   } catch (e) {}
 }
+// Matches a default (for example "G-H") against the dropdown's real options even if the price list spells it a
+// little differently: capital letters, spaces, "G - H", "G–H" (en dash) and similar all count as the same value.
+const _normOpt = (v) => String(v == null ? "" : v).toLowerCase().replace(/[\s\-\u2010-\u2015_]/g, "");
+function _findOption(list, want) {
+  if (want === "" || want == null) return "";
+  const n = _normOpt(want);
+  const hit = list.find((x) => _normOpt(x) === n);
+  return hit === undefined ? "" : hit;
+}
 // Puts every pricing selector in the top filter bar back to its default (used by "Clear All Filters").
 function _resetCatalogToDefaults() {
   try { sessionStorage.removeItem(_PREF_KEY); } catch (e) {}
@@ -123,9 +132,8 @@ function _resetCatalogToDefaults() {
       const el = document.querySelector(sel);
       if (!el) return;
       const want = CATALOG_DEFAULTS[key];
-      const _k = (v) => String(v == null ? "" : v).toLowerCase().replace(/\s+/g, "").replace(/[\u2010-\u2015\u2212]/g, "-");
-      const hit = [...el.options].find((o) => o.value === want) || (want ? [...el.options].find((o) => _k(o.value) === _k(want)) : null);
-      el.value = hit ? hit.value : "";
+      const opt = [...el.options].find((o) => o.value && _normOpt(o.value) === _normOpt(want));
+      el.value = opt ? opt.value : "";
       el.dispatchEvent(new Event("change"));
     });
   } finally { _suppressApply = before; }
@@ -1162,18 +1170,26 @@ function populateDiamondFilters() {
     const cur = forced !== undefined ? forced : qualitySel.value;
     qualitySel.innerHTML = `<option value="">Diamond Quality</option>` +
       qualities.map((q) => `<option value="${esc(q)}">${esc(q)}</option>`).join("");
-    qualitySel.value = qualities.includes(cur) ? cur : "";
+    qualitySel.value = _findOption(qualities, cur);
     _selectedCatalogDiamondQuality = qualitySel.value || null;
   };
 
   if (colorSel) {
-    const colors = [...new Set(stoneTypes.map((s) => s.color).filter(Boolean))].sort();
-    const _ck = (v) => String(v == null ? "" : v).toLowerCase().replace(/\s+/g, "").replace(/[\u2010-\u2015\u2212]/g, "-");
-    const want = firstRun ? _prefGet("diamondColor") : colorSel.value;
-    const cur = colors.find((c) => _ck(c) === _ck(want)) || "";      // "G-H" also matches "G - H", "G–H"
+    let colors = [...new Set(stoneTypes.map((s) => s.color).filter(Boolean))].sort();
+    let cur = firstRun ? _prefGet("diamondColor") : colorSel.value;
+    if (firstRun && cur) {
+      let hit = _findOption(colors, cur);
+      if (!hit) {
+        // The default (G-H) is on a price-list row whose stone type is not spelled Natural / Lab Grown / Diamond:
+        // still offer it, since it is a diamond colour grade.
+        hit = _findOption([...new Set(_allStoneRows.map((s) => s.color).filter(Boolean))], cur);
+        if (hit) colors = [...new Set([...colors, hit])].sort();
+      }
+      cur = hit || cur;
+    }
     colorSel.innerHTML = `<option value="">Diamond Color</option>` +
       colors.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
-    colorSel.value = colors.includes(cur) ? cur : "";
+    colorSel.value = _findOption(colors, cur);
     _selectedCatalogDiamondColor = colorSel.value || null;
   }
 
@@ -2204,7 +2220,7 @@ async function loadPricingMasters() {
   const [metals, diamSizes, stoneTypes, labour, diamQuality, currencies] = await Promise.all([
     _pmMetals      || sbGet("metal_types?select=id,name,quality,price_per_gram,currency&order=name.asc"),
     _pmDiamSizes   || sbGet("diamond_sizes?select=id,stone_type,shape,mm_length,mm_width,avg_weight_ct,size_basis&order=stone_type.asc,shape.asc"),
-    _pmStoneTypes  || sbGet("stone_types?select=id,type,shape,color,quality,size_basis,price_basis,rate_inr,price_inr,rate_usd,price_usd&order=type.asc"),
+    _pmStoneTypes  || sbGet("stone_types?select=id,type,shape,color,quality,size_basis,rate_inr,price_inr,rate_usd,price_usd&order=type.asc"),
     _pmLabour      || sbGet("labour_charges?select=id,category,description,charge,currency&order=category.asc"),
     _pmDiamQuality || sbGet("diamond_quality?select=id,color,label,sort_order&order=sort_order.asc,label.asc"),
     getAllCurrencies(),
@@ -2345,6 +2361,13 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     totalStoneCtWt += totalWtCt;
     if (_rowCat === "Diamond") diamondCtWt += totalWtCt;
 
+    if (!totalWtCt) {                               // no size match: keep the stone visible in the breakup as "not priced"
+      stoneIncomplete = true;
+      _dbg.note = "not priced: no matching shape + mm size in Stone Sizes";
+      stoneLines.push({ category: _rowCat, type: stoneType, shape: row.shape || "", lenMm, widMm, color: "", quality: "", pcs, totalCt: 0, cost: 0, unpriced: true });
+      return;
+    }
+
     // Step 3+4: Find price from stone_types (match type + shape + color + quality + size_basis)
     // "Natural" and "Lab Grown" are separate rows in stone_types with their own rates.
     // Technical details (avg wt, size basis) come from diamond_sizes which is shared (matched by shape+dims only).
@@ -2371,26 +2394,14 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
       (s.shape || "").toLowerCase() === shape
     );
 
-    // A gemstone row set to "per stone" in Stone Prices is priced pcs × price per stone (no carat weight needed,
-    // so no Stone Sizes entry is required). Everything else is priced carats × price per carat.
-    const _perStone = !!stoneRec && !rowIsDiamond && stoneRec.price_basis === "per_stone";
-
-    if (!totalWtCt && !_perStone) {                 // no size match: keep the stone visible in the breakup as "not priced"
-      stoneIncomplete = true;
-      _dbg.note = "not priced: no matching shape + mm size in Stone Sizes";
-      stoneLines.push({ category: _rowCat, type: stoneType, shape: row.shape || "", lenMm, widMm, color: "", quality: "", pcs, totalCt: 0, cost: 0, unpriced: true });
-      return;
-    }
-
     if (stoneRec) {
       // Use price_inr / price_usd (margin-included) not rate_inr / rate_usd (base rate)
-      const _unitInr = Number(stoneRec.price_inr || stoneRec.rate_inr || 0);
-      const _lineInr = _perStone ? pcs * _unitInr : totalWtCt * _unitInr;
+      const _lineInr = totalWtCt * Number(stoneRec.price_inr || stoneRec.rate_inr || 0);
       stoneCostINR += _lineInr;
       // Category comes from the stone's own name (Natural / Lab Grown / Diamond = Diamond; anything
       // else = Gem Stone) so a gemstone can never be filed under Diamonds by a stray master value.
       _dbg.note = "priced";
-      stoneLines.push({ category: _rowCat, type: stoneRec.type || stoneType, shape: row.shape || "", lenMm, widMm, color: stoneRec.color || "", quality: stoneRec.quality || "", pcs, totalCt: totalWtCt, cost: _lineInr, priceBasis: _perStone ? "per_stone" : "per_carat" });
+      stoneLines.push({ category: _rowCat, type: stoneRec.type || stoneType, shape: row.shape || "", lenMm, widMm, color: stoneRec.color || "", quality: stoneRec.quality || "", pcs, totalCt: totalWtCt, cost: _lineInr });
     } else {
       stoneIncomplete = true;                       // no rate in the price list for this stone
       _dbg.note = "not priced: no rate for this type + shape in Stone Price List";
