@@ -2292,6 +2292,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
   let stoneCostINR = 0;
   let totalStoneCtWt = 0;
   let diamondCtWt = 0;            // diamonds only: the basis for the optional EGL certification
+  const stoneDebug = [];          // one entry per product stone row, explaining how it was treated (see ?debugstones=1)
   const stoneLines = [];          // one entry per stone row: { category, type, color, quality, pcs, totalCt, cost (INR), unpriced? }
   let stoneIncomplete = false;    // true if any stone row could not be sized or priced
 
@@ -2303,8 +2304,10 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     const shape     = (row.shape || "").toLowerCase();
     const stoneType = row.stone_type || "";
 
-    if (!pcs || !stoneType) return;
     const _rowCat = _isDiamondStoneType(stoneType) ? "Diamond" : "Gem Stone";
+    const _dbg = { type: stoneType, category: stoneType ? _rowCat : "", shape: row.shape || "", pcs, length_mm: lenMm, width_mm: widMm, avgWtCt: 0, note: "" };
+    stoneDebug.push(_dbg);
+    if (!pcs || !stoneType) { _dbg.note = "skipped: needs a stone type and pcs above 0"; return; }
 
     // Step 1+2: Find avg weight from diamond_sizes (match shape + dims)
     let avgWtCt = 0;
@@ -2320,12 +2323,14 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     }
 
     const totalWtCt = pcs * avgWtCt;
+    _dbg.avgWtCt = avgWtCt;
     totalStoneCtWt += totalWtCt;
     if (_rowCat === "Diamond") diamondCtWt += totalWtCt;
 
     if (!totalWtCt) {                               // no size match: keep the stone visible in the breakup as "not priced"
       stoneIncomplete = true;
-      stoneLines.push({ category: _rowCat, type: stoneType, color: "", quality: "", pcs, totalCt: 0, cost: 0, unpriced: true });
+      _dbg.note = "not priced: no matching shape + mm size in Stone Sizes";
+      stoneLines.push({ category: _rowCat, type: stoneType, shape: row.shape || "", lenMm, widMm, color: "", quality: "", pcs, totalCt: 0, cost: 0, unpriced: true });
       return;
     }
 
@@ -2361,10 +2366,12 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
       stoneCostINR += _lineInr;
       // Category comes from the stone's own name (Natural / Lab Grown / Diamond = Diamond; anything
       // else = Gem Stone) so a gemstone can never be filed under Diamonds by a stray master value.
-      stoneLines.push({ category: _rowCat, type: stoneRec.type || stoneType, color: stoneRec.color || "", quality: stoneRec.quality || "", pcs, totalCt: totalWtCt, cost: _lineInr });
+      _dbg.note = "priced";
+      stoneLines.push({ category: _rowCat, type: stoneRec.type || stoneType, shape: row.shape || "", lenMm, widMm, color: stoneRec.color || "", quality: stoneRec.quality || "", pcs, totalCt: totalWtCt, cost: _lineInr });
     } else {
       stoneIncomplete = true;                       // no rate in the price list for this stone
-      stoneLines.push({ category: _rowCat, type: stoneType, color: "", quality: "", pcs, totalCt: totalWtCt, cost: 0, unpriced: true });
+      _dbg.note = "not priced: no rate for this type + shape in Stone Price List";
+      stoneLines.push({ category: _rowCat, type: stoneType, shape: row.shape || "", lenMm, widMm, color: "", quality: "", pcs, totalCt: totalWtCt, cost: 0, unpriced: true });
     }
   });
 
@@ -2453,6 +2460,7 @@ function calcProductPrice(product, selectedMetal, selectedDiamond, currencyCode)
     netWeightG,
     totalStoneCtWt,
     stoneLines,
+    stoneDebug,
     stoneIncomplete,
   };
 }
