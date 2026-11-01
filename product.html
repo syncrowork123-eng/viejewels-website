@@ -289,6 +289,8 @@
     .price-line.price-line-has-break { border-bottom: none; padding-bottom: 4px; }
     .price-line.price-line-has-break + .price-line.price-line-break { border-top: none; }
     .price-line-break-end { border-bottom: 1px solid var(--border-light); }
+    .pd-gem-slot + .pd-gem-slot { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light); }
+    .pd-gem-slot-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
     .price-line.price-line-cat .price-line-label { color: var(--text); font-weight: 700; }
     .price-line.price-line-cat .price-line-value { color: var(--text); font-weight: 600; }
     .price-line.price-line-cat + .price-line-leaf { padding-top: 2px; }
@@ -499,20 +501,8 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12l3 6-9 12L3 9l3-6z"/><path d="M3 9h18M9 3l3 18M15 3l-3 18"/></svg>
               <span>Gemstone Configuration</span>
             </div>
-            <div class="pd-card-row">
-              <div class="pd-field">
-                <label>Gemstone Type</label>
-                <select data-filter-gem-type></select>
-              </div>
-              <div class="pd-field" data-pd-gem-color-field>
-                <label>Gemstone Color</label>
-                <select data-filter-gem-color></select>
-              </div>
-            </div>
-            <div class="pd-field" data-pd-gem-quality-field>
-              <label>Gemstone Quality</label>
-              <select data-filter-gem-quality></select>
-            </div>
+            <!-- one block of dropdowns per kind of gemstone the product uses (filled by populateGemFilters) -->
+            <div data-gem-slots></div>
           </div>
 
           <!-- ── SIZE SELECTOR (rendered by renderSizeSelector below) ── -->
@@ -742,15 +732,16 @@
         const kinds = new Map();
         ls.forEach((l) => {
           const color = l.color || def.selC || '', quality = l.quality || def.selQ || '';
-          const key = [l.type, color, quality].join('|');
-          const k = kinds.get(key) || { type: l.type, color, quality, pcs: 0, ct: 0, inr: 0 };
+          const key = [l.type, color, quality, l.unpriced ? 'x' : ''].join('|');
+          const k = kinds.get(key) || { type: l.type, color, quality, pcs: 0, ct: 0, inr: 0, unpriced: !!l.unpriced };
           k.pcs += l.pcs || 0; k.ct += l.totalCt || 0; k.inr += l.cost || 0;
           kinds.set(key, k);
         });
         const items = [...kinds.values()].map((k) => ({
           label: k.type || def.label,
-          text: [k.color, k.quality, k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : ''].filter(Boolean).join(' · '),
+          text: [k.color, k.quality, k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : '', k.unpriced ? 'rate not set' : ''].filter(Boolean).join(' · '),
           inr: k.inr,
+          unpriced: k.unpriced,
         }));
         return { label: def.label, items };
       }).filter(Boolean);
@@ -761,6 +752,7 @@
       leaves.forEach((it, i) => {
         it.amount = i === leaves.length - 1 ? costs.stoneCost - used : _convertFromInr(it.inr, costs.currency).amount;
         used += it.amount;
+        it.shown = it.unpriced ? '\u2014' : null;               // an unpriced stone shows a dash instead of an amount
       });
 
       let stoneRowsHtml;
@@ -772,10 +764,10 @@
         const lines = [];
         stoneCats.forEach((c) => {
           if (c.items.length === 1) {
-            lines.push({ cls: '', label: c.label, sub: [c.items[0].label, c.items[0].text].filter(Boolean).join(' · '), value: money(c.items[0].amount) });
+            lines.push({ cls: '', label: c.label, sub: [c.items[0].label, c.items[0].text].filter(Boolean).join(' · '), value: c.items[0].shown || money(c.items[0].amount) });
           } else {
             lines.push({ cls: ' price-line-cat', label: c.label, sub: '', value: money(c.items.reduce((a, it) => a + it.amount, 0)) });
-            c.items.forEach((it) => lines.push({ cls: ' price-line-leaf', label: it.label, sub: it.text, value: money(it.amount) }));
+            c.items.forEach((it) => lines.push({ cls: ' price-line-leaf', label: it.label, sub: it.text, value: it.shown || money(it.amount) }));
           }
         });
         stoneRowsHtml =
@@ -890,13 +882,10 @@
 
       const kinds = productStoneKinds(_effectiveProductForPricing(product));
       if (kinds.gem) {
-        const gemTypeSel = document.querySelector('[data-filter-gem-type]');
-        const gemColorSel = document.querySelector('[data-filter-gem-color]');
-        const gemQualSel = document.querySelector('[data-filter-gem-quality]');
-        const _visible = (el) => el && !(el.closest('[data-pd-gem-color-field],[data-pd-gem-quality-field]') || {style:{}}).style.display;
-        if (hasOptions(gemTypeSel) && !gemTypeSel.value) missing.push({ label: 'Gemstone Type', els: [gemTypeSel] });
-        if (_visible(gemColorSel) && hasOptions(gemColorSel) && !gemColorSel.value) missing.push({ label: 'Gemstone Color', els: [gemColorSel] });
-        if (_visible(gemQualSel) && hasOptions(gemQualSel) && !gemQualSel.value) missing.push({ label: 'Gemstone Quality', els: [gemQualSel] });
+        const gemLabels = { type: 'Gemstone Type', color: 'Gemstone Color', quality: 'Gemstone Quality' };
+        document.querySelectorAll('[data-gem-slots] select[data-gem-field]').forEach((sel) => {
+          if (hasOptions(sel) && !sel.value) missing.push({ label: gemLabels[sel.dataset.gemField] || 'Gemstone', els: [sel] });
+        });
       }
       if (kinds.diamond) {
         const stoneTypeSel = document.querySelector('[data-filter-stone-type]');
@@ -1010,8 +999,9 @@
           options.diamond = document.querySelector('[data-pd-diamond-display]')?.textContent?.trim() || '';
         }
         if (_kinds.gem) {
-          options.gemType = _selectedCatalogGemType || '';
-          options.gemstone = [_selectedCatalogGemColor, _selectedCatalogGemQuality].filter(Boolean).join(' · ');
+          const _gs = gemOptionsSummary();
+          options.gemType = _gs.gemType;
+          options.gemstone = _gs.gemstone;
         }
         options.size = _selectedSize || product.size || '';
 
@@ -1029,8 +1019,7 @@
       const watchSelectors = [
         '[data-metal-type-select]', '[data-metal-quality-select]',
         '[data-filter-metal-color]', '[data-filter-stone-type]',
-        '[data-filter-diamond-color]', '[data-filter-diamond-quality]',
-        '[data-filter-gem-type]', '[data-filter-gem-color]', '[data-filter-gem-quality]'
+        '[data-filter-diamond-color]', '[data-filter-diamond-quality]'
       ];
       watchSelectors.forEach(sel => {
         const el = document.querySelector(sel);
@@ -1039,6 +1028,11 @@
           el.addEventListener('change', () => pdRefreshCartButtonState(product));
         }
       });
+      const gemBox = document.querySelector('[data-gem-slots]');
+      if (gemBox && !gemBox.dataset.pdValidateWired) {
+        gemBox.dataset.pdValidateWired = '1';
+        gemBox.addEventListener('change', () => setTimeout(() => pdRefreshCartButtonState(product), 0));
+      }
       const swatchWrap = document.querySelector('[data-metal-color-swatches]');
       if (swatchWrap && !swatchWrap.dataset.pdValidateWired) {
         swatchWrap.dataset.pdValidateWired = '1';
