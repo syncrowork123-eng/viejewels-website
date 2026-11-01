@@ -778,6 +778,7 @@
           const color = l.color || def.selC || '', quality = l.quality || def.selQ || '';
           if (!l.unpriced) { if (color) k.colors.add(color); if (quality) k.qualities.add(quality); }
           k.pcs += l.pcs || 0; k.ct += l.totalCt || 0; k.inr += l.cost || 0;
+          if (l.priceBasis === 'per_stone') k.perStone = true;
           k.rows++; if (l.unpriced) k.unpricedRows++;
           kinds.set(key, k);
         });
@@ -785,7 +786,7 @@
           const allUnpriced = k.unpricedRows === k.rows;
           return {
             label: k.type || def.label,
-            text: [[...k.colors].join(' / '), [...k.qualities].join(' / '), k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : '',
+            text: [[...k.colors].join(' / '), [...k.qualities].join(' / '), k.pcs ? k.pcs + ' pcs' : '', k.ct ? k.ct.toFixed(3) + ' ct' : '', k.perStone ? 'priced per stone' : '',
                    allUnpriced ? 'rate not set' : (k.unpricedRows ? 'some stones not priced' : '')].filter(Boolean).join(' · '),
             inr: k.inr,
             unpriced: allUnpriced,
