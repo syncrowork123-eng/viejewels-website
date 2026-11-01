@@ -555,6 +555,12 @@ async function renderProductGrid() {
   _currentCategorySlug = params.get("category");
   _currentJewelCat = params.get("jewelcat");
   if (_currentJewelCat) _checkedJewelCats.add(_currentJewelCat);
+  // ?jewelcat=Ring&jewelsub=Bands (the product page breadcrumb) opens the page filtered to that sub-category
+  const _urlJewelSub = params.get("jewelsub");
+  if (_currentJewelCat && _urlJewelSub) {
+    _checkedJewelCats.delete(_currentJewelCat);                      // a ticked sub-category replaces its parent type, as in the sidebar
+    _checkedJewelSubCats.add(_currentJewelCat + "||" + _urlJewelSub);
+  }
   // The URL category is now just a ticked sidebar checkbox, so it can be unticked or cleared.
   // (Kept as a plain heading only on pages with no sidebar.)
   if (document.querySelector("[data-jewelcat-filters]")) _currentJewelCat = null;
@@ -1105,7 +1111,11 @@ function populateDiamondFilters() {
   const qualitySel = document.querySelector("[data-filter-diamond-quality]");
   if (!colorSel && !qualitySel) return;
 
-  const stoneTypes = _pmStoneTypes || [];
+  // Diamond Color / Quality list only colours and qualities of DIAMOND rows (Natural / Lab Grown / Diamond).
+  // Gemstone rows (for example a gem colour such as Cream) belong to the gemstone dropdowns, never here.
+  const _allStoneRows = _pmStoneTypes || [];
+  const _diamondOnly = _allStoneRows.filter((s) => _isDiamondStoneType(s.type));
+  const stoneTypes = _diamondOnly.length ? _diamondOnly : _allStoneRows;   // never leave the dropdown empty
 
   const firstRun = !_diamondDefaultsApplied && stoneTypes.length > 0;
 
