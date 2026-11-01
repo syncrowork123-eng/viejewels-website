@@ -1652,10 +1652,24 @@ function initPagination() {
   }
 }
 
+// Remembers the products in the exact order the gallery shows them (current filters, search and sort), so the
+// Previous / Next buttons on a product page move through the same list.
+function storeGalleryOrder(list) {
+  try {
+    if (!list || !list.length) { sessionStorage.removeItem("vj_gallery_nav"); return; }
+    sessionStorage.setItem("vj_gallery_nav", JSON.stringify({
+      url: (location.pathname.split("/").pop() || "collections.html") + location.search,
+      ids: list.map((p) => p.id),
+      names: list.map((p) => p.name || ""),
+    }));
+  } catch (e) {}
+}
+
 function applyProductList(list) {
   const el = document.querySelector("[data-product-grid]");
   const countEl = document.querySelector("[data-product-count]");
   _filteredList = list;
+  storeGalleryOrder(list);
   if (!list.length) {
     if (countEl) countEl.textContent = "0 styles";
     el.innerHTML = "<p>No products found.</p>";
