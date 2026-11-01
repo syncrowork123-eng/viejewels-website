@@ -86,7 +86,7 @@ const CATALOG_DEFAULTS = {
   metalQuality:   "14K",
   metalColor:     "White",
   stoneType:      "Lab Grown",     // shown as "Diamond Type"
-  diamondColor:   "G-H",
+  diamondColor:   "D-G",
   diamondQuality: "VVS-VS",
   currency:       "USD",
 };
@@ -105,7 +105,7 @@ function _prefSet(name, value) {
     sessionStorage.setItem(_PREF_KEY, JSON.stringify(o));
   } catch (e) {}
 }
-// Matches a default (for example "G-H") against the dropdown's real options even if the price list spells it a
+// Matches a default (for example "D-G") against the dropdown's real options even if the price list spells it a
 // little differently: capital letters, spaces, "G - H", "G–H" (en dash) and similar all count as the same value.
 const _normOpt = (v) => String(v == null ? "" : v).toLowerCase().replace(/[\s\-\u2010-\u2015_]/g, "");
 function _findOption(list, want) {
@@ -1180,7 +1180,7 @@ function populateDiamondFilters() {
     if (firstRun && cur) {
       let hit = _findOption(colors, cur);
       if (!hit) {
-        // The default (G-H) is on a price-list row whose stone type is not spelled Natural / Lab Grown / Diamond:
+        // The default (D-G) is on a price-list row whose stone type is not spelled Natural / Lab Grown / Diamond:
         // still offer it, since it is a diamond colour grade.
         hit = _findOption([...new Set(_allStoneRows.map((s) => s.color).filter(Boolean))], cur);
         if (hit) colors = [...new Set([...colors, hit])].sort();
