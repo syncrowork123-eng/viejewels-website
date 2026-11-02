@@ -3,9 +3,10 @@
    Scoped entirely under body.vj-collections so no other page
    on the site is affected. Loaded AFTER styles.css, so rules
    here win on plain-specificity ties without needing !important.
-   ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap');
+   Fonts: Inter is self-hosted via the @font-face in styles.css
+   (fonts/InterVariable.woff2), so no font import is needed here.
+   ============================================================ */
 
 body.vj-collections {
   --vj-bg:        #fafafa;
@@ -19,7 +20,7 @@ body.vj-collections {
   --vj-accent:    #3a3a3a;
   --vj-accent-deep: #171717;
   --vj-accent-line: #a3a3a3;
-  --vj-serif: 'Fraunces', 'Times New Roman', serif;
+  --vj-serif: 'Inter', system-ui, sans-serif;
   --vj-sans:  'Inter', system-ui, sans-serif;
 
   background: var(--vj-bg);
