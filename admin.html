@@ -4,14 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin | Vie Jewels</title>
+  <link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
+    /* Inter — self-hosted (variable font, all weights 100–900). File: fonts/InterVariable.woff2 */
+    @font-face { font-family:'Inter'; font-style:normal; font-weight:100 900; font-display:swap; src:url("fonts/InterVariable.woff2") format("woff2"); }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg: #f4f1ec; --surface: #ffffff; --surface2: #f0ece5; --border: #e0d9ce;
       --accent: #b8922a; --text: #1a1410; --text-muted: #7a6e62;
-      --danger: #c0392b; --success: #27ae60; --radius: 8px; --font: 'Segoe UI', system-ui, sans-serif;
+      --danger: #c0392b; --success: #27ae60; --radius: 8px; --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
     }
+    button, input, select, textarea { font-family: inherit; }
     body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
     #login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:24px; }
     .login-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:48px 40px; width:100%; max-width:380px; text-align:center; }
@@ -71,18 +75,18 @@
     .sm-wrap { padding:30px 30px 0; background:radial-gradient(900px 260px at 0% -8%,rgba(184,146,42,.13),transparent 65%); }
     .sm-hero { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; margin-bottom:26px; }
     .sm-eyebrow { font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--accent); font-weight:700; }
-    .sm-title { font-family:'Cormorant Garamond','Playfair Display',Georgia,serif; font-size:38px; font-weight:500; line-height:1.05; margin:6px 0 8px; letter-spacing:.005em; }
+    .sm-title { font-family:var(--font); font-size:38px; font-weight:500; line-height:1.05; margin:6px 0 8px; letter-spacing:.005em; }
     .sm-title em { font-style:italic; color:var(--accent); }
     .sm-sub { font-size:12.5px; color:var(--text-muted); max-width:560px; line-height:1.65; }
     .sm-sub b { color:var(--text); font-weight:600; }
     .sm-stats { display:flex; gap:10px; flex-wrap:wrap; }
     .sm-stat { min-width:88px; padding:11px 16px 9px; border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,#fff,var(--surface2)); text-align:center; box-shadow:0 8px 20px -16px rgba(60,40,10,.5); }
-    .sm-stat b { display:block; font-family:Georgia,serif; font-size:26px; font-weight:500; color:var(--text); line-height:1.1; }
+    .sm-stat b { display:block; font-family:var(--font); font-size:26px; font-weight:500; color:var(--text); line-height:1.1; }
     .sm-stat span { font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); }
     .sm-cat { border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:0 1px 0 #fff inset, 0 18px 40px -26px rgba(60,40,10,.45); margin-bottom:22px; overflow:hidden; }
     .sm-cat-head { display:flex; align-items:center; gap:14px; padding:18px 24px; background:linear-gradient(90deg,rgba(184,146,42,.16),rgba(184,146,42,0) 72%); border-bottom:1px solid var(--border); }
     .sm-gem { width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,#ecd58f,#b8922a 70%); color:#fff; font-size:16px; box-shadow:0 6px 14px -6px rgba(184,146,42,.9), inset 0 1px 0 rgba(255,255,255,.5); flex:none; }
-    .sm-cat-title { font-family:'Cormorant Garamond','Playfair Display',Georgia,serif; font-size:24px; font-weight:500; line-height:1.1; }
+    .sm-cat-title { font-family:var(--font); font-size:24px; font-weight:500; line-height:1.1; }
     .sm-cat-note { font-size:11.5px; color:var(--text-muted); margin-top:2px; }
     .sm-cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); }
     .sm-col { padding:20px 24px 22px; }
@@ -93,7 +97,7 @@
     .sm-col-h small { font-size:11px; letter-spacing:.04em; text-transform:none; color:var(--text-muted); font-weight:500; }
     .sm-row { display:flex; align-items:center; gap:11px; padding:7px 9px; border-radius:11px; border:1px solid transparent; transition:background .15s, border-color .15s; }
     .sm-row:hover { background:var(--surface2); border-color:var(--border); }
-    .sm-idx { width:22px; font-family:Georgia,serif; font-size:12px; color:#b9ad9b; text-align:right; flex:none; font-variant-numeric:tabular-nums; }
+    .sm-idx { width:22px; font-family:var(--font); font-size:12px; color:#b9ad9b; text-align:right; flex:none; font-variant-numeric:tabular-nums; }
     .sm-name { flex:1; min-width:0; font-size:14px; font-weight:500; cursor:text; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .sm-edit { flex:1; min-width:0; padding:6px 10px; font-size:14px; font-weight:500; background:#fff; border:1px solid var(--accent); border-radius:8px; outline:none; box-shadow:0 0 0 3px rgba(184,146,42,.18); color:var(--text); }
     .sm-badge { font-size:10px; font-weight:700; letter-spacing:.04em; padding:2px 9px; border-radius:20px; white-space:nowrap; flex:none; }
@@ -755,17 +759,17 @@
                 <th class="spl-th-color">Color</th>
                 <th class="spl-th-quality">Quality</th>
                 <th class="spl-th-size">Size Basis</th>
-                <th class="spl-th-rate">Rate (INR)<div class="spl-sub">per ct · gemstones: or per stone</div></th>
+                <th class="spl-th-rate">Rate / CT (INR)</th>
                 <th class="spl-th-derived">
-                  Price (INR)
+                  Price / CT (INR)
                   <div class="spl-sub">Rate + Margin INR</div>
                 </th>
                 <th class="spl-th-derived">
-                  Rate (USD)
+                  Rate / CT (USD)
                   <div class="spl-sub">Rate INR × INR Rate</div>
                 </th>
                 <th class="spl-th-derived">
-                  Price (USD)
+                  Price / CT (USD)
                   <div class="spl-sub">Price INR ÷ INR Rate × (1 + Margin %)</div>
                 </th>
                 <th style="width:78px;"></th>
@@ -5398,14 +5402,10 @@ function calcStoneWebsite(){
 
 function getStoneDerivedRates(rateINR, stone){
   // Get live margin/currency values — margin depends on the stone group (Natural / Lab Grown / Gemstone)
-  const mr = marginRatesFor(marginGroupOf(stone));
-  const marginPct = mr.pct;
-  const perStone = !!(stone && stone.price_basis === 'per_stone');       // gemstone priced per stone instead of per carat
-  const marginFlatINR = perStone ? mr.stoneInr : mr.inr;
-  const marginPctINR  = perStone ? mr.stonePctInr : mr.pctInr;
+  const { inr: marginFlatINR, pct: marginPct, pctInr: marginPctINR } = marginRatesFor(marginGroupOf(stone));
   const usdRate   = parseFloat(allCurrencies.find(c=>c.code==='USD')?.rate_to_inr)||0; // INR per 1 USD (e.g. 83)
   const rate = parseFloat(rateINR)||0;
-  // Per-carat rows: higher of (flat ₹/ct, INR % of rate). Per-stone rows: higher of (flat ₹/stone, INR % of rate)
+  // Per-carat price list: margin = higher of (flat ₹/ct, INR % of rate)
   const marginINR = marginAmountINR(marginFlatINR, marginPctINR, rate);
   const priceINR  = rate>0 ? rate + marginINR : null;
   const rateUSD   = rate>0 && usdRate>0 ? rate / usdRate : null;
@@ -5640,7 +5640,7 @@ function renderStoneGrid(){
       ${cell(s.id,'color',V.colorsOf(cat),s.color||'','Color')}
       ${cell(s.id,'quality',V.QUALITIES,s.quality||'','Quality')}
       ${cell(s.id,'size_basis',sbOptions(cat,s.type,s.shape),s.size_basis||'','Size Basis')}
-      <td><input class="spl-cell-input rate-input" type="number" step="0.01" value="${fmt2(s.rate_inr)}" oninput="splRateChange(${s.id},this.value)" placeholder="0.00" />${cat==='Gem Stone'?`<select class="spl-cell-input" style="margin-top:4px;font-size:11px" title="Rate basis" onchange="splBasisChange(${s.id},this.value)"><option value="per_carat"${s.price_basis==='per_stone'?'':' selected'}>per carat</option><option value="per_stone"${s.price_basis==='per_stone'?' selected':''}>per stone</option></select>`:''}</td>
+      <td><input class="spl-cell-input rate-input" type="number" step="0.01" value="${fmt2(s.rate_inr)}" oninput="splRateChange(${s.id},this.value)" placeholder="0.00" /></td>
       <td>${fmtD(d.priceINR)}</td>
       <td>${fmtD(d.rateUSD)}</td>
       <td>${fmtD(d.priceUSD)}</td>
@@ -5717,7 +5717,7 @@ function splDraftRowHtml(){
     ${sel('color',V.colorsOf(d.category),d.color,'Color')}
     ${sel('quality',V.QUALITIES,d.quality,'Quality')}
     <td><select id="spl-d-sb" class="spl-cell-input" onchange="splDraftSet('size_basis',this.value,true)">${optList(V.sizeBasisOptions(allDiamonds,{category:d.category,type:d.type,shape:d.shape}),d.size_basis,'Size Basis')}</select></td>
-    <td><input id="spl-d-rate" class="spl-cell-input rate-input" type="number" step="0.01" value="${esc(d.rate)}" oninput="splDraftRate(this.value)" placeholder="0.00" />${d.category==='Gem Stone'?`<select class="spl-cell-input" style="margin-top:4px;font-size:11px" title="Rate basis" onchange="splDraftSet('price_basis',this.value)"><option value="per_carat"${d.price_basis==='per_stone'?'':' selected'}>per carat</option><option value="per_stone"${d.price_basis==='per_stone'?' selected':''}>per stone</option></select>`:''}</td>
+    <td><input id="spl-d-rate" class="spl-cell-input rate-input" type="number" step="0.01" value="${esc(d.rate)}" oninput="splDraftRate(this.value)" placeholder="0.00" /></td>
     <td id="spl-d-p1">${dr.priceINR!=null?`<span class="spl-derived has-val">${Number(dr.priceINR).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
     <td id="spl-d-p2">${dr.rateUSD!=null?`<span class="spl-derived has-val">${Number(dr.rateUSD).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
     <td id="spl-d-p3">${dr.priceUSD!=null?`<span class="spl-derived has-val">${Number(dr.priceUSD).toFixed(2)}</span>`:'<span class="spl-derived">—</span>'}</td>
@@ -5748,7 +5748,6 @@ function splDraftSet(field, val, quiet){
   } else if(field==='type'){
     const c = V.categoryOf(val); if(c){ d.category = c; if(d.color && !V.canon('color', d.color, c)) d.color = ''; }
   }
-  if(d.category!=='Gem Stone') d.price_basis = 'per_carat';   // per stone is gemstones-only
   if(!quiet){
     const r0 = document.getElementById('spl-d-rate')?.value;
     if(r0!=null) d.rate = r0;
@@ -5766,11 +5765,11 @@ function splDraftRate(val){
 function splDraftCancel(){ _splDraft = null; renderStoneGrid(); }
 async function splDraftSave(){
   const V = VJ_STONE, d = _splDraft; if(!d) return;
-  const rec = { category:d.category, type:d.type, shape:d.shape, color:d.color||null, quality:d.quality||null, size_basis:String(d.size_basis||'').trim(), price_basis:(d.category==='Gem Stone' && d.price_basis==='per_stone')?'per_stone':'per_carat' };
+  const rec = { category:d.category, type:d.type, shape:d.shape, color:d.color||null, quality:d.quality||null, size_basis:String(d.size_basis||'').trim() };
   const why = V.checkPriceRow(rec, allDiamonds);
   if(why){ toast(why+' — complete the highlighted row.','error'); return; }
   const rate = parseFloat(d.rate);
-  if(!(rate>0)){ toast('Enter a Rate (INR) greater than 0.','error'); return; }
+  if(!(rate>0)){ toast('Enter a Rate / CT (INR) greater than 0.','error'); return; }
   if(allStones.some(s=>V.priceKey(s)===V.priceKey(rec))){ toast('A price for this Category / Type / Shape / Color / Quality / Size Basis already exists — edit that row instead.','error'); return; }
   const der = getStoneDerivedRates(rate, rec);
   const body = withCat({
@@ -5780,7 +5779,6 @@ async function splDraftSave(){
     rate_usd:der.rateUSD?Math.round(der.rateUSD*10000)/10000:null,
     price_usd:der.priceUSD?Math.round(der.priceUSD*10000)/10000:null,
   }, rec.category);
-  if(rec.price_basis==='per_stone') body.price_basis = 'per_stone';   // omitted otherwise: the database default is per_carat
   try{
     const res = await sb('stone_types','POST',body);
     const row = Array.isArray(res)?res[0]:res;
@@ -5833,22 +5831,6 @@ async function splSaveRate(id, val){
   catch(e){ toast('Save error: '+e.message,'error'); }
 }
 
-// Gemstone rate basis: per carat (default) or per stone. Price = rate + margin (per-carat or per-stone margin).
-async function splBasisChange(id, val){
-  const s = allStones.find(x=>x.id===id); if(!s) return;
-  const basis = val==='per_stone' ? 'per_stone' : 'per_carat';
-  const d = getStoneDerivedRates(s.rate_inr, Object.assign({}, s, {price_basis:basis}));
-  const patch = { price_basis:basis, price_inr:d.priceINR, price_usd:d.priceUSD ? Math.round(d.priceUSD*10000)/10000 : null };
-  try{
-    await sb('stone_types?id=eq.'+id,'PATCH',patch);
-    Object.assign(s, patch);
-    toast('Rate basis set to '+(basis==='per_stone'?'per stone':'per carat')+'.');
-  }catch(e){
-    toast('Save error: '+e.message+' (has the price_basis column been added in Supabase?)','error');
-  }
-  renderStoneGrid();
-}
-
 const _splFieldDebounce = {};
 async function splUpdate(id, field, value){
   const stone = allStones.find(s=>s.id===id);
@@ -5870,7 +5852,6 @@ async function splUpdate(id, field, value){
     stone[field] = value;
   }
   patch[field] = value;
-  if(stone.price_basis==='per_stone' && (stone.category || V.rowCategory(stone))!=='Gem Stone'){ stone.price_basis='per_carat'; patch.price_basis='per_carat'; }   // per stone is gemstones-only
   patch.category = stone.category || V.rowCategory(stone) || null;
   if(!STONE_CAT_COL) delete patch.category;
   stone.name = [stone.type,stone.shape,stone.size_basis,stone.color,stone.quality].filter(Boolean).join(' ');
@@ -5902,9 +5883,9 @@ function exportStonesXlsx(){
   const mN = marginRatesFor('natural'), mL = marginRatesFor('lab'), mG = marginRatesFor('gem');
   const usdRate   = parseFloat(allCurrencies.find(c=>c.code==='USD')?.rate_to_inr)||0;
 
-  const headers=["Category","Type","Shape","Color","Quality","Size Basis","Rate/ct (INR)","Price/ct (INR)","Rate/ct (USD)","Price/ct (USD)","Rate Basis"];
+  const headers=["Category","Type","Shape","Color","Quality","Size Basis","Rate/ct (INR)","Price/ct (INR)","Rate/ct (USD)","Price/ct (USD)"];
   const inrPerUsd=usdRate>0?Math.round(usdRate):0;
-  const subheads=["","","","","","",`Rate INR (editable)`,`Rate + margin ₹/ct (by stone group)`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+margin %)`,"per carat / per stone (gemstones only)"];
+  const subheads=["","","","","","",`Rate INR (editable)`,`Rate + margin ₹/ct (by stone group)`,`Rate INR ÷ ${inrPerUsd} (INR rate)`,`Price INR ÷ ${inrPerUsd} × (1+margin %)`];
   const rows = allStones.map(s=>{
     const d = getStoneDerivedRates(s.rate_inr, s);
     return [
@@ -5913,13 +5894,12 @@ function exportStonesXlsx(){
       d.priceINR!=null?Number(d.priceINR).toFixed(2):'',
       d.rateUSD!=null?Number(d.rateUSD).toFixed(4):'',
       d.priceUSD!=null?Number(d.priceUSD).toFixed(2):'',
-      s.price_basis==='per_stone'?'per stone':'per carat',
     ];
   });
 
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([headers, subheads, ...rows]);
-  ws["!cols"] = [{wch:12},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:16},{wch:16},{wch:16},{wch:16},{wch:14}];
+  ws["!cols"] = [{wch:12},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:16},{wch:16},{wch:16},{wch:16}];
   // Style header row bold/accent — limited in xlsx but set row height
   ws["!rows"] = [{hpt:20},{hpt:14},...rows.map(()=>({hpt:18}))];
   XLSX.utils.book_append_sheet(wb, ws, "Stone Prices");
@@ -5998,16 +5978,13 @@ async function importStonesXlsx(e){
         const size_basis = (size_basis0 && allDiamonds.length && category && type && shape)
           ? (matchSizeBasis({category,type,shape},size_basis0) || "") : size_basis0;
         const rate_inr = parseFloat(get(row,["Rate/ct (INR)","Rate INR","rate_inr","Rate/CT (INR)"]))||null;
-        const basis0 = get2(["Rate Basis","Rate basis","price_basis","Basis"]).toLowerCase();
-        const wantStone = /stone|piece|\bpcs?\b/.test(basis0);      // blank / "per carat" = per carat
-        const price_basis = (wantStone && category==="Gem Stone") ? "per_stone" : "per_carat";
         if(!type0 && !shape && !size_basis){ skipped++; return; }
         const why = !category ? "category/type not recognised" : !type ? `type "${type0}" is not a ${category} type` :
                     !shape ? "shape not recognised" : (color0 && !color) ? `color "${color0}" is not valid for ${category}` :
-                    (qual0 && !quality) ? `quality "${qual0}" not recognised` : (wantStone && category!=="Gem Stone") ? `Rate Basis "per stone" is only for Gem Stone rows` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
+                    (qual0 && !quality) ? `quality "${qual0}" not recognised` : !size_basis ? (size_basis0 ? `Size Basis "${size_basis0}" is not in Stone Sizes for ${shape}` : "Size Basis missing") : "";
         if(why){ invalid++; invalidNotes.push(`row ${row.__xl}: ${why}`); return; }
         const name=[type,shape,size_basis,color,quality].filter(Boolean).join(" ");
-        const d = getStoneDerivedRates(rate_inr, {category, type, price_basis});
+        const d = getStoneDerivedRates(rate_inr, {category, type});
         const rec = withCat({
           name, type, shape, color:color||null, quality:quality||null, size_basis,
           rate_inr, price_inr:d.priceINR, rate_usd:d.rateUSD, price_usd:d.priceUSD,
@@ -6015,10 +5992,7 @@ async function importStonesXlsx(e){
         const key = V.priceKey({category, type, shape, color, quality, size_basis});
         if(seen.has(key)){ skipped++; return; }          // same combination twice in the file
         seen.add(key);
-        const existingRow = byKey.get(key)||null;
-        // price_basis is sent only when needed (per stone, or resetting a row that was per stone), so imports still work before the column exists
-        if(price_basis==="per_stone" || existingRow?.price_basis==="per_stone") rec.price_basis = price_basis;
-        payload.push({rec, existing: existingRow});
+        payload.push({rec, existing: byKey.get(key)||null});
       });
 
       if(!payload.length){
