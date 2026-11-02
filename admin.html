@@ -192,6 +192,7 @@
     .ce-hint { font-size:11px; color:var(--text-muted); }
     .ce-foot .btn { margin-left:6px; }
     .products-table .jc-line { display:block; font-size:12px; line-height:1.4; }
+    .products-table .tag-pill { display:inline-block; font-size:11px; line-height:1.3; padding:2px 8px; margin:1px 2px 1px 0; border:1px solid var(--border); border-radius:10px; background:var(--surface2); color:var(--text); }
     .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; align-items:center; justify-content:center; padding:16px; }
     .modal-overlay.open { display:flex; }
     .modal { background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; max-width:680px; max-height:90vh; display:flex; flex-direction:column; }
@@ -531,8 +532,8 @@
       </div>
     </div>
     <div class="table-wrap"><table class="products-table">
-      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Jewelry Category</th><th>Sizes</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="products-tbody"><tr><td colspan="13" class="state-msg">Loading...</td></tr></tbody>
+      <thead><tr><th>Image</th><th>Host</th><th>Media</th><th>Name</th><th>SKU</th><th>Jewelry Category</th><th>Tags</th><th>Sizes</th><th>Short Description</th><th>Product Story</th><th>Metal Net Weights (g)</th><th>Diamond &amp; Stone Details</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="products-tbody"><tr><td colspan="14" class="state-msg">Loading...</td></tr></tbody>
     </table></div>
   </div>
 
@@ -2855,7 +2856,7 @@ async function loadProducts(){
     populateMasterDropdowns();
     try{ renderStoneReport(); }catch(e){ console.error("renderStoneReport error:",e); }
   } catch(e){
-    document.getElementById("products-tbody").innerHTML="<tr><td colspan='13' class='state-msg'>Failed to load products.</td></tr>";
+    document.getElementById("products-tbody").innerHTML="<tr><td colspan='14' class='state-msg'>Failed to load products.</td></tr>";
     console.error("loadProducts error:",e);
   }
 }
@@ -2882,7 +2883,8 @@ function filterProducts(){
   const term=gv("product-search").toLowerCase();
   renderProductsTable(allProducts.filter(p=>{
     const jc=(p.product_jewel_cats||[]).map(c=>[c.jewel_type,c.sub_type1,c.sub_type2].filter(Boolean).join(" ")).join(" ");
-    const mt=!term||[p.name,p.sku,p.metal,p.stone,jc].filter(Boolean).join(" ").toLowerCase().includes(term);
+    const tg=(p.product_tags||[]).map(t=>t.tags?.name).filter(Boolean).join(" ");
+    const mt=!term||[p.name,p.sku,p.metal,p.stone,jc,tg].filter(Boolean).join(" ").toLowerCase().includes(term);
     let mi = true;
     if(noImageFilterOn){
       const st = productMediaStatus.get(p.id);
@@ -3350,7 +3352,7 @@ function completenessCell(c,field){
 
 function renderProductsTable(products){
   const tbody=document.getElementById("products-tbody");
-  if(!products.length){ tbody.innerHTML="<tr><td colspan='13' class='state-msg'>No products found.</td></tr>"; return; }
+  if(!products.length){ tbody.innerHTML="<tr><td colspan='14' class='state-msg'>No products found.</td></tr>"; return; }
   tbody.innerHTML=products.map(p=>{
     const pm=(p.product_media||[]);
     const primary=pm.find(m=>m.is_primary)||pm[0];
@@ -3359,6 +3361,11 @@ function renderProductsTable(products){
     // Jewelry categories (product_jewel_cats): one line per row, "Type › Sub 1 › Sub 2"
     const jcLines = (p.product_jewel_cats||[]).map(c=>[c.jewel_type,c.sub_type1,c.sub_type2].filter(Boolean).join(" › ")).filter(Boolean);
     const jewelCatCell = jcLines.length ? jcLines.map(l=>`<span class="jc-line">${esc(l)}</span>`).join(" ") : `<span style="color:var(--text-muted);font-size:12px">---</span>`;
+    // Tags (product_tags): names are also the cell's sort / filter value, so the column filter works on them
+    const tagNames = (p.product_tags||[]).map(t=>t.tags?.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+    const tagsCell = tagNames.length
+      ? `<td data-sort="${esc(tagNames.join(", "))}" title="${esc(tagNames.join(", "))}">${tagNames.map(n=>`<span class="tag-pill">${esc(n)}</span>`).join(" ")}</td>`
+      : `<td data-sort=""><span style="color:var(--text-muted);font-size:12px">---</span></td>`;
     const hostInfo = productImageHostSummary(p);
     const hostColor = hostInfo.label==="Cloudinary" ? "#1a5c1a"
       : hostInfo.label==="ImageKit" ? "#1a407a"
@@ -3377,7 +3384,7 @@ function renderProductsTable(products){
     // render (unchecked products briefly sort as "less than zero" until their
     // real count lands) instead of flipping between numeric and alphabetic
     // sort depending on whether checks have finished yet.
-    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name" title="${esc(p.name)}"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td><td class="cell-edit" data-edit="sizes">${productSizesCell(p)}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
+    return `<tr data-pid="${esc(p.id)}"><td class="product-thumb-cell">${img}</td><td>${hostCell}</td><td style="font-size:12px" id="media-count-${p.id}" data-sort="-1">…</td><td class="cell-edit" data-edit="name" title="${esc(p.name)}"><strong>${esc(p.name)}</strong></td><td class="cell-edit" data-edit="sku" style="color:var(--text-muted);font-size:12px">${esc(p.sku||"---")}</td><td class="cell-edit" data-edit="jewel">${jewelCatCell}</td>${tagsCell}<td class="cell-edit" data-edit="sizes">${productSizesCell(p)}</td>${completenessCell(cmp.shortDesc,"short_description")}${completenessCell(cmp.story,"description")}${completenessCell(cmp.weights,"weights")}${completenessCell(cmp.stones,"stones")}<td class="cell-edit" data-edit="status">${badge}</td><td><div class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openSizeVariantsModal('${p.id}')">Sizes</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct('${p.id}','${esc(p.name)}')">Delete</button></div></td></tr>`;
   }).join("");
   products.forEach(p=>updateMediaCountCell(p));
 }
@@ -3731,7 +3738,9 @@ function openProductModal(id=null){
 // ── Prev / Next between products (follows the Products table order: current search, filter and sort) ──
 let pmSnap = "";
 function pmNavIds(){
-  return Array.from(document.querySelectorAll("#products-tbody tr[data-pid]")).map(tr=>tr.dataset.pid);
+  // Only rows actually showing: the column filters hide non-matching rows (display:none) but leave them in the table.
+  // Table order = current search + column filters + sort, so Prev / Next walk exactly what the table lists.
+  return Array.from(document.querySelectorAll("#products-tbody tr[data-pid]")).filter(tr=>tr.style.display!=="none").map(tr=>tr.dataset.pid);
 }
 function pmSnapshot(){
   const vals = Array.from(document.querySelectorAll("#product-modal input, #product-modal select, #product-modal textarea"))
