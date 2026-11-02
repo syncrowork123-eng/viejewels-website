@@ -1232,6 +1232,111 @@ function populateDiamondFilters() {
   }
 }
 
+// ── COLLECTION (TAG) THEMES ─────────────────────────────────────────────
+// When exactly ONE Theme & Collection tag is selected and it has an entry below, the page hero and the
+// catalog section take on that collection's look. With no tag, several tags, or a tag that has no entry
+// here, the page returns to the default look.
+//
+// Key   = tag name exactly as it appears in "Themes & Collections" (case doesn't matter).
+// Every field is optional:
+//   title       hero heading (HTML allowed, e.g. "Bridal<br /><em>Collection</em>")
+//   intro       hero paragraph
+//   heroImage   hero background image          heroColor  hero background colour (fallback / overlay base)
+//   heroOverlay darkening layer over the image, e.g. "rgba(0,0,0,.35)"
+//   dark        true = use light text (for dark hero backgrounds)
+//   gridImage / gridColor   background of the catalog (filters + products) section
+//   gallery     array of image URLs shown as a strip between the hero and the catalog
+const COLLECTION_THEMES = {
+  // SAMPLE ENTRY - edit or replace with your own tags, images and wording
+  "Bridal": {
+    title: "Bridal<br /><em>Collection</em>",
+    heroColor: "#f3e9e2",
+    gridColor: "#fbf7f4",
+    // heroImage: "/assets/themes/bridal-hero.jpg",
+    // heroOverlay: "rgba(0,0,0,.25)",
+    // dark: true,
+    // gallery: ["/assets/themes/bridal-1.jpg", "/assets/themes/bridal-2.jpg", "/assets/themes/bridal-3.jpg"],
+  },
+};
+
+let _themeDefaults = null;   // the page's original hero text, captured once
+let _activeThemeKey = null;
+
+function _findCollectionTheme() {
+  if (_selectedTags.size !== 1) return null;
+  const name = [..._selectedTags][0];
+  const key = Object.keys(COLLECTION_THEMES).find((k) => k.toLowerCase() === name.toLowerCase());
+  return key ? { key, theme: COLLECTION_THEMES[key] } : null;
+}
+
+function _ensureThemeStyles() {
+  if (document.getElementById("vj-theme-css")) return;
+  const st = document.createElement("style");
+  st.id = "vj-theme-css";
+  st.textContent =
+    ".vj-hero, .catalog-layout { transition: background-color .4s ease; }" +
+    ".vj-hero.vj-theme-dark .vj-hero-title, .vj-hero.vj-theme-dark .vj-hero-title em, .vj-hero.vj-theme-dark .vj-hero-copy { color: #fff !important; }" +
+    ".vj-theme-gallery { display: flex; gap: 12px; overflow-x: auto; padding: 16px 24px; }" +
+    ".vj-theme-gallery[hidden] { display: none; }" +
+    ".vj-theme-gallery img { height: 220px; width: auto; flex: 0 0 auto; object-fit: cover; border-radius: 2px; }";
+  document.head.appendChild(st);
+}
+
+function _setBg(el, image, color, overlay) {
+  if (!el) return;
+  const set = (k, v) => (v ? el.style.setProperty(k, v, "important") : el.style.removeProperty(k));
+  set("background-color", color || "");
+  set("background-image", image ? (overlay ? `linear-gradient(${overlay}, ${overlay}), url("${image}")` : `url("${image}")`) : "");
+  set("background-size", image ? "cover" : "");
+  set("background-position", image ? "center" : "");
+}
+
+function applyCollectionTheme() {
+  const hero = document.querySelector(".vj-hero");
+  const grid = document.querySelector(".catalog-layout");
+  if (!hero && !grid) return;
+  const titleEl = hero?.querySelector(".vj-hero-title");
+  const introEl = document.querySelector("[data-collection-intro]");
+  if (!_themeDefaults) {
+    _themeDefaults = { title: titleEl ? titleEl.innerHTML : null, intro: introEl ? introEl.textContent : null };
+  }
+  const hit = _findCollectionTheme();
+  const key = hit ? hit.key : null;
+  if (key === _activeThemeKey) return; // nothing changed
+  _activeThemeKey = key;
+  _ensureThemeStyles();
+
+  const t = hit ? hit.theme : null;
+
+  // Hero: background, text colour, heading, intro (defaults restored when there is no theme)
+  _setBg(hero, t?.heroImage, t?.heroColor, t?.heroOverlay);
+  if (hero) hero.classList.toggle("vj-theme-dark", !!t?.dark);
+  if (titleEl && _themeDefaults.title != null) titleEl.innerHTML = t?.title || _themeDefaults.title;
+  if (introEl && _themeDefaults.intro != null) introEl.textContent = t?.intro || _themeDefaults.intro;
+
+  // Catalog section background
+  _setBg(grid, t?.gridImage, t?.gridColor, null);
+
+  // Optional gallery strip between hero and catalog
+  let strip = document.querySelector("[data-theme-gallery]");
+  const imgs = t?.gallery || [];
+  if (imgs.length && hero) {
+    if (!strip) {
+      strip = document.createElement("section");
+      strip.className = "vj-theme-gallery";
+      strip.setAttribute("data-theme-gallery", "");
+      hero.insertAdjacentElement("afterend", strip);
+    }
+    strip.innerHTML = imgs.map((u) => `<img src="${esc(u)}" alt="${esc(key)}" loading="lazy" />`).join("");
+    strip.hidden = false;
+    if (t.gridColor) strip.style.setProperty("background-color", t.gridColor, "important");
+    else strip.style.removeProperty("background-color");
+  } else if (strip) {
+    strip.hidden = true;
+    strip.innerHTML = "";
+  }
+}
+
 function updateProductsHeading() {
   const heading = document.querySelector("[data-products-heading]");
   if (!heading) return;
@@ -1265,6 +1370,7 @@ function updateProductsHeading() {
 function applyFilters() {
   if (_suppressApply) return;
   updateProductsHeading();
+  applyCollectionTheme();
   const products = _allProductsCache || [];
   const term = (document.querySelector("[data-product-search]")?.value || "").toLowerCase().trim();
 
