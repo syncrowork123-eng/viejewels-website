@@ -1,5 +1,14 @@
 /* Vie Jewels — Luxury Minimal Redesign */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&display=swap');
+
+/* Inter — self-hosted variable font (all weights 100–900).
+   File location: fonts/InterVariable.woff2, next to this stylesheet. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/InterVariable.woff2") format("woff2");
+}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -34,7 +43,7 @@ img {
   --text-muted:   #8a8176;
   --text-light:   #b8b0a4;
   --font-display: 'Inter', system-ui, sans-serif;
-  --font-serif:   'Fraunces', 'Times New Roman', serif;
+  --font-serif:   'Inter', system-ui, sans-serif;
   --font:         'Inter', system-ui, sans-serif;
   --radius:       3px;
   --radius-lg:    5px;
@@ -50,6 +59,9 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Form controls do not inherit the page font by default */
+button, input, select, textarea { font-family: inherit; }
 
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
