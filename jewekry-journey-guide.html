@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jewelry Journey Guide | Vie Jewels</title>
+  <meta name="description" content="Discover the journey of jewelry from concept to creation: where inspiration meets craftsmanship." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .jj-wrap{max-width:1100px;margin:0 auto;padding:0 32px}
+    .jj-hero{text-align:center;padding:44px 0 20px}
+    .jj-hero h1{font-weight:300;font-size:30px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+    .jj-hero p{font-size:13px;line-height:1.8;color:var(--text-muted,#737373);max-width:680px;margin:0 auto}
+    .jj-banner{max-width:1000px;margin:24px auto 36px;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 4px 18px rgba(22,20,18,.07);border:1px solid var(--border-light,rgba(0,0,0,.05));line-height:0}
+    .jj-banner img{width:100%;height:auto;display:block}
+
+    .jj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:28px}
+    .jj-card,.jj-alt{--r:14px;background:var(--surface,#fff);border:1px solid var(--border-light,rgba(0,0,0,.05));border-radius:var(--r);overflow:hidden;
+      box-shadow:0 4px 18px rgba(22,20,18,.07);transition:transform .35s ease,box-shadow .35s ease;will-change:transform}
+    .jj-card:hover,.jj-alt:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(22,20,18,.13)}
+    .jj-media{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;background:#fff;padding:18px;border-bottom:1px solid var(--border-light,rgba(0,0,0,.05))}
+    .jj-media img{max-width:100%;max-height:100%;width:auto;height:100%;object-fit:contain;display:block}
+    .jj-body{padding:18px 22px 24px;text-align:center}
+    .jj-step{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent,#9a7b4f);margin:0 0 6px}
+    .jj-body h3{font-size:14px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px;color:var(--text,#1a1a1a)}
+    .jj-text{font-size:12.5px;line-height:1.75;color:var(--text-muted,#737373);margin:0}
+
+    .jj-alt{display:grid;grid-template-columns:minmax(200px,30%) 1fr;align-items:center;margin-bottom:28px}
+    .jj-alt .jj-media{height:100%;aspect-ratio:auto;border-bottom:none;border-right:1px solid var(--border-light,rgba(0,0,0,.05))}
+    .jj-alt .jj-media img{height:auto;max-height:220px}
+    .jj-alt .jj-body{text-align:left;padding:26px 32px}
+
+    .jj-back{text-align:center;margin:36px 0 40px}
+    .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition,.2s)}
+    .guide-back:hover{color:#1a1a1a}
+    .site-footer a{color:inherit}
+    @media (prefers-reduced-motion:reduce){.jj-card,.jj-alt{transition:none}.jj-card:hover,.jj-alt:hover{transform:none}}
+    @media(max-width:900px){.jj-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.jj-wrap{padding:0 20px}.jj-grid{grid-template-columns:1fr}.jj-alt{grid-template-columns:1fr}.jj-alt .jj-media{border-right:none;border-bottom:1px solid var(--border-light,rgba(0,0,0,.05))}.jj-alt .jj-body{padding:20px 22px 24px}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="jj-wrap">
+      <section class="jj-hero">
+        <h1>Jewelry Journey Guide</h1>
+        <p>Discover the journey of jewelry from concept to creation: where inspiration meets craftsmanship, transforming raw materials into exquisite, wearable masterpiece.</p>
+      </section>
+
+      <div class="jj-banner"><img src="/assets/Jewelry%20Journey-Banner%201.png" alt="Jewelry Journey: from idea and concept to finished jewelry" /></div>
+
+      <section class="jj-grid" aria-label="Jewelry making steps">
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-1-Idea.svg" alt="Idea / Concept" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 01</p>
+            <h3>Idea / Concept</h3>
+            <p class="jj-text">Every piece begins with an idea. Inspiration may come from an occasion, a story, a gemstone or the personality of the wearer, and the brief is shaped around the look, feel and purpose of the jewel.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-2-Sketch.svg" alt="2D Sketch" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 02</p>
+            <h3>2D Sketch</h3>
+            <p class="jj-text">The concept is drawn out by hand or digitally, defining the silhouette, proportions, stone placement and finer details. Sketches are refined and shared for approval before the design moves forward.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-3-3D%20CAD.svg" alt="3D CAD" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 03</p>
+            <h3>3D CAD</h3>
+            <p class="jj-text">The approved sketch is translated into a precise three-dimensional model. Dimensions, stone seats, prongs and metal thickness are worked out digitally, and renders let you see the piece before it is made.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-4-3D%20CAM%20Printing.svg" alt="3D CAM Printing" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 04</p>
+            <h3>3D CAM Printing</h3>
+            <p class="jj-text">The digital model is sent to a high-resolution 3D printer, which builds the design layer by layer into an exact physical master with fine detail.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-5-Wax.svg" alt="Wax" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 05</p>
+            <h3>Wax</h3>
+            <p class="jj-text">The printed model, or one carved by hand, takes the form of a wax master. It is checked for fit, symmetry and detail, because every cast copy will carry its exact shape.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-6-Silicone%20Mould.svg" alt="Silicone Mould" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 06</p>
+            <h3>Silicone Mould</h3>
+            <p class="jj-text">The master is pressed into silicone rubber and cured, then carefully cut open. The hollow left behind is a perfect negative of the design, ready to be filled again and again.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-7-Wax%20Injection.svg" alt="Wax Injection" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 07</p>
+            <h3>Wax Injection</h3>
+            <p class="jj-text">Molten wax is injected into the mould under gentle pressure. Once cooled, each wax copy is removed, trimmed and inspected, so identical pieces can be produced from a single mould.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-8-Wax%20Tree.svg" alt="Wax Tree" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 08</p>
+            <h3>Wax Tree</h3>
+            <p class="jj-text">Individual wax pieces are attached to a central wax stem, called a sprue, forming a tree. This allows many pieces to be cast together in a single pour.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-9-Casting.svg" alt="Casting" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 09</p>
+            <h3>Casting</h3>
+            <p class="jj-text">The tree is encased in plaster and heated in a kiln, melting out the wax. Molten metal is poured into the empty space, and once cooled, the plaster is broken away to reveal the rough metal pieces.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-10-Grinding.svg" alt="Grinding" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 10</p>
+            <h3>Grinding</h3>
+            <p class="jj-text">The cast pieces are cut free from the tree. Excess metal and the stubs left by the sprues are ground away, and the surface is smoothed for finer work.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-11-Filing.svg" alt="Filing" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 11</p>
+            <h3>Filing</h3>
+            <p class="jj-text">Skilled hands use fine files and tools to refine the form, sharpen edges, correct small imperfections and bring out the intended lines of the design.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-12-Setting.svg" alt="Setting" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 12</p>
+            <h3>Setting</h3>
+            <p class="jj-text">Diamonds and gemstones are set by hand, one at a time. Prongs, bezels or channels are shaped to hold each stone securely while letting in as much light as possible.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-13-Polishing.svg" alt="Polishing" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 13</p>
+            <h3>Polishing</h3>
+            <p class="jj-text">The jewel is buffed and polished through progressively finer compounds until the metal reaches a smooth, mirror-like shine, then thoroughly cleaned.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-14-Rhodium.svg" alt="Rhodium Plating" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 14</p>
+            <h3>Rhodium Plating</h3>
+            <p class="jj-text">White gold pieces are dipped in a rhodium bath and plated electrically, giving a bright white finish and an added layer of protection against wear.</p>
+          </div>
+        </article>
+        <article class="jj-card">
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-15-Finished.svg" alt="Finished" loading="lazy" /></div>
+          <div class="jj-body">
+            <p class="jj-step">Step 15</p>
+            <h3>Finished</h3>
+            <p class="jj-text">After a final quality inspection of the metalwork, stones and finish, the piece is complete: ready to be worn, gifted and treasured.</p>
+          </div>
+        </article>
+      </section>
+
+      <article class="jj-alt">
+        <div class="jj-media"><img src="/assets/Jewelry%20Journey-Model%20Making.svg" alt="Manual model making" loading="lazy" /></div>
+        <div class="jj-body">
+          <p class="jj-step">Alternative Path</p>
+          <h3>Manual Model Making</h3>
+          <p class="jj-text">For one-of-a-kind and bespoke pieces, a skilled jeweler can build the model by hand, carving it in wax or fabricating it in metal straight from the sketch. This craft route replaces the 3D CAD and CAM printing steps, and the model then continues on to mould making and casting.</p>
+        </div>
+      </article>
+
+      <p class="jj-back"><a class="guide-back" href="diamond-guide.html">&larr; Back to Diamond Guide</a></p>
+    </div>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
