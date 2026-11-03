@@ -14,29 +14,24 @@
     .jj-banner{max-width:1000px;margin:24px auto 36px;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 4px 18px rgba(22,20,18,.07);border:1px solid var(--border-light,rgba(0,0,0,.05));line-height:0}
     .jj-banner img{width:100%;height:auto;display:block}
 
-    .jj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:28px}
-    .jj-card,.jj-alt{--r:14px;background:var(--surface,#fff);border:1px solid var(--border-light,rgba(0,0,0,.05));border-radius:var(--r);overflow:hidden;
+    .jj-grid{display:flex;flex-direction:column;gap:24px;max-width:960px;margin:0 auto 28px}
+    .jj-card,.jj-alt{--r:14px;display:grid;grid-template-columns:300px 1fr;align-items:stretch;background:var(--surface,#fff);border:1px solid var(--border-light,rgba(0,0,0,.05));border-radius:var(--r);overflow:hidden;
       box-shadow:0 4px 18px rgba(22,20,18,.07);transition:transform .35s ease,box-shadow .35s ease;will-change:transform}
     .jj-card:hover,.jj-alt:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(22,20,18,.13)}
-    .jj-media{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;background:#fff;padding:18px;border-bottom:1px solid var(--border-light,rgba(0,0,0,.05))}
-    .jj-media img{max-width:100%;max-height:100%;width:auto;height:100%;object-fit:contain;display:block}
-    .jj-body{padding:18px 22px 24px;text-align:center}
+    .jj-media{display:flex;align-items:center;justify-content:center;background:#fff;padding:20px;border-right:1px solid var(--border-light,rgba(0,0,0,.05))}
+    .jj-media img{width:100%;max-width:240px;height:auto;aspect-ratio:1/1;object-fit:contain;display:block}
+    .jj-body{display:flex;flex-direction:column;justify-content:center;padding:26px 36px;text-align:left}
     .jj-step{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent,#9a7b4f);margin:0 0 6px}
-    .jj-body h3{font-size:14px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px;color:var(--text,#1a1a1a)}
-    .jj-text{font-size:12.5px;line-height:1.75;color:var(--text-muted,#737373);margin:0}
-
-    .jj-alt{display:grid;grid-template-columns:minmax(200px,30%) 1fr;align-items:center;margin-bottom:28px}
-    .jj-alt .jj-media{height:100%;aspect-ratio:auto;border-bottom:none;border-right:1px solid var(--border-light,rgba(0,0,0,.05))}
-    .jj-alt .jj-media img{height:auto;max-height:220px}
-    .jj-alt .jj-body{text-align:left;padding:26px 32px}
+    .jj-body h3{font-size:16px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin:0 0 10px;color:var(--text,#1a1a1a)}
+    .jj-text{font-size:13px;line-height:1.85;color:var(--text-muted,#737373);margin:0}
+    .jj-alt{max-width:960px;margin:0 auto 28px}
 
     .jj-back{text-align:center;margin:36px 0 40px}
     .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition,.2s)}
     .guide-back:hover{color:#1a1a1a}
     .site-footer a{color:inherit}
     @media (prefers-reduced-motion:reduce){.jj-card,.jj-alt{transition:none}.jj-card:hover,.jj-alt:hover{transform:none}}
-    @media(max-width:900px){.jj-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:600px){.jj-wrap{padding:0 20px}.jj-grid{grid-template-columns:1fr}.jj-alt{grid-template-columns:1fr}.jj-alt .jj-media{border-right:none;border-bottom:1px solid var(--border-light,rgba(0,0,0,.05))}.jj-alt .jj-body{padding:20px 22px 24px}}
+        @media(max-width:700px){.jj-wrap{padding:0 20px}.jj-card,.jj-alt{grid-template-columns:1fr}.jj-media{border-right:none;border-bottom:1px solid var(--border-light,rgba(0,0,0,.05))}.jj-media img{max-width:200px}.jj-body{padding:20px 22px 24px}}
   </style>
 </head>
 <body>
@@ -46,7 +41,7 @@
       <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
     </div>
     <nav class="main-nav">
-      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <a class="brand" href="index.html"><img src="/assets/logo.png" alt="Vie Jewels" /></a>
       <div class="nav-links">
         <a href="collections.html">Collections</a>
         <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
@@ -70,7 +65,7 @@
 
       <section class="jj-grid" aria-label="Jewelry making steps">
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-1-Idea.svg" alt="Idea / Concept" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-1-Idea.png" alt="Idea / Concept" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 01</p>
             <h3>Idea / Concept</h3>
@@ -78,7 +73,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-2-Sketch.svg" alt="2D Sketch" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-2-Sketch.png" alt="2D Sketch" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 02</p>
             <h3>2D Sketch</h3>
@@ -86,7 +81,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-3-3D%20CAD.svg" alt="3D CAD" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-3-3D%20CAD.png" alt="3D CAD" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 03</p>
             <h3>3D CAD</h3>
@@ -94,7 +89,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-4-3D%20CAM%20Printing.svg" alt="3D CAM Printing" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-4-3D%20CAM%20Printing.png" alt="3D CAM Printing" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 04</p>
             <h3>3D CAM Printing</h3>
@@ -102,7 +97,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-5-Wax.svg" alt="Wax" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-5-Wax.png" alt="Wax" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 05</p>
             <h3>Wax</h3>
@@ -110,7 +105,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-6-Silicone%20Mould.svg" alt="Silicone Mould" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-6-Silicone%20Mould.png" alt="Silicone Mould" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 06</p>
             <h3>Silicone Mould</h3>
@@ -118,7 +113,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-7-Wax%20Injection.svg" alt="Wax Injection" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-7-Wax%20Injection.png" alt="Wax Injection" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 07</p>
             <h3>Wax Injection</h3>
@@ -126,7 +121,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-8-Wax%20Tree.svg" alt="Wax Tree" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-8-Wax%20Tree.png" alt="Wax Tree" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 08</p>
             <h3>Wax Tree</h3>
@@ -134,7 +129,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-9-Casting.svg" alt="Casting" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-9-Casting.png" alt="Casting" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 09</p>
             <h3>Casting</h3>
@@ -142,7 +137,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-10-Grinding.svg" alt="Grinding" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-10-Grinding.png" alt="Grinding" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 10</p>
             <h3>Grinding</h3>
@@ -150,7 +145,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-11-Filing.svg" alt="Filing" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-11-Filing.png" alt="Filing" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 11</p>
             <h3>Filing</h3>
@@ -158,7 +153,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-12-Setting.svg" alt="Setting" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-12-Setting.png" alt="Setting" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 12</p>
             <h3>Setting</h3>
@@ -166,7 +161,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-13-Polishing.svg" alt="Polishing" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-13-Polishing.png" alt="Polishing" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 13</p>
             <h3>Polishing</h3>
@@ -174,7 +169,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-14-Rhodium.svg" alt="Rhodium Plating" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-14-Rhodium.png" alt="Rhodium Plating" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 14</p>
             <h3>Rhodium Plating</h3>
@@ -182,7 +177,7 @@
           </div>
         </article>
         <article class="jj-card">
-          <div class="jj-media"><img src="/assets/Jewelry%20Journey-15-Finished.svg" alt="Finished" loading="lazy" /></div>
+          <div class="jj-media"><img src="/assets/Jewelry%20Journey-15-Finished.png" alt="Finished" loading="lazy" /></div>
           <div class="jj-body">
             <p class="jj-step">Step 15</p>
             <h3>Finished</h3>
@@ -192,7 +187,7 @@
       </section>
 
       <article class="jj-alt">
-        <div class="jj-media"><img src="/assets/Jewelry%20Journey-Model%20Making.svg" alt="Manual model making" loading="lazy" /></div>
+        <div class="jj-media"><img src="/assets/Jewelry%20Journey-Model%20Making.png" alt="Manual model making" loading="lazy" /></div>
         <div class="jj-body">
           <p class="jj-step">Alternative Path</p>
           <h3>Manual Model Making</h3>
