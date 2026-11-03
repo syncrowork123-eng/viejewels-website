@@ -43,7 +43,7 @@ a{color:inherit}
 .nav a:hover{text-decoration:underline;text-underline-offset:6px}
 .nav a[aria-current="page"]{text-decoration:underline;text-underline-offset:6px}
 .icons{display:flex;gap:18px;align-items:center}
-.icons a{display:flex}
+.icons a{display:flex;text-decoration:none;font-size:20px}
 .icons svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5}
 .menu-btn{display:none;font:inherit;background:none;border:1px solid var(--line);padding:8px 16px;border-radius:999px;cursor:pointer}
 .mobile-panel{display:none}
@@ -165,15 +165,15 @@ td.one{color:var(--ink-soft)}
 
 <header class="site-header">
   <div class="wrap">
-    <a class="logo" href="index.html" aria-label="Vie Jewels home">Vie <span>Jewels</span></a>
+    <a class="logo" href="index.html" aria-label="Vie Jewels home"><img src="assets/logo.svg" alt="Vie Jewels" style="height:40px;width:auto"></a>
     <nav class="nav" aria-label="Main">
       <a href="collections.html">Collections</a>
       <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
       <a href="contact.html">Contact Us</a>
     </nav>
     <div class="icons">
-      <a href="cart.html" aria-label="Cart"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h10.2l2-8H6.2"/><circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/></svg></a>
-      <a href="account.html" aria-label="Account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.2-6 8-6s6.8 2 8 6"/></svg></a>
+      <a href="cart.html" aria-label="Cart">🛒</a>
+      <a href="account.html" aria-label="Account">◎</a>
     </div>
     <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobilePanel">Menu</button>
   </div>
@@ -181,8 +181,10 @@ td.one{color:var(--ink-soft)}
     <a href="collections.html">Collections</a>
     <a href="knowledge-lounge.html">Knowledge Lounge</a>
     <a href="contact.html">Contact Us</a>
-    <a href="cart.html">Cart</a>
-    <a href="account.html">Account</a>
+    <a href="cart.html">🛒</a>
+    <a href="account.html">◎</a>
+    <a href="mailto:hello@viejewels.com">hello@viejewels.com</a>
+    <a href="https://www.viejewels.com">www.viejewels.com</a>
   </div>
 </header>
 
@@ -194,13 +196,13 @@ td.one{color:var(--ink-soft)}
         <p class="sub">Explore different metal types and qualities</p>
         <p>Several metals are used in the creation of fine jewelry. The metal types commonly used to make jewelry include platinum, gold, silver, stainless steel, brass and titanium. For making jewelry with any metal, an alloy or alloys need to be mixed. Here’s a short description and the reasons for mixing alloys with the metals.</p>
       </div>
-      <img src="assets/images/banner-metal-bars.jpg" alt="Bars of nickel, silver, palladium, platinum, copper and gold arranged side by side" width="1820" height="1214">
+      <img src="assets/jmg-banner-metal-bars.jpg" alt="Bars of nickel, silver, palladium, platinum, copper and gold arranged side by side" width="1820" height="1214">
     </div>
 
     <div class="trio">
-      <figure class="t-pt"><div class="tile"><img src="assets/images/hero-platinum.jpg" alt="Diamond ring set in platinum resting on a raw platinum nugget" loading="lazy"></div><figcaption>Platinum</figcaption></figure>
-      <figure class="t-rg"><div class="tile"><img src="assets/images/hero-rose-gold.jpg" alt="Morganite and diamond ring in rose gold resting on a raw copper-toned nugget" loading="lazy"></div><figcaption>Rose gold</figcaption></figure>
-      <figure class="t-yg"><div class="tile"><img src="assets/images/hero-yellow-gold.jpg" alt="Yellow gold ring set with yellow stones resting on a raw gold nugget" loading="lazy"></div><figcaption>Yellow gold</figcaption></figure>
+      <figure class="t-pt"><div class="tile"><img src="assets/jmg-hero-platinum.jpg" alt="Diamond ring set in platinum resting on a raw platinum nugget" loading="lazy"></div><figcaption>Platinum</figcaption></figure>
+      <figure class="t-rg"><div class="tile"><img src="assets/jmg-hero-rose-gold.jpg" alt="Morganite and diamond ring in rose gold resting on a raw copper-toned nugget" loading="lazy"></div><figcaption>Rose gold</figcaption></figure>
+      <figure class="t-yg"><div class="tile"><img src="assets/jmg-hero-yellow-gold.jpg" alt="Yellow gold ring set with yellow stones resting on a raw gold nugget" loading="lazy"></div><figcaption>Yellow gold</figcaption></figure>
     </div>
   </div>
 
@@ -218,7 +220,7 @@ td.one{color:var(--ink-soft)}
   <section class="block" id="alloys">
     <div class="wrap">
       <div class="sec-head"><h2>Alloys</h2></div>
-      <img class="strip" src="assets/images/alloys-strip.jpg" alt="Small silver-white and yellow gold metal pellets scattered on a grey surface" loading="lazy">
+      <img class="strip" src="assets/jmg-alloys-strip.jpg" alt="Small silver-white and yellow gold metal pellets scattered on a grey surface" loading="lazy">
       <div class="alloy-text">
         <p class="lede">An alloy is a combination of a metal with at least one other metal. A jewelry alloy is any malleable metal, meaning capable of being formed or bent into different shapes, and ductile, which means its easily molded base metal that is added to a precious metal to change and improve its other properties. Jewelry alloying elements are added to provide elasticity, flexibility, strength, hardness, corrosion resistance, machinability and color. The most common way to combine metals with alloys is by melting them, mixing them together and then allowing them to solidify and cool back to room temperature.</p>
       </div>
@@ -228,13 +230,13 @@ td.one{color:var(--ink-soft)}
         <p class="lede">The following alloy metals are frequently used to mix with precious metals:</p>
       </div>
       <div class="alloy-grid">
-        <figure><div class="ph"><img src="assets/images/alloy-palladium.jpg" alt="Stacked palladium bars" loading="lazy"></div><figcaption>Palladium</figcaption></figure>
-        <figure><div class="ph"><img src="assets/images/alloy-nickel.jpg" alt="Stacked nickel bars" loading="lazy"></div><figcaption>Nickel</figcaption></figure>
-        <figure><div class="ph"><img src="assets/images/alloy-copper.jpg" alt="Copper bars" loading="lazy"></div><figcaption>Copper</figcaption></figure>
-        <figure><div class="ph"><img src="assets/images/alloy-iridium-osmium.jpg" alt="Two polished metal spheres: iridium on the left, osmium on the right" loading="lazy"></div><figcaption>Iridium (left), osmium (right)</figcaption></figure>
-        <figure><div class="ph contain"><img src="assets/images/alloy-zinc.jpg" alt="Zinc ingots" loading="lazy"></div><figcaption>Zinc</figcaption></figure>
-        <figure><div class="ph contain"><img src="assets/images/alloy-silver.jpg" alt="Silver ingots" loading="lazy"></div><figcaption>Silver</figcaption></figure>
-        <figure><div class="ph contain"><img src="assets/images/alloy-ruthenium.jpg" alt="Raw ruthenium crystals" loading="lazy"></div><figcaption>Ruthenium</figcaption></figure>
+        <figure><div class="ph"><img src="assets/jmg-alloy-palladium.jpg" alt="Stacked palladium bars" loading="lazy"></div><figcaption>Palladium</figcaption></figure>
+        <figure><div class="ph"><img src="assets/jmg-alloy-nickel.jpg" alt="Stacked nickel bars" loading="lazy"></div><figcaption>Nickel</figcaption></figure>
+        <figure><div class="ph"><img src="assets/jmg-alloy-copper.jpg" alt="Copper bars" loading="lazy"></div><figcaption>Copper</figcaption></figure>
+        <figure><div class="ph"><img src="assets/jmg-alloy-iridium-osmium.jpg" alt="Two polished metal spheres: iridium on the left, osmium on the right" loading="lazy"></div><figcaption>Iridium (left), osmium (right)</figcaption></figure>
+        <figure><div class="ph contain"><img src="assets/jmg-alloy-zinc.jpg" alt="Zinc ingots" loading="lazy"></div><figcaption>Zinc</figcaption></figure>
+        <figure><div class="ph contain"><img src="assets/jmg-alloy-silver.jpg" alt="Silver ingots" loading="lazy"></div><figcaption>Silver</figcaption></figure>
+        <figure><div class="ph contain"><img src="assets/jmg-alloy-ruthenium.jpg" alt="Raw ruthenium crystals" loading="lazy"></div><figcaption>Ruthenium</figcaption></figure>
       </div>
     </div>
   </section>
@@ -244,13 +246,13 @@ td.one{color:var(--ink-soft)}
     <div class="wrap">
       <div class="sec-head"><h2>Rhodium</h2></div>
       <div class="rhodium">
-        <div class="stone"><img src="assets/images/rhodium-stone.jpg" alt="Raw rhodium metal" loading="lazy"></div>
+        <div class="stone"><img src="assets/jmg-rhodium-stone.jpg" alt="Raw rhodium metal" loading="lazy"></div>
         <div>
           <p>Rhodium is a hard, durable and silver-white metallic element that is highly reflective and resistant to corrosion. The name rhodium comes from the Greek word “rhodon,” meaning rose, named for the rose-red color of its salts. Classified as a noble metal, the characteristics of rhodium include high melting points, general non-toxicity, and resistance to wear, oxidation and corrosion.</p>
           <p>High karat metals such as platinum and white gold are often soft and can be easily scratched and become very dull over time. Since rhodium is quite brilliant and resistant to tarnishing, it is used as a finish for jewelry. It is plated on metals to produce a durable, corrosion-resistant coating.</p>
           <p>Jewelry made in yellow gold can be turned into “white” by rhodium plating!</p>
           <div class="ba">
-            <img src="assets/images/rhodium-plating.jpg" alt="Five-stone ring: the left half is plain white metal, the right half shows the same ring with a gold center stone setting" loading="lazy">
+            <img src="assets/jmg-rhodium-plating.jpg" alt="Five-stone ring: the left half is plain white metal, the right half shows the same ring with a gold center stone setting" loading="lazy">
             <div class="labels"><span>Before rhodium plating</span><span>After rhodium plating</span></div>
           </div>
         </div>
@@ -270,7 +272,7 @@ td.one{color:var(--ink-soft)}
 
         <!-- Platinum -->
         <article class="card" style="--c:var(--platinum)">
-          <div class="ph contain"><img src="assets/images/metal-platinum.jpg" alt="Platinum bars" loading="lazy"></div>
+          <div class="ph contain"><img src="assets/jmg-metal-platinum.jpg" alt="Platinum bars" loading="lazy"></div>
           <h3>Platinum</h3>
           <dl>
             <dt>Symbol</dt><dd>Pt</dd>
@@ -286,7 +288,7 @@ td.one{color:var(--ink-soft)}
 
         <!-- Gold -->
         <article class="card" style="--c:var(--gold)">
-          <div class="ph"><img src="assets/images/metal-gold.jpg" alt="Gold bars" loading="lazy"></div>
+          <div class="ph"><img src="assets/jmg-metal-gold.jpg" alt="Gold bars" loading="lazy"></div>
           <h3>Gold</h3>
           <dl>
             <dt>Symbol</dt><dd>Au (Aurum)</dd>
@@ -310,7 +312,7 @@ td.one{color:var(--ink-soft)}
 
         <!-- Silver -->
         <article class="card" style="--c:#aeb4bd">
-          <div class="ph"><img src="assets/images/metal-silver.jpg" alt="Silver bars" loading="lazy"></div>
+          <div class="ph"><img src="assets/jmg-metal-silver.jpg" alt="Silver bars" loading="lazy"></div>
           <h3>Silver</h3>
           <dl>
             <dt>Symbol</dt><dd>Ag (Argentum)</dd>
@@ -326,7 +328,7 @@ td.one{color:var(--ink-soft)}
 
         <!-- Titanium -->
         <article class="card" style="--c:var(--titanium)">
-          <div class="ph"><img src="assets/images/metal-titanium.jpg" alt="Titanium bars" loading="lazy"></div>
+          <div class="ph"><img src="assets/jmg-metal-titanium.jpg" alt="Titanium bars" loading="lazy"></div>
           <h3>Titanium</h3>
           <dl>
             <dt>Symbol</dt><dd>Ti</dd>
@@ -358,7 +360,7 @@ td.one{color:var(--ink-soft)}
 
         <!-- Brass -->
         <article class="card" style="--c:var(--brass)">
-          <div class="ph"><img src="assets/images/metal-brass.jpg" alt="Small brass cubes" loading="lazy"></div>
+          <div class="ph"><img src="assets/jmg-metal-brass.jpg" alt="Small brass cubes" loading="lazy"></div>
           <h3>Brass</h3>
           <dl>
             <dt>Symbol</dt><dd>Copper (Cu) + zinc (Zn)</dd>
@@ -374,7 +376,7 @@ td.one{color:var(--ink-soft)}
 
         <!-- Stainless steel -->
         <article class="card" style="--c:var(--steel)">
-          <div class="ph"><img src="assets/images/metal-stainless-steel.jpg" alt="Raw blue-grey stainless steel ore" loading="lazy"></div>
+          <div class="ph"><img src="assets/jmg-metal-stainless-steel.jpg" alt="Raw blue-grey stainless steel ore" loading="lazy"></div>
           <h3>Stainless steel</h3>
           <dl>
             <dt>Symbol</dt><dd>Iron (Fe) + chromium (Cr)</dd>
@@ -401,23 +403,23 @@ td.one{color:var(--ink-soft)}
       </div>
 
       <article class="finish">
-        <div class="ph"><img src="assets/images/finish-high-polish.jpg" alt="Ring with a high polish finish" loading="lazy"></div>
+        <div class="ph"><img src="assets/jmg-finish-high-polish.jpg" alt="Ring with a high polish finish" loading="lazy"></div>
         <div><h3>High polish</h3><p>A high polish finish is reflective and shiny, and it is the most popular finish for fine jewelry.</p></div>
       </article>
       <article class="finish">
-        <div class="ph"><img src="assets/images/finish-matte.jpg" alt="Ring with a matte finish" loading="lazy"></div>
+        <div class="ph"><img src="assets/jmg-finish-matte.jpg" alt="Ring with a matte finish" loading="lazy"></div>
         <div><h3>Matte</h3><p>A satin or matte finish is smooth to the touch but is not shiny.</p></div>
       </article>
       <article class="finish">
-        <div class="ph"><img src="assets/images/finish-brushed.jpg" alt="Ring with a brushed finish" loading="lazy"></div>
+        <div class="ph"><img src="assets/jmg-finish-brushed.jpg" alt="Ring with a brushed finish" loading="lazy"></div>
         <div><h3>Brushed</h3><p>A brushed finish shows texture and has a more distinct look.</p></div>
       </article>
       <article class="finish">
-        <div class="ph"><img src="assets/images/finish-hammered.jpg" alt="Ring with a hammered finish" loading="lazy"></div>
+        <div class="ph"><img src="assets/jmg-finish-hammered.jpg" alt="Ring with a hammered finish" loading="lazy"></div>
         <div><h3>Hammered</h3><p>A hammered finish is where the metal is hammered and then given a satin finish for a truly unique texture and style.</p></div>
       </article>
       <article class="finish">
-        <div class="ph"><img src="assets/images/finish-milgrain.jpg" alt="Ring with milgrain edge detailing" loading="lazy"></div>
+        <div class="ph"><img src="assets/jmg-finish-milgrain.jpg" alt="Ring with milgrain edge detailing" loading="lazy"></div>
         <div><h3>Milgrain</h3><p>Milgrain means “one thousand grains” in French. The milgrain decoration is a form of tiny bead shapes that are raised, which add intricate detail and give jewelry an antique and elegant look.</p></div>
       </article>
     </div>
@@ -483,7 +485,7 @@ td.one{color:var(--ink-soft)}
   b.addEventListener('click',function(){
     var open=p.classList.toggle('open');
     b.setAttribute('aria-expanded',open);
-    b.textContent=open?'Close':'Menu';
+    b.textContent=open?'×':'Menu';
   });
 
   // converter: rows = current metal, columns = new metal
