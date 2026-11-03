@@ -7,517 +7,302 @@
 <meta name="description" content="Explore jewelry metal types and qualities: platinum, gold, silver, titanium, brass and stainless steel, plus alloys, finishes and a metal conversion chart.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --ink:#1b1c20;
-  --ink-soft:#52555d;
-  --line:#dfe1e5;
-  --paper:#ffffff;
-  --mist:#f4f5f6;
-  --platinum:#c7cbd1;
-  --gold:#c4a24a;
-  --rose:#d99a8f;
-  --steel:#6e8aa0;
-  --brass:#a89060;
-  --titanium:#7b6cc4;
-  --font:"Jost","Avenir Next","Century Gothic","Segoe UI",system-ui,sans-serif;
-  --pad:clamp(20px,5vw,72px);
-}
+:root{--ink:#1d1d1f;--soft:#5d5f66;--line:#e3e1dc;--mist:#f5f3ef;--gold:#b8963e;--pad:clamp(20px,5vw,72px);--f:"Jost","Avenir Next","Segoe UI",system-ui,sans-serif}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:120px}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper);line-height:1.6;font-size:17px;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth;scroll-padding-top:110px}
+body{margin:0;font:400 17px/1.65 var(--f);color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased}
 img{max-width:100%;height:auto;display:block}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-.wrap{max-width:1240px;margin:0 auto;padding:0 var(--pad)}
-
-/* header */
-.site-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.site-header .wrap{display:flex;align-items:center;justify-content:space-between;height:72px}
-.logo{font-size:26px;font-weight:500;letter-spacing:.02em;text-decoration:none}
-.logo span{font-weight:300}
-.nav{display:flex;align-items:center;gap:36px}
-.nav a{text-decoration:none;font-size:16px}
-.nav a:hover{text-decoration:underline;text-underline-offset:6px}
-.nav a[aria-current="page"]{text-decoration:underline;text-underline-offset:6px}
-.icons{display:flex;gap:18px;align-items:center}
-.icons a{display:flex;text-decoration:none;font-size:20px}
-.icons svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5}
-.menu-btn{display:none;font:inherit;background:none;border:1px solid var(--line);padding:8px 16px;border-radius:999px;cursor:pointer}
-.mobile-panel{display:none}
-@media (max-width:860px){
-  .nav,.icons{display:none}
-  .menu-btn{display:block}
-  .mobile-panel.open{display:flex;flex-direction:column;gap:6px;padding:12px var(--pad) 24px;border-top:1px solid var(--line);background:#fff}
-  .mobile-panel a{padding:10px 0;text-decoration:none;font-size:18px;border-bottom:1px solid var(--mist)}
-}
-
-/* hero */
-.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(24px,5vw,72px);align-items:center;padding:clamp(40px,7vw,96px) 0 clamp(32px,5vw,64px)}
-.hero h1{font-size:clamp(44px,7vw,88px);line-height:1;font-weight:300;letter-spacing:-.02em;margin:0 0 20px}
-.hero .sub{font-size:clamp(19px,2vw,24px);font-weight:400;margin:0 0 20px}
-.hero p{color:var(--ink-soft);max-width:52ch;margin:0}
-.hero img{width:100%;border-radius:4px}
-@media (max-width:860px){.hero{grid-template-columns:1fr}}
-
-/* ring trio */
-.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,2vw,24px);margin-bottom:clamp(32px,5vw,56px)}
-.trio figure{margin:0}
-.trio .tile{aspect-ratio:1/1;display:grid;place-items:center;overflow:hidden;border-radius:4px}
-.trio .tile img{width:88%;mix-blend-mode:multiply}
-.trio figcaption{padding-top:10px;font-size:16px;color:var(--ink-soft)}
-.t-pt .tile{background:#e3e6ea}.t-rg .tile{background:#f0d8d1}.t-yg .tile{background:#efe2b0}
-
-/* sub nav */
-.subnav{position:sticky;top:72px;z-index:40;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.subnav .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:10px;padding-bottom:10px;scrollbar-width:none}
-.subnav .wrap::-webkit-scrollbar{display:none}
-.subnav a{white-space:nowrap;text-decoration:none;font-size:15px;padding:7px 18px;border-radius:999px;border:1px solid transparent}
-.subnav a:hover{border-color:var(--line);background:var(--mist)}
-
-/* sections */
-section.block{padding:clamp(48px,7vw,96px) 0}
-section.block + section.block{border-top:1px solid var(--line)}
-.sec-head{max-width:70ch;margin-bottom:clamp(28px,4vw,48px)}
-h2{font-size:clamp(30px,4vw,48px);font-weight:300;line-height:1.1;letter-spacing:-.01em;margin:0 0 16px}
-h3{font-size:24px;font-weight:500;margin:0 0 12px;line-height:1.2}
-.lede{color:var(--ink-soft);margin:0}
-.lede + .lede{margin-top:14px}
-
-/* alloys */
-.strip{width:100%;border-radius:4px;margin-bottom:28px}
-.alloy-text{max-width:80ch;margin-bottom:56px}
-.alloy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:24px 20px}
-.alloy-grid figure{margin:0}
-.alloy-grid .ph{aspect-ratio:3/2;background:var(--mist);border-radius:4px;overflow:hidden;display:grid;place-items:center}
-.alloy-grid img{width:100%;height:100%;object-fit:cover}
-.alloy-grid .ph.contain img{object-fit:contain;mix-blend-mode:multiply}
-.alloy-grid figcaption{padding-top:8px;font-size:16px}
-
-/* rhodium */
-.rhodium{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);gap:clamp(24px,5vw,72px);align-items:start}
-.rhodium .stone{background:var(--mist);border-radius:4px;padding:24px}
-.rhodium .stone img{mix-blend-mode:multiply;margin:0 auto}
-.rhodium p{margin:0 0 16px;color:var(--ink-soft)}
-.ba{margin-top:32px;display:grid;grid-template-columns:1fr;max-width:560px}
-.ba img{width:100%;border-radius:4px;background:var(--mist)}
-.ba .labels{display:flex;justify-content:space-between;font-size:15px;color:var(--ink-soft);padding-top:8px}
-@media (max-width:860px){.rhodium{grid-template-columns:1fr}}
-
-/* metal cards */
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
-@media (max-width:1020px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:640px){.cards{grid-template-columns:1fr}}
-.card{border:1px solid var(--line);border-top:5px solid var(--c,var(--platinum));border-radius:4px;padding:26px 24px 28px;background:#fff;display:flex;flex-direction:column}
-.card .ph{background:var(--mist);border-radius:3px;aspect-ratio:3/2;overflow:hidden;margin-bottom:20px;display:grid;place-items:center}
-.card .ph img{width:100%;height:100%;object-fit:cover}
-.card .ph.contain img{object-fit:contain;mix-blend-mode:multiply}
-.card dl{margin:0}
-.card dt{font-weight:600;font-size:16px;margin-top:16px}
-.card dd{margin:2px 0 0;color:var(--ink-soft);font-size:16px}
-.sw{list-style:none;display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 0;padding:0}
-.sw li{width:64px;text-align:center;font-size:12px;line-height:1.2;color:var(--ink-soft)}
-.sw i{display:block;height:44px;border-radius:5px;margin-bottom:5px;background:var(--s);border:1px solid rgba(0,0,0,.12)}
-.sw .rainbow{background:linear-gradient(135deg,#3d6fe0,#9b4fd1,#e0508a,#f0a53a,#3cc08a)}
-.note{font-size:14px;color:var(--ink-soft);margin:10px 0 0}
-.summary{margin-top:auto;padding-top:18px}
-.summary dd{color:var(--ink)}
-
-/* finishes */
-.finish{display:grid;grid-template-columns:minmax(150px,260px) 1fr;gap:clamp(20px,4vw,56px);align-items:center;border:1px solid var(--line);border-radius:4px;padding:20px;margin-bottom:16px}
-.finish .ph{background:var(--mist);border-radius:3px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden}
-.finish .ph img{width:86%;mix-blend-mode:multiply}
-.finish h3{margin-bottom:6px}
-.finish p{margin:0;color:var(--ink-soft);max-width:60ch}
-@media (max-width:560px){.finish{grid-template-columns:1fr}}
-
-/* conversion */
-.convert-text{max-width:80ch}
-.convert-text p{color:var(--ink-soft);margin:0 0 16px}
-.example{border-left:4px solid var(--gold);padding:4px 0 4px 18px;margin:24px 0 36px}
-.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 var(--pad)}
+.tag{background:var(--ink);color:#e8e6e1;text-align:center;font-size:14px;padding:7px 12px;letter-spacing:.02em}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}
+.logo img{height:44px;width:auto}
+nav.main{display:flex;gap:clamp(16px,3vw,36px);align-items:center;flex-wrap:wrap}
+nav.main a{text-decoration:none;font-size:16px}
+nav.main a:hover,nav.main a[aria-current]{text-decoration:underline;text-underline-offset:6px}
+.hero{text-align:center;padding:clamp(48px,8vw,100px) 0 clamp(28px,4vw,48px)}
+h1{font-size:clamp(40px,6.5vw,76px);font-weight:300;line-height:1.04;letter-spacing:-.02em;margin:0 0 20px}
+.hero p{max-width:62ch;margin:0 auto;color:var(--soft);font-size:19px}
+.banner{width:100%;border-radius:6px;margin:clamp(24px,4vw,44px) 0}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,2vw,24px)}
+.trio figure{margin:0;text-align:center}
+.trio img{border-radius:6px;aspect-ratio:1;object-fit:cover;width:100%;background:var(--mist)}
+.trio figcaption{padding-top:8px;color:var(--soft)}
+.subnav{position:sticky;top:69px;z-index:40;background:#fff;border-block:1px solid var(--line);margin-top:clamp(32px,5vw,56px)}
+.subnav .wrap{display:flex;gap:6px;overflow-x:auto;padding-block:10px;scrollbar-width:none}
+.subnav a{white-space:nowrap;text-decoration:none;font-size:15px;padding:7px 18px;border-radius:999px}
+.subnav a:hover{background:var(--mist)}
+section{padding:clamp(48px,7vw,96px) 0;border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+h2{font-size:clamp(30px,4vw,46px);font-weight:300;line-height:1.1;margin:0 0 16px;text-align:center}
+.intro{max-width:68ch;margin:0 auto clamp(32px,5vw,56px);text-align:center;color:var(--soft)}
+h3{font-size:26px;font-weight:500;line-height:1.2;margin:0 0 12px}
+.step{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,72px);align-items:center;margin-bottom:clamp(40px,6vw,80px)}
+.step:last-child{margin-bottom:0}
+.step:nth-child(even) .ph{order:2}
+.ph{background:var(--mist);border-radius:6px;overflow:hidden;aspect-ratio:4/3}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph img.c{object-fit:contain;mix-blend-mode:multiply}
+.lab{display:block;font-size:15px;color:var(--gold);font-weight:500;margin-bottom:6px}
+.step p{margin:0;color:var(--soft)}
+dl{margin:0}
+dt{font-weight:500;font-size:16px;margin-top:14px}
+dd{margin:2px 0 0;color:var(--soft);font-size:16px}
+.sum{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.sum dd{color:var(--ink)}
+.sw{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0;padding:0}
+.sw li{display:flex;align-items:center;gap:6px;font-size:14px;border:1px solid var(--line);border-radius:999px;padding:3px 12px 3px 4px;color:var(--soft)}
+.sw i{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.sw .rb{background:linear-gradient(135deg,#3d6fe0,#9b4fd1,#e0508a,#f0a53a,#3cc08a)}
+.note{font-size:14px;margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:22px 18px;margin-top:8px}
+.grid figure{margin:0}
+.grid .ph{aspect-ratio:3/2}
+.grid figcaption{padding-top:8px;font-size:16px}
+.ba{max-width:560px;margin:28px 0 0}
+.ba div{display:flex;justify-content:space-between;font-size:15px;color:var(--soft);padding-top:8px}
+.eg{border-left:3px solid var(--gold);padding-left:18px;margin:0 0 32px;max-width:80ch}
+.eg p{color:var(--soft)}
+.ts{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
 table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
-th,td{padding:12px 14px;text-align:right;border-bottom:1px solid var(--line);font-size:16px}
-th:first-child,td:first-child{text-align:left}
-thead th{background:var(--mist);font-weight:500;white-space:nowrap}
-tbody th{background:var(--mist);font-weight:500;text-align:left;white-space:nowrap}
-tbody tr:last-child th,tbody tr:last-child td{border-bottom:0}
-td.one{color:var(--ink-soft)}
-.calc{margin-top:40px;background:var(--mist);border-radius:4px;padding:clamp(20px,3vw,32px);display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;align-items:end}
+th,td{padding:12px 14px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child,tbody th{text-align:left}
+thead th,tbody th{background:var(--mist);font-weight:500;white-space:nowrap}
+tbody tr:last-child>*{border-bottom:0}
+.calc{margin-top:36px;background:var(--mist);border-radius:6px;padding:clamp(20px,3vw,32px);display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;align-items:end}
+.calc h3,.calc .out{grid-column:1/-1;margin:0}
 .calc label{display:block;font-size:15px;font-weight:500;margin-bottom:6px}
-.calc select,.calc input{width:100%;font:inherit;padding:11px 12px;border:1px solid #c5c8ce;border-radius:4px;background:#fff;color:var(--ink)}
-.calc .out{grid-column:1/-1;font-size:clamp(20px,2.4vw,26px);font-weight:300;margin:6px 0 0}
-.calc .out b{font-weight:500}
-.calc h3{grid-column:1/-1;margin:0}
-
-/* footer */
-.site-footer{background:var(--ink);color:#e9eaec;padding:48px 0;margin-top:0}
-.site-footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px}
-.site-footer a{text-decoration:none}
-.site-footer a:hover{text-decoration:underline}
-.site-footer .links{display:flex;flex-direction:column;gap:4px}
-.site-footer small{color:#a7aab1;font-size:14px;align-self:flex-end}
+.calc select,.calc input{width:100%;font:inherit;padding:11px 12px;border:1px solid #c9c7c1;border-radius:4px;background:#fff;color:var(--ink)}
+.out{font-size:clamp(20px,2.4vw,26px);font-weight:300}
+.out b{font-weight:500}
+.back{text-align:center;padding:0 0 clamp(40px,6vw,72px)}
+.back a{text-decoration:none;border-bottom:1px solid var(--ink);padding-bottom:2px}
+footer{background:var(--ink);color:#e8e6e1;text-align:center;padding:48px 0}
+footer h2{font-size:28px;letter-spacing:.08em;margin:0;color:#fff}
+footer p{margin:4px 0 20px;color:#a9a7a2}
+footer h3{font-size:18px;margin:0 0 6px}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media(max-width:820px){.step{grid-template-columns:1fr}.step:nth-child(even) .ph{order:0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-
-<header class="site-header">
+<div class="tag">Vie Jewels &bull; Fine Jewelry &bull; Diamonds &bull; Bespoke Designs</div>
+<header>
   <div class="wrap">
-    <a class="logo" href="index.html" aria-label="Vie Jewels home"><img src="assets/logo.svg" alt="Vie Jewels" style="height:40px;width:auto"></a>
-    <nav class="nav" aria-label="Main">
+    <a class="logo" href="index.html" aria-label="Vie Jewels home"><img src="assets/logo.png" alt="Vie Jewels"></a>
+    <nav class="main" aria-label="Main">
       <a href="collections.html">Collections</a>
       <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
       <a href="contact.html">Contact Us</a>
-    </nav>
-    <div class="icons">
       <a href="cart.html" aria-label="Cart">🛒</a>
       <a href="account.html" aria-label="Account">◎</a>
-    </div>
-    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobilePanel">Menu</button>
-  </div>
-  <div class="mobile-panel" id="mobilePanel">
-    <a href="collections.html">Collections</a>
-    <a href="knowledge-lounge.html">Knowledge Lounge</a>
-    <a href="contact.html">Contact Us</a>
-    <a href="cart.html">🛒</a>
-    <a href="account.html">◎</a>
-    <a href="mailto:hello@viejewels.com">hello@viejewels.com</a>
-    <a href="https://www.viejewels.com">www.viejewels.com</a>
+    </nav>
   </div>
 </header>
 
 <main>
   <div class="wrap">
     <div class="hero">
-      <div>
-        <h1>Jewelry metals</h1>
-        <p class="sub">Explore different metal types and qualities</p>
-        <p>Several metals are used in the creation of fine jewelry. The metal types commonly used to make jewelry include platinum, gold, silver, stainless steel, brass and titanium. For making jewelry with any metal, an alloy or alloys need to be mixed. Here’s a short description and the reasons for mixing alloys with the metals.</p>
-      </div>
-      <img src="assets/jmg-banner-metal-bars.jpg" alt="Bars of nickel, silver, palladium, platinum, copper and gold arranged side by side" width="1820" height="1214">
+      <h1>Jewelry Metals Guide</h1>
+      <p>Explore different metal types and qualities. Several metals are used in the creation of fine jewelry, including platinum, gold, silver, stainless steel, brass and titanium. For making jewelry with any metal, an alloy or alloys need to be mixed. Here’s a short description and the reasons for mixing alloys with the metals.</p>
     </div>
-
+    <img class="banner" src="assets/jmg-banner-metal-bars.jpg" alt="Bars of nickel, silver, palladium, platinum, copper and gold arranged side by side" width="1820" height="1214">
     <div class="trio">
-      <figure class="t-pt"><div class="tile"><img src="assets/jmg-hero-platinum.jpg" alt="Diamond ring set in platinum resting on a raw platinum nugget" loading="lazy"></div><figcaption>Platinum</figcaption></figure>
-      <figure class="t-rg"><div class="tile"><img src="assets/jmg-hero-rose-gold.jpg" alt="Morganite and diamond ring in rose gold resting on a raw copper-toned nugget" loading="lazy"></div><figcaption>Rose gold</figcaption></figure>
-      <figure class="t-yg"><div class="tile"><img src="assets/jmg-hero-yellow-gold.jpg" alt="Yellow gold ring set with yellow stones resting on a raw gold nugget" loading="lazy"></div><figcaption>Yellow gold</figcaption></figure>
+      <figure><img src="assets/jmg-hero-platinum.jpg" alt="Diamond ring set in platinum resting on a raw platinum nugget" loading="lazy"><figcaption>Platinum</figcaption></figure>
+      <figure><img src="assets/jmg-hero-rose-gold.jpg" alt="Morganite and diamond ring in rose gold resting on a raw copper-toned nugget" loading="lazy"><figcaption>Rose gold</figcaption></figure>
+      <figure><img src="assets/jmg-hero-yellow-gold.jpg" alt="Yellow gold ring set with yellow stones resting on a raw gold nugget" loading="lazy"><figcaption>Yellow gold</figcaption></figure>
     </div>
   </div>
 
-  <nav class="subnav" aria-label="On this page">
-    <div class="wrap">
-      <a href="#alloys">Alloys</a>
-      <a href="#rhodium">Rhodium</a>
-      <a href="#metal-types">Metal types</a>
-      <a href="#finishes">Metal finishes</a>
-      <a href="#conversion">Conversion chart</a>
+  <nav class="subnav" aria-label="On this page"><div class="wrap">
+    <a href="#alloys">Alloys</a><a href="#rhodium">Rhodium</a><a href="#metal-types">Metal types</a><a href="#finishes">Metal finishes</a><a href="#conversion">Conversion chart</a>
+  </div></nav>
+
+  <section id="alloys"><div class="wrap">
+    <h2>Alloys</h2>
+    <p class="intro">An alloy is a combination of a metal with at least one other metal. A jewelry alloy is any malleable metal, meaning capable of being formed or bent into different shapes, and ductile, which means its easily molded base metal that is added to a precious metal to change and improve its other properties. Jewelry alloying elements are added to provide elasticity, flexibility, strength, hardness, corrosion resistance, machinability and color. The most common way to combine metals with alloys is by melting them, mixing them together and then allowing them to solidify and cool back to room temperature.</p>
+    <img class="banner" style="margin-top:0" src="assets/jmg-alloys-strip.jpg" alt="Small silver-white and yellow gold metal pellets scattered on a grey surface" loading="lazy">
+    <h3 style="text-align:center">Alloy types</h3>
+    <p class="intro" style="margin-bottom:24px">The following alloy metals are frequently used to mix with precious metals:</p>
+    <div class="grid">
+      <figure><div class="ph"><img src="assets/jmg-alloy-palladium.jpg" alt="Stacked palladium bars" loading="lazy"></div><figcaption>Palladium</figcaption></figure>
+      <figure><div class="ph"><img src="assets/jmg-alloy-nickel.jpg" alt="Stacked nickel bars" loading="lazy"></div><figcaption>Nickel</figcaption></figure>
+      <figure><div class="ph"><img src="assets/jmg-alloy-copper.jpg" alt="Copper bars" loading="lazy"></div><figcaption>Copper</figcaption></figure>
+      <figure><div class="ph"><img src="assets/jmg-alloy-iridium-osmium.jpg" alt="Two polished metal spheres: iridium on the left, osmium on the right" loading="lazy"></div><figcaption>Iridium (left), osmium (right)</figcaption></figure>
+      <figure><div class="ph"><img class="c" src="assets/jmg-alloy-zinc.jpg" alt="Zinc ingots" loading="lazy"></div><figcaption>Zinc</figcaption></figure>
+      <figure><div class="ph"><img class="c" src="assets/jmg-alloy-silver.jpg" alt="Silver ingots" loading="lazy"></div><figcaption>Silver</figcaption></figure>
+      <figure><div class="ph"><img class="c" src="assets/jmg-alloy-ruthenium.jpg" alt="Raw ruthenium crystals" loading="lazy"></div><figcaption>Ruthenium</figcaption></figure>
     </div>
-  </nav>
+  </div></section>
 
-  <!-- ALLOYS -->
-  <section class="block" id="alloys">
-    <div class="wrap">
-      <div class="sec-head"><h2>Alloys</h2></div>
-      <img class="strip" src="assets/jmg-alloys-strip.jpg" alt="Small silver-white and yellow gold metal pellets scattered on a grey surface" loading="lazy">
-      <div class="alloy-text">
-        <p class="lede">An alloy is a combination of a metal with at least one other metal. A jewelry alloy is any malleable metal, meaning capable of being formed or bent into different shapes, and ductile, which means its easily molded base metal that is added to a precious metal to change and improve its other properties. Jewelry alloying elements are added to provide elasticity, flexibility, strength, hardness, corrosion resistance, machinability and color. The most common way to combine metals with alloys is by melting them, mixing them together and then allowing them to solidify and cool back to room temperature.</p>
-      </div>
-
-      <div class="sec-head" style="margin-bottom:24px">
-        <h3>Alloy types</h3>
-        <p class="lede">The following alloy metals are frequently used to mix with precious metals:</p>
-      </div>
-      <div class="alloy-grid">
-        <figure><div class="ph"><img src="assets/jmg-alloy-palladium.jpg" alt="Stacked palladium bars" loading="lazy"></div><figcaption>Palladium</figcaption></figure>
-        <figure><div class="ph"><img src="assets/jmg-alloy-nickel.jpg" alt="Stacked nickel bars" loading="lazy"></div><figcaption>Nickel</figcaption></figure>
-        <figure><div class="ph"><img src="assets/jmg-alloy-copper.jpg" alt="Copper bars" loading="lazy"></div><figcaption>Copper</figcaption></figure>
-        <figure><div class="ph"><img src="assets/jmg-alloy-iridium-osmium.jpg" alt="Two polished metal spheres: iridium on the left, osmium on the right" loading="lazy"></div><figcaption>Iridium (left), osmium (right)</figcaption></figure>
-        <figure><div class="ph contain"><img src="assets/jmg-alloy-zinc.jpg" alt="Zinc ingots" loading="lazy"></div><figcaption>Zinc</figcaption></figure>
-        <figure><div class="ph contain"><img src="assets/jmg-alloy-silver.jpg" alt="Silver ingots" loading="lazy"></div><figcaption>Silver</figcaption></figure>
-        <figure><div class="ph contain"><img src="assets/jmg-alloy-ruthenium.jpg" alt="Raw ruthenium crystals" loading="lazy"></div><figcaption>Ruthenium</figcaption></figure>
+  <section id="rhodium"><div class="wrap">
+    <div class="step">
+      <div class="ph"><img class="c" src="assets/jmg-rhodium-stone.jpg" alt="Raw rhodium metal" loading="lazy"></div>
+      <div>
+        <h2 style="text-align:left">Rhodium</h2>
+        <p>Rhodium is a hard, durable and silver-white metallic element that is highly reflective and resistant to corrosion. The name rhodium comes from the Greek word “rhodon,” meaning rose, named for the rose-red color of its salts. Classified as a noble metal, the characteristics of rhodium include high melting points, general non-toxicity, and resistance to wear, oxidation and corrosion.</p>
+        <p style="margin-top:14px">High karat metals such as platinum and white gold are often soft and can be easily scratched and become very dull over time. Since rhodium is quite brilliant and resistant to tarnishing, it is used as a finish for jewelry. It is plated on metals to produce a durable, corrosion-resistant coating.</p>
+        <p style="margin-top:14px;color:var(--ink)">Jewelry made in yellow gold can be turned into “white” by rhodium plating!</p>
       </div>
     </div>
-  </section>
+    <figure class="ba" style="margin-inline:auto">
+      <img src="assets/jmg-rhodium-plating.jpg" alt="Five-stone ring: the left half is plain white metal, the right half shows the same ring with a gold center stone setting" loading="lazy">
+      <div><span>Before rhodium plating</span><span>After rhodium plating</span></div>
+    </figure>
+  </div></section>
 
-  <!-- RHODIUM -->
-  <section class="block" id="rhodium">
-    <div class="wrap">
-      <div class="sec-head"><h2>Rhodium</h2></div>
-      <div class="rhodium">
-        <div class="stone"><img src="assets/jmg-rhodium-stone.jpg" alt="Raw rhodium metal" loading="lazy"></div>
-        <div>
-          <p>Rhodium is a hard, durable and silver-white metallic element that is highly reflective and resistant to corrosion. The name rhodium comes from the Greek word “rhodon,” meaning rose, named for the rose-red color of its salts. Classified as a noble metal, the characteristics of rhodium include high melting points, general non-toxicity, and resistance to wear, oxidation and corrosion.</p>
-          <p>High karat metals such as platinum and white gold are often soft and can be easily scratched and become very dull over time. Since rhodium is quite brilliant and resistant to tarnishing, it is used as a finish for jewelry. It is plated on metals to produce a durable, corrosion-resistant coating.</p>
-          <p>Jewelry made in yellow gold can be turned into “white” by rhodium plating!</p>
-          <div class="ba">
-            <img src="assets/jmg-rhodium-plating.jpg" alt="Five-stone ring: the left half is plain white metal, the right half shows the same ring with a gold center stone setting" loading="lazy">
-            <div class="labels"><span>Before rhodium plating</span><span>After rhodium plating</span></div>
-          </div>
-        </div>
+  <section id="metal-types"><div class="wrap">
+    <h2>Metal types</h2>
+    <p class="intro">Here is the information about each of the base metal types mainly used in fine jewelry, with their unique qualities, to help you make a better and more informed decision when purchasing jewelry.</p>
+
+    <article class="step">
+      <div class="ph"><img class="c" src="assets/jmg-metal-platinum.jpg" alt="Platinum bars" loading="lazy"></div>
+      <div><span class="lab">Metal 01</span><h3>Platinum</h3>
+        <dl><dt>Symbol</dt><dd>Pt</dd>
+        <dt>Pros</dt><dd>A noble, rare and natural white metal which is super durable and will not tarnish.</dd>
+        <dt>Cons</dt><dd>Very easy to scratch or leave markings on a jewelry item made using platinum due to its soft nature.</dd>
+        <dt>Alloyed with</dt><dd>Ruthenium, rhodium, palladium, osmium and iridium to make it even more durable.</dd>
+        <dt>Purity of jewelry</dt><dd>PT900 (90% pure platinum)<br>PT950 (95% pure platinum)</dd>
+        <dt>Jewelry metal colors available</dt><dd><ul class="sw"><li><i style="background:#fff"></i>White</li></ul></dd></dl>
+        <dl class="sum"><dt>To summarize</dt><dd>Platinum is a prestigious selection, often chosen for its sophisticated appeal and popularity among the rich and famous.</dd></dl>
       </div>
+    </article>
+
+    <article class="step">
+      <div class="ph"><img src="assets/jmg-metal-gold.jpg" alt="Gold bars" loading="lazy"></div>
+      <div><span class="lab">Metal 02</span><h3>Gold</h3>
+        <dl><dt>Symbol</dt><dd>Au (Aurum)</dd>
+        <dt>Pros</dt><dd>Doesn’t rust, tarnish or corrode, and it won’t lose its color over time. It is more malleable than platinum, so it’s easier to work into fine, intricate designs. Gold is considered a worthy and long-term investment. Available in various metal purities (karats, K) and colors.</dd>
+        <dt>Cons</dt><dd>Can become scratched, especially when worn on a daily basis. If alloyed with nickel, it may not be suitable for nickel metal allergy sufferers. Note: at Vie Jewels we do not use nickel.</dd>
+        <dt>Alloyed with</dt><dd>Silver, zinc, copper, nickel, palladium</dd>
+        <dt>Purity of jewelry</dt><dd>18K (75% pure gold)<br>14K (58.33% pure gold)<br>10K (41.67% pure gold)</dd>
+        <dt>Jewelry metal colors available</dt><dd><ul class="sw"><li><i style="background:#fff"></i>White</li><li><i style="background:#c9ae4f"></i>Yellow</li><li><i style="background:#d99a8f"></i>Rose</li><li><i style="background:#000"></i>Black</li><li><i style="background:#1d2255"></i>Blue</li><li><i style="background:#0f5132"></i>Green</li><li><i style="background:#c264c7"></i>Purple</li></ul></dd></dl>
+        <dl class="sum"><dt>To summarize</dt><dd>Gold is the most popular choice for jewelry, whether it is for wearing occasionally or to be worn on a daily basis.</dd></dl>
+      </div>
+    </article>
+
+    <article class="step">
+      <div class="ph"><img src="assets/jmg-metal-silver.jpg" alt="Silver bars" loading="lazy"></div>
+      <div><span class="lab">Metal 03</span><h3>Silver</h3>
+        <dl><dt>Symbol</dt><dd>Ag (Argentum)</dd>
+        <dt>Pros</dt><dd>A natural, durable white metal, much less expensive than platinum and gold. It is malleable and easy to bend. Nickel-free silver jewelry is a good option for people with an allergy to nickel.</dd>
+        <dt>Cons</dt><dd>It will get tarnished easily from oxidization, and regular cleaning will be required so that it doesn’t darken and blacken with regular use.</dd>
+        <dt>Alloyed with</dt><dd>Copper</dd>
+        <dt>Purity of jewelry</dt><dd>925 (92.5% pure silver)</dd>
+        <dt>Jewelry metal colors available</dt><dd><ul class="sw"><li><i style="background:#fff"></i>White</li></ul><p class="note">* Other colors available with plating</p></dd></dl>
+        <dl class="sum"><dt>To summarize</dt><dd>Silver is a popular metal choice for those looking for an affordable option, especially for smart and trendy designs. However, regular cleaning and maintenance would be required too.</dd></dl>
+      </div>
+    </article>
+
+    <article class="step">
+      <div class="ph"><img src="assets/jmg-metal-titanium.jpg" alt="Titanium bars" loading="lazy"></div>
+      <div><span class="lab">Metal 04</span><h3>Titanium</h3>
+        <dl><dt>Symbol</dt><dd>Ti</dd>
+        <dt>Pros</dt><dd>Strong, hard, lightweight, scratch-free, allergy-free and easy-to-color refractory metal. An exotic array of colors is available.</dd>
+        <dt>Cons</dt><dd>It cannot be soldered, and rings cannot be resized.</dd>
+        <dt>Alloyed with</dt><dd>None required</dd>
+        <dt>Purity of jewelry</dt><dd>99 (99% pure titanium)</dd>
+        <dt>Jewelry metal colors available</dt><dd><ul class="sw"><li><i style="background:#a89060"></i>Brown</li><li><i style="background:#3f527f"></i>Dark blue</li><li><i style="background:#c4e2f5"></i>Ice blue</li><li><i style="background:#dcc03a"></i>Yellow</li><li><i style="background:#e6a031"></i>Peach</li><li><i style="background:#d9507b"></i>Pink</li><li><i style="background:#cf3f84"></i>Fuchsia</li><li><i style="background:#8f2a8a"></i>Magenta</li><li><i style="background:#4a1f8c"></i>Purple</li><li><i style="background:#2d3f9e"></i>Electric blue</li><li><i style="background:#1d9bb5"></i>Aqua</li><li><i style="background:#0f7f7a"></i>Teal</li><li><i style="background:#3d9f5a"></i>Green</li><li><i class="rb"></i>Rainbow</li><li><i style="background:#8d9097"></i>High polish</li></ul></dd></dl>
+        <dl class="sum"><dt>To summarize</dt><dd>Titanium jewelry is incredibly light, easy to wear and perfect for those with an active lifestyle.</dd></dl>
+      </div>
+    </article>
+
+    <article class="step">
+      <div class="ph"><img src="assets/jmg-metal-brass.jpg" alt="Small brass cubes" loading="lazy"></div>
+      <div><span class="lab">Metal 05</span><h3>Brass</h3>
+        <dl><dt>Symbol</dt><dd>Copper (Cu) + zinc (Zn)</dd>
+        <dt>Pros</dt><dd>Brass is known for its strength and durability. It is very malleable, making it ideal for shaping into intricate jewelry designs. It does not break easily, as it is not a brittle metal. Rather, it tends to stretch when under pressure. Brass jewelry can last through the ages with reasonable care and maintenance. Brass does not rust and is resistant to corrosion.</dd>
+        <dt>Cons</dt><dd>The metal might tarnish and change its color over time and may also cause an allergic reaction.</dd>
+        <dt>Alloyed with</dt><dd>Copper and zinc</dd>
+        <dt>Purity of jewelry</dt><dd>NA</dd>
+        <dt>Jewelry metal colors available</dt><dd><ul class="sw"><li><i style="background:#a89060"></i>Golden brown</li></ul></dd></dl>
+        <dl class="sum"><dt>To summarize</dt><dd>Brass is durable, one of the most inexpensive metals and is nowadays finding favor in fashion jewelry.</dd></dl>
+      </div>
+    </article>
+
+    <article class="step">
+      <div class="ph"><img src="assets/jmg-metal-stainless-steel.jpg" alt="Raw blue-grey stainless steel ore" loading="lazy"></div>
+      <div><span class="lab">Metal 06</span><h3>Stainless steel</h3>
+        <dl><dt>Symbol</dt><dd>Iron (Fe) + chromium (Cr)</dd>
+        <dt>Pros</dt><dd>Stainless steel is a naturally hardy alloy that can handle a lot of wear and tear due to its durability. It is hypoallergenic, making it a great choice for someone whose skin is sensitive to metal. The hard metal resists scratches and corrosion thanks to an invisible layer of chromium that prevents oxidation. It will also not tarnish, rust or fade. It is one of the cheapest metals for jewelry.</dd>
+        <dt>Cons</dt><dd>Despite its durability, stainless steel rings can dent. Sizing a stainless ring can be difficult because the metal is hard, rigid and stiff. This rigidity also makes it challenging for jewelers to set gemstones.</dd>
+        <dt>Alloyed with</dt><dd>Copper and zinc</dd>
+        <dt>Purity of jewelry</dt><dd>NA</dd>
+        <dt>Jewelry metal colors available</dt><dd><ul class="sw"><li><i style="background:#fff"></i>Natural white</li></ul></dd></dl>
+        <dl class="sum"><dt>To summarize</dt><dd>Due to its solid durability, hypoallergenic properties, affordability and silvery-white color, stainless steel jewelry appeals to many and is perfect for those on a budget.</dd></dl>
+      </div>
+    </article>
+  </div></section>
+
+  <section id="finishes"><div class="wrap">
+    <h2>Metal finishes</h2>
+    <p class="intro">Precious metals can be finished in different ways, giving the jewelry an attractive surface appearance. Some of the most popular metal finishes include:</p>
+    <article class="step"><div class="ph"><img src="assets/jmg-finish-high-polish.jpg" alt="Ring with a high polish finish" loading="lazy"></div><div><span class="lab">Finish 01</span><h3>High polish</h3><p>A high polish finish is reflective and shiny, and it is the most popular finish for fine jewelry.</p></div></article>
+    <article class="step"><div class="ph"><img src="assets/jmg-finish-matte.jpg" alt="Ring with a matte finish" loading="lazy"></div><div><span class="lab">Finish 02</span><h3>Matte</h3><p>A satin or matte finish is smooth to the touch but is not shiny.</p></div></article>
+    <article class="step"><div class="ph"><img src="assets/jmg-finish-brushed.jpg" alt="Ring with a brushed finish" loading="lazy"></div><div><span class="lab">Finish 03</span><h3>Brushed</h3><p>A brushed finish shows texture and has a more distinct look.</p></div></article>
+    <article class="step"><div class="ph"><img src="assets/jmg-finish-hammered.jpg" alt="Ring with a hammered finish" loading="lazy"></div><div><span class="lab">Finish 04</span><h3>Hammered</h3><p>A hammered finish is where the metal is hammered and then given a satin finish for a truly unique texture and style.</p></div></article>
+    <article class="step"><div class="ph"><img src="assets/jmg-finish-milgrain.jpg" alt="Ring with milgrain edge detailing" loading="lazy"></div><div><span class="lab">Finish 05</span><h3>Milgrain</h3><p>Milgrain means “one thousand grains” in French. The milgrain decoration is a form of tiny bead shapes that are raised, which add intricate detail and give jewelry an antique and elegant look.</p></div></article>
+  </div></section>
+
+  <section id="conversion"><div class="wrap">
+    <h2>Metal conversion chart</h2>
+    <p class="intro">The metal conversion chart below will help you determine the amount of metal needed to create a piece of jewelry in a different metal. To use it, weigh the piece of jewelry. Then find the present metal in the left column of the chart and read across to the column of the new metal you want to make the piece in, to find the factor. Then multiply the current weight of the jewelry by this factor.</p>
+    <div class="eg"><p><strong style="font-weight:500;color:var(--ink)">Example:</strong> You have a 14K white gold ring and would like the same ring made in platinum. The ring weighs 6 DWT. Go to the chart and find the 14K white gold row, then read across until you come to platinum. The factor is 1.708. Multiply 6 × 1.708 = 10.248. The ring made in platinum would weigh 10.248 DWT.</p></div>
+    <div class="ts"><table>
+      <caption style="position:absolute;left:-9999px">Weight conversion factors between wax, silver, gold and platinum</caption>
+      <thead><tr><th scope="col">Material</th><th scope="col">Wax</th><th scope="col">925 Silver</th><th scope="col">10K Gold</th><th scope="col">14K Gold</th><th scope="col">18K Gold</th><th scope="col">24K Gold</th><th scope="col">950 Platinum</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Wax</th><td>1.00</td><td>10.40</td><td>11.60</td><td>13.40</td><td>15.50</td><td>19.32</td><td>21.45</td></tr>
+        <tr><th scope="row">925 Silver</th><td>10.40</td><td>1.00</td><td>1.11</td><td>1.25</td><td>1.46</td><td>1.87</td><td>2.06</td></tr>
+        <tr><th scope="row">10K Gold</th><td>11.60</td><td>0.90</td><td>1.00</td><td>1.13</td><td>1.32</td><td>1.69</td><td>1.88</td></tr>
+        <tr><th scope="row">14K Gold</th><td>13.40</td><td>0.80</td><td>0.89</td><td>1.00</td><td>1.17</td><td>1.50</td><td>1.66</td></tr>
+        <tr><th scope="row">18K Gold</th><td>15.50</td><td>0.68</td><td>0.76</td><td>0.85</td><td>1.00</td><td>1.28</td><td>1.42</td></tr>
+        <tr><th scope="row">24K Gold</th><td>19.32</td><td>0.54</td><td>0.59</td><td>0.67</td><td>0.78</td><td>1.00</td><td>1.11</td></tr>
+        <tr><th scope="row">950 Platinum</th><td>21.45</td><td>0.48</td><td>0.53</td><td>0.60</td><td>0.70</td><td>0.90</td><td>1.00</td></tr>
+      </tbody>
+    </table></div>
+    <div class="calc">
+      <h3>Convert a weight</h3>
+      <div><label for="from">Current metal</label><select id="from"></select></div>
+      <div><label for="to">New metal</label><select id="to"></select></div>
+      <div><label for="wt">Current weight (DWT)</label><input id="wt" type="number" min="0" step="0.01" value="6" inputmode="decimal"></div>
+      <p class="out" id="out" aria-live="polite"></p>
     </div>
-  </section>
+  </div></section>
 
-  <!-- METAL TYPES -->
-  <section class="block" id="metal-types">
-    <div class="wrap">
-      <div class="sec-head">
-        <h2>Metal types</h2>
-        <p class="lede">Here is the information about each of the base metal types mainly used in fine jewelry, with their unique qualities, to help you make a better and more informed decision when purchasing jewelry.</p>
-      </div>
-
-      <div class="cards">
-
-        <!-- Platinum -->
-        <article class="card" style="--c:var(--platinum)">
-          <div class="ph contain"><img src="assets/jmg-metal-platinum.jpg" alt="Platinum bars" loading="lazy"></div>
-          <h3>Platinum</h3>
-          <dl>
-            <dt>Symbol</dt><dd>Pt</dd>
-            <dt>Pros</dt><dd>A noble, rare and natural white metal which is super durable and will not tarnish.</dd>
-            <dt>Cons</dt><dd>Very easy to scratch or leave markings on a jewelry item made using platinum due to its soft nature.</dd>
-            <dt>Alloyed with</dt><dd>Ruthenium, rhodium, palladium, osmium and iridium to make it even more durable.</dd>
-            <dt>Purity of jewelry</dt><dd>PT900 (90% pure platinum)<br>PT950 (95% pure platinum)</dd>
-            <dt>Jewelry metal colors available</dt>
-            <dd><ul class="sw"><li><i style="--s:#fff"></i>White</li></ul></dd>
-          </dl>
-          <dl class="summary"><dt>To summarize</dt><dd>Platinum is a prestigious selection, often chosen for its sophisticated appeal and popularity among the rich and famous.</dd></dl>
-        </article>
-
-        <!-- Gold -->
-        <article class="card" style="--c:var(--gold)">
-          <div class="ph"><img src="assets/jmg-metal-gold.jpg" alt="Gold bars" loading="lazy"></div>
-          <h3>Gold</h3>
-          <dl>
-            <dt>Symbol</dt><dd>Au (Aurum)</dd>
-            <dt>Pros</dt><dd>Doesn’t rust, tarnish or corrode, and it won’t lose its color over time. It is more malleable than platinum, so it’s easier to work into fine, intricate designs. Gold is considered a worthy and long-term investment. Available in various metal purities (karats, K) and colors.</dd>
-            <dt>Cons</dt><dd>Can become scratched, especially when worn on a daily basis. If alloyed with nickel, it may not be suitable for nickel metal allergy sufferers. Note: at Vie Jewels we do not use nickel.</dd>
-            <dt>Alloyed with</dt><dd>Silver, zinc, copper, nickel, palladium</dd>
-            <dt>Purity of jewelry</dt><dd>18K (75% pure gold)<br>14K (58.33% pure gold)<br>10K (41.67% pure gold)</dd>
-            <dt>Jewelry metal colors available</dt>
-            <dd><ul class="sw">
-              <li><i style="--s:#fff"></i>White</li>
-              <li><i style="--s:#c9ae4f"></i>Yellow</li>
-              <li><i style="--s:#d99a8f"></i>Rose</li>
-              <li><i style="--s:#000"></i>Black</li>
-              <li><i style="--s:#1d2255"></i>Blue</li>
-              <li><i style="--s:#0f5132"></i>Green</li>
-              <li><i style="--s:#c264c7"></i>Purple</li>
-            </ul></dd>
-          </dl>
-          <dl class="summary"><dt>To summarize</dt><dd>Gold is the most popular choice for jewelry, whether it is for wearing occasionally or to be worn on a daily basis.</dd></dl>
-        </article>
-
-        <!-- Silver -->
-        <article class="card" style="--c:#aeb4bd">
-          <div class="ph"><img src="assets/jmg-metal-silver.jpg" alt="Silver bars" loading="lazy"></div>
-          <h3>Silver</h3>
-          <dl>
-            <dt>Symbol</dt><dd>Ag (Argentum)</dd>
-            <dt>Pros</dt><dd>A natural, durable white metal, much less expensive than platinum and gold. It is malleable and easy to bend. Nickel-free silver jewelry is a good option for people with an allergy to nickel.</dd>
-            <dt>Cons</dt><dd>It will get tarnished easily from oxidization, and regular cleaning will be required so that it doesn’t darken and blacken with regular use.</dd>
-            <dt>Alloyed with</dt><dd>Copper</dd>
-            <dt>Purity of jewelry</dt><dd>925 (92.5% pure silver)</dd>
-            <dt>Jewelry metal colors available</dt>
-            <dd><ul class="sw"><li><i style="--s:#fff"></i>White</li></ul><p class="note">* Other colors available with plating</p></dd>
-          </dl>
-          <dl class="summary"><dt>To summarize</dt><dd>Silver is a popular metal choice for those looking for an affordable option, especially for smart and trendy designs. However, regular cleaning and maintenance would be required too.</dd></dl>
-        </article>
-
-        <!-- Titanium -->
-        <article class="card" style="--c:var(--titanium)">
-          <div class="ph"><img src="assets/jmg-metal-titanium.jpg" alt="Titanium bars" loading="lazy"></div>
-          <h3>Titanium</h3>
-          <dl>
-            <dt>Symbol</dt><dd>Ti</dd>
-            <dt>Pros</dt><dd>Strong, hard, lightweight, scratch-free, allergy-free and easy-to-color refractory metal. An exotic array of colors is available.</dd>
-            <dt>Cons</dt><dd>It cannot be soldered, and rings cannot be resized.</dd>
-            <dt>Alloyed with</dt><dd>None required</dd>
-            <dt>Purity of jewelry</dt><dd>99 (99% pure titanium)</dd>
-            <dt>Jewelry metal colors available</dt>
-            <dd><ul class="sw">
-              <li><i style="--s:#a89060"></i>Brown</li>
-              <li><i style="--s:#3f527f"></i>Dark blue</li>
-              <li><i style="--s:#c4e2f5"></i>Ice blue</li>
-              <li><i style="--s:#dcc03a"></i>Yellow</li>
-              <li><i style="--s:#e6a031"></i>Peach</li>
-              <li><i style="--s:#d9507b"></i>Pink</li>
-              <li><i style="--s:#cf3f84"></i>Fuchsia</li>
-              <li><i style="--s:#8f2a8a"></i>Magenta</li>
-              <li><i style="--s:#4a1f8c"></i>Purple</li>
-              <li><i style="--s:#2d3f9e"></i>Electric blue</li>
-              <li><i style="--s:#1d9bb5"></i>Aqua</li>
-              <li><i style="--s:#0f7f7a"></i>Teal</li>
-              <li><i style="--s:#3d9f5a"></i>Green</li>
-              <li><i class="rainbow"></i>Rainbow</li>
-              <li><i style="--s:#8d9097"></i>High polish</li>
-            </ul></dd>
-          </dl>
-          <dl class="summary"><dt>To summarize</dt><dd>Titanium jewelry is incredibly light, easy to wear and perfect for those with an active lifestyle.</dd></dl>
-        </article>
-
-        <!-- Brass -->
-        <article class="card" style="--c:var(--brass)">
-          <div class="ph"><img src="assets/jmg-metal-brass.jpg" alt="Small brass cubes" loading="lazy"></div>
-          <h3>Brass</h3>
-          <dl>
-            <dt>Symbol</dt><dd>Copper (Cu) + zinc (Zn)</dd>
-            <dt>Pros</dt><dd>Brass is known for its strength and durability. It is very malleable, making it ideal for shaping into intricate jewelry designs. It does not break easily, as it is not a brittle metal. Rather, it tends to stretch when under pressure. Brass jewelry can last through the ages with reasonable care and maintenance. Brass does not rust and is resistant to corrosion.</dd>
-            <dt>Cons</dt><dd>The metal might tarnish and change its color over time and may also cause an allergic reaction.</dd>
-            <dt>Alloyed with</dt><dd>Copper and zinc</dd>
-            <dt>Purity of jewelry</dt><dd>NA</dd>
-            <dt>Jewelry metal colors available</dt>
-            <dd><ul class="sw"><li><i style="--s:#a89060"></i>Golden brown</li></ul></dd>
-          </dl>
-          <dl class="summary"><dt>To summarize</dt><dd>Brass is durable, one of the most inexpensive metals and is nowadays finding favor in fashion jewelry.</dd></dl>
-        </article>
-
-        <!-- Stainless steel -->
-        <article class="card" style="--c:var(--steel)">
-          <div class="ph"><img src="assets/jmg-metal-stainless-steel.jpg" alt="Raw blue-grey stainless steel ore" loading="lazy"></div>
-          <h3>Stainless steel</h3>
-          <dl>
-            <dt>Symbol</dt><dd>Iron (Fe) + chromium (Cr)</dd>
-            <dt>Pros</dt><dd>Stainless steel is a naturally hardy alloy that can handle a lot of wear and tear due to its durability. It is hypoallergenic, making it a great choice for someone whose skin is sensitive to metal. The hard metal resists scratches and corrosion thanks to an invisible layer of chromium that prevents oxidation. It will also not tarnish, rust or fade. It is one of the cheapest metals for jewelry.</dd>
-            <dt>Cons</dt><dd>Despite its durability, stainless steel rings can dent. Sizing a stainless ring can be difficult because the metal is hard, rigid and stiff. This rigidity also makes it challenging for jewelers to set gemstones.</dd>
-            <dt>Alloyed with</dt><dd>Copper and zinc</dd>
-            <dt>Purity of jewelry</dt><dd>NA</dd>
-            <dt>Jewelry metal colors available</dt>
-            <dd><ul class="sw"><li><i style="--s:#fff"></i>Natural white</li></ul></dd>
-          </dl>
-          <dl class="summary"><dt>To summarize</dt><dd>Due to its solid durability, hypoallergenic properties, affordability and silvery-white color, stainless steel jewelry appeals to many and is perfect for those on a budget.</dd></dl>
-        </article>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- FINISHES -->
-  <section class="block" id="finishes">
-    <div class="wrap">
-      <div class="sec-head">
-        <h2>Metal finishes</h2>
-        <p class="lede">Precious metals can be finished in different ways, giving the jewelry an attractive surface appearance. Some of the most popular metal finishes include:</p>
-      </div>
-
-      <article class="finish">
-        <div class="ph"><img src="assets/jmg-finish-high-polish.jpg" alt="Ring with a high polish finish" loading="lazy"></div>
-        <div><h3>High polish</h3><p>A high polish finish is reflective and shiny, and it is the most popular finish for fine jewelry.</p></div>
-      </article>
-      <article class="finish">
-        <div class="ph"><img src="assets/jmg-finish-matte.jpg" alt="Ring with a matte finish" loading="lazy"></div>
-        <div><h3>Matte</h3><p>A satin or matte finish is smooth to the touch but is not shiny.</p></div>
-      </article>
-      <article class="finish">
-        <div class="ph"><img src="assets/jmg-finish-brushed.jpg" alt="Ring with a brushed finish" loading="lazy"></div>
-        <div><h3>Brushed</h3><p>A brushed finish shows texture and has a more distinct look.</p></div>
-      </article>
-      <article class="finish">
-        <div class="ph"><img src="assets/jmg-finish-hammered.jpg" alt="Ring with a hammered finish" loading="lazy"></div>
-        <div><h3>Hammered</h3><p>A hammered finish is where the metal is hammered and then given a satin finish for a truly unique texture and style.</p></div>
-      </article>
-      <article class="finish">
-        <div class="ph"><img src="assets/jmg-finish-milgrain.jpg" alt="Ring with milgrain edge detailing" loading="lazy"></div>
-        <div><h3>Milgrain</h3><p>Milgrain means “one thousand grains” in French. The milgrain decoration is a form of tiny bead shapes that are raised, which add intricate detail and give jewelry an antique and elegant look.</p></div>
-      </article>
-    </div>
-  </section>
-
-  <!-- CONVERSION -->
-  <section class="block" id="conversion">
-    <div class="wrap">
-      <div class="sec-head"><h2>Metal conversion chart</h2></div>
-      <div class="convert-text">
-        <p>The metal conversion chart below will help you determine the amount of metal needed to create a piece of jewelry in a different metal. To use it, weigh the piece of jewelry. Then find the present metal in the left column of the chart and read across to the column of the new metal you want to make the piece in, to find the factor. Then multiply the current weight of the jewelry by this factor.</p>
-        <div class="example">
-          <p style="margin:0"><strong style="font-weight:500">Example:</strong> You have a 14K white gold ring and would like the same ring made in platinum. The ring weighs 6 DWT. Go to the chart and find the 14K white gold row, then read across until you come to platinum. The factor is 1.708. Multiply 6 × 1.708 = 10.248. The ring made in platinum would weigh 10.248 DWT.</p>
-        </div>
-      </div>
-
-      <div class="table-scroll">
-        <table>
-          <caption class="sr" style="position:absolute;left:-9999px">Weight conversion factors between wax, silver, gold and platinum</caption>
-          <thead>
-            <tr><th scope="col">Material</th><th scope="col">Wax</th><th scope="col">925 Silver</th><th scope="col">10K Gold</th><th scope="col">14K Gold</th><th scope="col">18K Gold</th><th scope="col">24K Gold</th><th scope="col">950 Platinum</th></tr>
-          </thead>
-          <tbody>
-            <tr><th scope="row">Wax</th><td class="one">1.00</td><td>10.40</td><td>11.60</td><td>13.40</td><td>15.50</td><td>19.32</td><td>21.45</td></tr>
-            <tr><th scope="row">925 Silver</th><td>10.40</td><td class="one">1.00</td><td>1.11</td><td>1.25</td><td>1.46</td><td>1.87</td><td>2.06</td></tr>
-            <tr><th scope="row">10K Gold</th><td>11.60</td><td>0.90</td><td class="one">1.00</td><td>1.13</td><td>1.32</td><td>1.69</td><td>1.88</td></tr>
-            <tr><th scope="row">14K Gold</th><td>13.40</td><td>0.80</td><td>0.89</td><td class="one">1.00</td><td>1.17</td><td>1.50</td><td>1.66</td></tr>
-            <tr><th scope="row">18K Gold</th><td>15.50</td><td>0.68</td><td>0.76</td><td>0.85</td><td class="one">1.00</td><td>1.28</td><td>1.42</td></tr>
-            <tr><th scope="row">24K Gold</th><td>19.32</td><td>0.54</td><td>0.59</td><td>0.67</td><td>0.78</td><td class="one">1.00</td><td>1.11</td></tr>
-            <tr><th scope="row">950 Platinum</th><td>21.45</td><td>0.48</td><td>0.53</td><td>0.60</td><td>0.70</td><td>0.90</td><td class="one">1.00</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="calc" id="calc">
-        <h3>Convert a weight</h3>
-        <div><label for="from">Current metal</label>
-          <select id="from"></select></div>
-        <div><label for="to">New metal</label>
-          <select id="to"></select></div>
-        <div><label for="wt">Current weight (DWT)</label>
-          <input id="wt" type="number" min="0" step="0.01" value="6" inputmode="decimal"></div>
-        <p class="out" id="out" aria-live="polite"></p>
-      </div>
-    </div>
-  </section>
+  <p class="back"><a href="jewelry-guide.html">← Back to Jewelry Guide</a></p>
 </main>
 
-<footer class="site-footer">
+<footer>
   <div class="wrap">
-    <div class="links">
-      <a href="mailto:hello@viejewels.com">hello@viejewels.com</a>
-      <a href="https://www.viejewels.com">www.viejewels.com</a>
-    </div>
-    <small>Copyright © Vie Jewels</small>
+    <h2>VIE JEWELS</h2>
+    <p>Jewels for life</p>
+    <h3>Contact Us</h3>
+    <div>Email: <a href="mailto:hello@viejewels.com">hello@viejewels.com</a></div>
+    <div>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></div>
   </div>
 </footer>
 
 <script>
 (function(){
-  // mobile menu
-  var b=document.getElementById('menuBtn'),p=document.getElementById('mobilePanel');
-  b.addEventListener('click',function(){
-    var open=p.classList.toggle('open');
-    b.setAttribute('aria-expanded',open);
-    b.textContent=open?'×':'Menu';
-  });
-
-  // converter: rows = current metal, columns = new metal
-  var names=['Wax','925 Silver','10K Gold','14K Gold','18K Gold','24K Gold','950 Platinum'];
-  var rows=[
-    [1.00,10.40,11.60,13.40,15.50,19.32,21.45],
-    [10.40,1.00,1.11,1.25,1.46,1.87,2.06],
-    [11.60,0.90,1.00,1.13,1.32,1.69,1.88],
-    [13.40,0.80,0.89,1.00,1.17,1.50,1.66],
-    [15.50,0.68,0.76,0.85,1.00,1.28,1.42],
-    [19.32,0.54,0.59,0.67,0.78,1.00,1.11],
-    [21.45,0.48,0.53,0.60,0.70,0.90,1.00]
-  ];
-  var from=document.getElementById('from'),to=document.getElementById('to'),wt=document.getElementById('wt'),out=document.getElementById('out');
-  names.forEach(function(n,i){
-    from.add(new Option(n,i));to.add(new Option(n,i));
-  });
-  from.value=3;to.value=6;
-  function factor(f,t){
-    if(f===t) return 1;
-    // the chart's Wax column is not the inverse of the Wax row, so derive new=Wax from the Wax row
-    if(t===0) return 1/rows[0][f];
-    return rows[f][t];
+  var n=['Wax','925 Silver','10K Gold','14K Gold','18K Gold','24K Gold','950 Platinum'],
+  r=[[1,10.4,11.6,13.4,15.5,19.32,21.45],[10.4,1,1.11,1.25,1.46,1.87,2.06],[11.6,.9,1,1.13,1.32,1.69,1.88],[13.4,.8,.89,1,1.17,1.5,1.66],[15.5,.68,.76,.85,1,1.28,1.42],[19.32,.54,.59,.67,.78,1,1.11],[21.45,.48,.53,.6,.7,.9,1]],
+  f=document.getElementById('from'),t=document.getElementById('to'),w=document.getElementById('wt'),o=document.getElementById('out');
+  n.forEach(function(x,i){f.add(new Option(x,i));t.add(new Option(x,i))});
+  f.value=3;t.value=6;
+  function go(){
+    var v=parseFloat(w.value),a=+f.value,b=+t.value;
+    if(isNaN(v)||v<0){o.textContent='Enter a weight in DWT.';return}
+    var k=a===b?1:b===0?1/r[0][a]:r[a][b];
+    o.innerHTML='A '+v+' DWT piece in '+n[a]+' needs about <b>'+(v*k).toFixed(3)+' DWT</b> in '+n[b]+' (factor '+k.toFixed(3)+').';
   }
-  function calc(){
-    var w=parseFloat(wt.value);
-    if(isNaN(w)||w<0){out.textContent='Enter a weight in DWT.';return;}
-    var f=factor(+from.value,+to.value);
-    out.innerHTML='A '+w+' DWT piece in '+names[from.value]+' needs about <b>'+(w*f).toFixed(3)+' DWT</b> in '+names[to.value]+' (factor '+f.toFixed(3)+').';
-  }
-  [from,to,wt].forEach(function(el){el.addEventListener('input',calc)});
-  calc();
+  [f,t,w].forEach(function(e){e.addEventListener('input',go)});go();
 })();
 </script>
 </body>
