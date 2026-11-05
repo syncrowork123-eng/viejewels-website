@@ -279,7 +279,7 @@
           <h3>Convert a weight</h3>
           <div><label for="from">Current metal</label><select id="from"></select></div>
           <div><label for="to">New metal</label><select id="to"></select></div>
-          <div><label for="wt">Current weight (DWT)</label><input id="wt" type="number" min="0" step="0.01" value="6" inputmode="decimal"></div>
+          <div><label for="wt">Current weight (grams)</label><input id="wt" type="number" min="0" step="0.01" value="4.06" inputmode="decimal"></div>
           <p class="out" id="out" aria-live="polite"></p>
         </div>
 
@@ -304,16 +304,16 @@
   <script src="script.js"></script>
   <script>
   (function(){
-    var n=['Wax','925 Silver','10K Gold','14K Gold','18K Gold','24K Gold','950 Platinum'],
-    r=[[1,10.4,11.6,13.4,15.5,19.32,21.45],[10.4,1,1.11,1.25,1.46,1.87,2.06],[11.6,.9,1,1.13,1.32,1.69,1.88],[13.4,.8,.89,1,1.17,1.5,1.66],[15.5,.68,.76,.85,1,1.28,1.42],[19.32,.54,.59,.67,.78,1,1.11],[21.45,.48,.53,.6,.7,.9,1]],
+    // Reference weight (grams) of the same piece in each metal
+    var m=[['18K Gold',4.06],['14K Gold',3.391],['10K Gold',3.016],['925 Silver',2.729]],
     f=document.getElementById('from'),t=document.getElementById('to'),w=document.getElementById('wt'),o=document.getElementById('out');
-    n.forEach(function(x,i){f.add(new Option(x,i));t.add(new Option(x,i))});
-    f.value=3;t.value=6;
+    m.forEach(function(x,i){f.add(new Option(x[0],i));t.add(new Option(x[0],i))});
+    f.value=0;t.value=1;
     function go(){
-      var v=parseFloat(w.value),a=+f.value,b=+t.value;
-      if(isNaN(v)||v<0){o.textContent='Enter a weight in DWT.';return}
-      var k=a===b?1:b===0?1/r[0][a]:r[a][b];
-      o.innerHTML='A '+v+' DWT piece in '+n[a]+' needs about <b>'+(v*k).toFixed(3)+' DWT</b> in '+n[b]+' (factor '+k.toFixed(3)+').';
+      var v=parseFloat(w.value),a=m[f.value],b=m[t.value];
+      if(isNaN(v)||v<0){o.textContent='Enter a weight in grams.';return}
+      var k=b[1]/a[1];
+      o.innerHTML='A '+v+' grams piece in '+a[0]+' needs about <b>'+(v*k).toFixed(3)+' grams</b> in '+b[0]+' (factor '+k.toFixed(3)+').';
     }
     [f,t,w].forEach(function(e){e.addEventListener('input',go)});go();
   })();
