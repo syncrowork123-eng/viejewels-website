@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jewelry Chain Guide | Vie Jewels</title>
+  <meta name="description" content="Explore popular jewelry chain types (anchor, curb, rope, snake and more) and the lock options that secure them." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── JEWELRY CHAIN GUIDE — same system as the Diamond Journey / Metals guides ── */
+    .guide-hero{padding-top:20px;padding-bottom:22px;text-align:center}
+    .guide-hero h1{font-family:var(--font-display);font-size:18px;font-weight:400;letter-spacing:.22em;text-transform:uppercase;max-width:620px;margin:0 auto}
+    .guide-hero h1::after{content:"";display:block;width:56px;height:1px;background:#c9b27c;margin:14px auto 0}
+    .guide-hero p.guide-subtitle{font-family:var(--font-display);font-style:italic;font-size:14px;letter-spacing:.03em;color:#8a7f69;max-width:560px;margin:8px auto 0}
+    @media(max-width:640px){.guide-hero h1{font-size:14px}}
+    .guide-content{max-width:960px;margin:0 auto;padding-bottom:40px}
+    .guide-banner{width:100%;border-radius:10px;overflow:hidden;margin-bottom:24px;border:1px solid #e3d9c2;box-shadow:0 14px 40px rgba(22,20,18,.10);background:#fff}
+    .guide-banner img{width:100%;height:auto;display:block}
+    .guide-text{font-size:13px;color:#6f6a60;line-height:1.8;max-width:760px;margin:0 auto 24px;text-align:center}
+    .guide-h2{font-family:var(--font-display);font-size:20px;font-weight:400;color:#1a1a1a;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin:56px 0 14px;scroll-margin-top:90px}
+    .guide-h2::after{content:"";display:block;width:48px;height:1px;background:#c9b27c;margin:12px auto 0}
+    .guide-nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 8px}
+    .guide-nav a{font-size:12px;letter-spacing:.06em;color:#737373;text-decoration:none;border:1px solid #e3d9c2;border-radius:999px;padding:5px 14px;transition:color var(--transition),border-color var(--transition)}
+    .guide-nav a:hover{color:#8f7236;border-color:#c9b27c;background:#fffdf8}
+
+    /* chain tiles: close-up on the left, name + full strip on the right */
+    .chain-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .chain-tile,.lock-tile{background:#fff;border:1px solid #e8e1d2;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(22,20,18,.04);transition:box-shadow var(--transition),transform var(--transition),border-color var(--transition)}
+    .chain-tile:hover,.lock-tile:hover{box-shadow:0 14px 34px rgba(22,20,18,.10);transform:translateY(-2px);border-color:#c9b27c}
+    .chain-tile{display:grid;grid-template-columns:130px 1fr;gap:18px;align-items:center;padding:14px 18px 14px 14px}
+    .chain-detail img{width:100%;height:auto;display:block}
+    .chain-body h3{font-family:var(--font-display);font-size:17px;font-weight:500;color:#1a1a1a;letter-spacing:.05em;margin:0 0 8px;padding-bottom:8px;border-bottom:1px solid #efe8d6}
+    .chain-body img{width:100%;height:auto;display:block;max-height:70px;object-fit:contain;object-position:left center}
+
+    /* locks */
+    .lock-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .lock-tile{margin:0;text-align:center}
+    .lock-media{padding:22px 16px 10px;display:flex;align-items:center;justify-content:center;min-height:110px}
+    .lock-media img{width:100%;max-width:240px;height:auto;display:block}
+    .lock-tile figcaption{font-family:var(--font-display);font-size:14px;letter-spacing:.05em;color:#1a1a1a;padding:0 12px 16px}
+
+    .guide-back-wrap{text-align:center;margin-top:44px}
+    .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition)}
+    .guide-back:hover{color:#8f7236}
+    @media(max-width:760px){.chain-grid{grid-template-columns:1fr}.lock-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:460px){.lock-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero guide-hero">
+      <h1>Jewelry Chain Guide</h1>
+      <p class="guide-subtitle">Explore Various Types of Chains and Locks</p>
+    </section>
+
+    <section class="section">
+      <div class="guide-content">
+        <div class="guide-banner"><img src="/assets/chain-guide-banner.jpg" alt="Layered gold and silver jewelry chains" /></div>
+
+        <nav class="guide-nav" aria-label="On this page">
+          <a href="#chain-types">Chain types</a><a href="#lock-options">Lock options</a>
+        </nav>
+
+        <h2 class="guide-h2" id="chain-types">Chain Types</h2>
+        <p class="guide-text">Fine metal chains are designed for aesthetic purposes and used in jewelry to encircle parts of the body, namely the neck, wrists and ankles, and they also serve as points to hang decorative charms and pendants.</p>
+        <p class="guide-text" style="margin-bottom:20px">The following are few popular chain types:</p>
+        <div class="chain-grid">
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-anchor-detail.png" alt="Anchor chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Anchor</h3><img src="/assets/chain-anchor.png" alt="Anchor chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-bead-ball-detail.png" alt="Bead/Ball chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Bead/Ball</h3><img src="/assets/chain-bead-ball.png" alt="Bead/Ball chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-box-detail.png" alt="Box chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Box</h3><img src="/assets/chain-box.png" alt="Box chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-byzantine-detail.png" alt="Byzantine chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Byzantine</h3><img src="/assets/chain-byzantine.png" alt="Byzantine chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-cable-detail.png" alt="Cable chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Cable</h3><img src="/assets/chain-cable.png" alt="Cable chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-cascade-detail.png" alt="Cascade chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Cascade</h3><img src="/assets/chain-cascade.png" alt="Cascade chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-cocoon-detail.png" alt="Cocoon chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Cocoon</h3><img src="/assets/chain-cocoon.png" alt="Cocoon chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-curb-detail.png" alt="Curb chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Curb</h3><img src="/assets/chain-curb.png" alt="Curb chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-figaro-detail.png" alt="Figaro chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Figaro</h3><img src="/assets/chain-figaro.png" alt="Figaro chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-foxtail-detail.png" alt="Foxtail chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Foxtail</h3><img src="/assets/chain-foxtail.png" alt="Foxtail chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-herringbone-detail.png" alt="Herringbone chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Herringbone</h3><img src="/assets/chain-herringbone.png" alt="Herringbone chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-leather-cord-detail.png" alt="Leather Cord chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Leather Cord</h3><img src="/assets/chain-leather-cord.png" alt="Leather Cord chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-omega-detail.png" alt="Omega chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Omega</h3><img src="/assets/chain-omega.png" alt="Omega chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-popcorn-detail.png" alt="Popcorn chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Popcorn</h3><img src="/assets/chain-popcorn.png" alt="Popcorn chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-rolo-detail.png" alt="Rolo chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Rolo</h3><img src="/assets/chain-rolo.png" alt="Rolo chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-rope-detail.png" alt="Rope chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Rope</h3><img src="/assets/chain-rope.png" alt="Rope chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-serpentine-detail.png" alt="Serpentine chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Serpentine</h3><img src="/assets/chain-serpentine.png" alt="Serpentine chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-singapore-detail.png" alt="Singapore chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Singapore</h3><img src="/assets/chain-singapore.png" alt="Singapore chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-snake-detail.png" alt="Snake chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Snake</h3><img src="/assets/chain-snake.png" alt="Snake chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-snake-and-bead-detail.png" alt="Snake &amp; Bead chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Snake &amp; Bead</h3><img src="/assets/chain-snake-and-bead.png" alt="Snake &amp; Bead chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-spiral-detail.png" alt="Spiral chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Spiral</h3><img src="/assets/chain-spiral.png" alt="Spiral chain" loading="lazy" /></div>
+          </article>
+          <article class="chain-tile">
+            <div class="chain-detail"><img src="/assets/chain-wheat-palme-detail.png" alt="Wheat/Palme chain close-up" loading="lazy" /></div>
+            <div class="chain-body"><h3>Wheat/Palme</h3><img src="/assets/chain-wheat-palme.png" alt="Wheat/Palme chain" loading="lazy" /></div>
+          </article>
+        </div>
+
+        <h2 class="guide-h2" id="lock-options">Lock Options</h2>
+        <p class="guide-text" style="margin-bottom:20px">The following are a few types of clasps that help secure and lock the bracelet.</p>
+        <div class="lock-grid">
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-lobster-thin.png" alt="Lobster, Thin lock" loading="lazy" /></div><figcaption>Lobster, Thin</figcaption></figure>
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-lobster-thick.png" alt="Lobster, Thick lock" loading="lazy" /></div><figcaption>Lobster, Thick</figcaption></figure>
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-spring.png" alt="Spring lock" loading="lazy" /></div><figcaption>Spring</figcaption></figure>
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-open-box.png" alt="Open Box lock" loading="lazy" /></div><figcaption>Open Box</figcaption></figure>
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-toggle.png" alt="Toggle lock" loading="lazy" /></div><figcaption>Toggle</figcaption></figure>
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-bayonet.png" alt="Bayonet lock" loading="lazy" /></div><figcaption>Bayonet</figcaption></figure>
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-s-hook.png" alt="S-Hook lock" loading="lazy" /></div><figcaption>S-Hook</figcaption></figure>
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-magnetic.png" alt="Magnetic lock" loading="lazy" /></div><figcaption>Magnetic</figcaption></figure>
+          <figure class="lock-tile"><div class="lock-media"><img src="/assets/lock-mystery.png" alt="Mystery lock" loading="lazy" /></div><figcaption>Mystery</figcaption></figure>
+        </div>
+
+        <div class="guide-back-wrap">
+          <a class="guide-back" href="jewelry-guide.html">&larr; Back to Jewelry Guide</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
