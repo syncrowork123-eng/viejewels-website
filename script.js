@@ -3107,11 +3107,37 @@ function initHeroCarousel() {
   start();
 }
 
-// ── BACK TO TOP ARROW (collections page) ─────────────────────────────────
+// ── BACK TO TOP ARROW (collections page + every Knowledge Lounge page) ──
 // Appears after scrolling down; clicking it scrolls smoothly back to the top.
+// Collections page: uses its own [data-back-to-top] button.
+// Knowledge Lounge pages (nav link marked as current): the arrow is added automatically.
 function initBackToTop() {
-  const btn = document.querySelector("[data-back-to-top]");
-  if (!btn) return;
+  let btn = document.querySelector("[data-back-to-top]");
+
+  if (!btn) {
+    const onLounge = document.querySelector('.nav-links a[href="knowledge-lounge.html"][aria-current="page"]');
+    if (!onLounge) return;
+    if (!document.getElementById("vj-top-css")) {
+      const st = document.createElement("style");
+      st.id = "vj-top-css";
+      st.textContent =
+        ".vj-top{position:fixed;right:22px;bottom:32px;z-index:900;width:46px;height:46px;border-radius:50%;border:1px solid #c9b27c;background:#fff;color:#8f7236;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 6px 18px rgba(22,20,18,.12);opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .25s ease,transform .25s ease,visibility .25s,background .2s,color .2s}" +
+        ".vj-top.visible{opacity:1;visibility:visible;transform:none}" +
+        ".vj-top:hover{background:#1a1a1a;color:#e7d4a0;border-color:#1a1a1a}" +
+        ".vj-top:focus-visible{outline:2px solid #1a1a1a;outline-offset:3px}" +
+        ".vj-top svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}" +
+        "@media(max-width:640px){.vj-top{right:14px;bottom:20px;width:42px;height:42px}}";
+      document.head.appendChild(st);
+    }
+    btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "vj-top";
+    btn.setAttribute("data-back-to-top", "");
+    btn.setAttribute("aria-label", "Back to top");
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+    document.body.appendChild(btn);
+  }
+
   const update = () => btn.classList.toggle("visible", window.scrollY > 400);
   window.addEventListener("scroll", update, { passive: true });
   update();
