@@ -85,6 +85,50 @@
     .guide-back-wrap{text-align:center;margin-top:40px}
     .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition)}
     .guide-back:hover{color:#1a1a1a}
+    /* ── PREMIUM / COMPACT OVERRIDES ── */
+    .guide-hero{padding-top:20px;padding-bottom:22px}
+    .guide-hero h1{font-size:18px;letter-spacing:.22em;text-transform:uppercase;font-weight:400}
+    .guide-hero h1::after{content:"";display:block;width:56px;height:1px;background:#c9b27c;margin:14px auto 0}
+    .guide-hero p.guide-subtitle{font-family:var(--font-display);font-style:italic;font-size:14px;letter-spacing:.03em;color:#8a7f69}
+    .guide-banner{border:1px solid #e3d9c2;box-shadow:0 14px 40px rgba(22,20,18,.10)}
+    .guide-text{font-size:13px;line-height:1.8;color:#6f6a60}
+    .guide-h2{font-size:20px;letter-spacing:.14em;text-transform:uppercase;font-weight:400;margin:64px 0 18px}
+    .guide-h2::after{content:"";display:block;width:48px;height:1px;background:#c9b27c;margin:12px auto 0}
+    .guide-h3{font-style:italic;font-weight:400;letter-spacing:.04em;color:#8f7236}
+    .guide-nav a{border-color:#e3d9c2;letter-spacing:.06em}
+    .guide-nav a:hover{color:#8f7236;border-color:#c9b27c;background:#fffdf8}
+    .journey-steps{gap:16px}
+    .journey-step,.tile{background:#fff;border:1px solid #e8e1d2;box-shadow:0 1px 2px rgba(22,20,18,.04)}
+    .journey-step:hover,.tile:hover{border-color:#c9b27c;box-shadow:0 14px 34px rgba(22,20,18,.10);transform:translateY(-2px)}
+    .journey-step{grid-template-columns:150px 1fr;gap:20px}
+    .journey-step:nth-child(even){grid-template-columns:1fr 150px}
+    .journey-step-media{min-height:0;background:#f6f2e9}
+    .journey-step-body{padding:14px 22px 14px 0}
+    .journey-step:nth-child(even) .journey-step-body{padding:14px 0 14px 22px}
+    .journey-step-number{font-size:10.5px;letter-spacing:.24em;color:#b08d4a;margin-bottom:2px}
+    .journey-step-body h3{font-size:17px;letter-spacing:.05em;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #efe8d6}
+    .journey-step-body p,.journey-step-body dd{font-size:12.5px;line-height:1.55}
+    .journey-step-body dl:not(.sum){display:grid;grid-template-columns:112px 1fr;column-gap:16px;row-gap:5px}
+    .journey-step-body dl:not(.sum) dt{margin:0;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8f7236;padding-top:1px}
+    .journey-step-body dl:not(.sum) dd{margin:0}
+    .journey-step-body dl.sum{margin-top:10px;padding-top:8px;border-top:1px solid #efe8d6;display:block}
+    .journey-step-body dl.sum dt{margin:0 0 2px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8f7236}
+    .journey-step-body dl.sum dd{font-family:var(--font-display);font-style:italic;font-size:13px;color:#2a2a2a}
+    .sw{gap:5px;margin-top:2px}
+    .sw li{border-color:#e8e1d2}
+    .tiles{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}
+    .tile figcaption{font-size:12px;letter-spacing:.06em;padding:8px 10px}
+    .eg{border-left-color:#c9b27c}
+    .ts{border-color:#e8e1d2}
+    thead th{border-bottom:1px solid #c9b27c;letter-spacing:.04em}
+    .calc{background:#fbf8f1;border-color:#e8e1d2}
+    .calc h3{letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:#8f7236}
+    .guide-back:hover{color:#8f7236}
+    @media(max-width:700px){
+      .journey-step-media{height:150px!important}
+      .journey-step-body,.journey-step:nth-child(even) .journey-step-body{padding:14px 18px 16px}
+    }
+    @media(max-width:520px){.journey-step-body dl:not(.sum){grid-template-columns:1fr;row-gap:0}.journey-step-body dl:not(.sum) dd{margin-bottom:6px}}
   </style>
 </head>
 <body>
@@ -117,13 +161,6 @@
       <div class="guide-content">
         <div class="guide-banner"><img src="/assets/jmg-banner-metal-bars.jpg" alt="Bars of nickel, silver, palladium, platinum, copper and gold arranged side by side" /></div>
         <p class="guide-text">Several metals are used in the creation of fine jewelry, including platinum, gold, silver, stainless steel, brass and titanium. For making jewelry with any metal, an alloy or alloys need to be mixed. Here’s a short description and the reasons for mixing alloys with the metals.</p>
-
-        <div class="tiles three">
-          <figure class="tile"><div class="m"><img src="/assets/jmg-hero-platinum.jpg" alt="Diamond ring set in platinum resting on a raw platinum nugget" /></div><figcaption>Platinum</figcaption></figure>
-          <figure class="tile"><div class="m"><img src="/assets/jmg-hero-rose-gold.jpg" alt="Morganite and diamond ring in rose gold resting on a raw copper-toned nugget" /></div><figcaption>Rose gold</figcaption></figure>
-          <figure class="tile"><div class="m"><img src="/assets/jmg-hero-yellow-gold.jpg" alt="Yellow gold ring set with yellow stones resting on a raw gold nugget" /></div><figcaption>Yellow gold</figcaption></figure>
-        </div>
-
         <nav class="guide-nav" style="margin-top:28px" aria-label="On this page">
           <a href="#alloys">Alloys</a><a href="#rhodium">Rhodium</a><a href="#metal-types">Metal types</a><a href="#finishes">Metal finishes</a><a href="#conversion">Conversion chart</a>
         </nav>
@@ -302,6 +339,7 @@
     </div>
   </footer>
   <script src="script.js"></script>
+  <script src="back-to-top.js"></script>
   <script>
   (function(){
     // Reference weight (grams) of the same piece in each metal
