@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Admin version shown in the bottom-right badge. Raise by 0.1 on every change (1.9 -> 2.0). -->
+  <meta name="vj-admin-version" content="1.2" />
   <title>Admin | Vie Jewels</title>
   <link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2017,6 +2019,7 @@ function gn(id){ const v=parseFloat(gv(id)); return isNaN(v)?null:v; }
 function sv(id,val){ const el=document.getElementById(id); if(el) el.value=val; }
 
 async function loadStoneTaxonomy(){
+  if(typeof VJ_STONE === "undefined") throw new Error("stone-pricing.js did not load — it must be in the same folder/site as admin.html");
   try{
     const r = await sb("site_settings?key=eq."+VJ_STONE.TAXONOMY_SETTING_KEY+"&select=value");
     if(r && r[0] && r[0].value){
@@ -6038,7 +6041,7 @@ async function importStonesXlsx(e){
 }
 
 // ═════════ STONE MASTER (editable classification, stored in site_settings "stone_taxonomy") ═════════
-let smDraft = null, smSaved = null, smRenames = [], smEditing = null;
+var smDraft = null, smSaved = null, smRenames = [], smEditing = null;
 const smIsDirty = () => !!(smDraft && smSaved) && JSON.stringify(smDraft) !== JSON.stringify(smSaved);
 const smList = (kind,cat) => (kind==='shapes'||kind==='qualities') ? smDraft[kind] : smDraft[kind][cat];
 const smSavedList = (kind,cat) => (kind==='shapes'||kind==='qualities') ? smSaved[kind] : smSaved[kind][cat];
@@ -8160,6 +8163,6 @@ function closeConfirm(){ document.getElementById("confirm-modal").classList.remo
 </script>
 <script src="admin-members.js"></script>
 <script src="admin-duplicate-name.js?v=8"></script>
-<script src="admin-version.js?v=3"></script>
+<script src="admin-version.js?v=4"></script>
 </body>
 </html>
