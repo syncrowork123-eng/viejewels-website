@@ -1237,6 +1237,7 @@
           <span class="jsc-chart-sub">Type · Sub Type 1 · Sub Type 2 — drives cascading dropdowns in style records</span>
         </div>
         <div class="jsc-actions">
+          <button class="btn btn-sm btn-export-xl" onclick="openJcFix()" title="Find products whose categories no longer match this list">✔ Check product links</button>
           <button class="btn btn-sm btn-export-xl" onclick="exportJewelCatsXlsx()">⬇ Export Excel</button>
           <button class="btn btn-sm btn-import-xl" onclick="document.getElementById('jewelcats-file').click()">⬆ Import Excel</button>
           <input type="file" id="jewelcats-file" accept=".xlsx" style="display:none" onchange="importJewelCatsXlsx(event)" />
@@ -8334,6 +8335,124 @@ function vjAudioRemoveCustom(){
     r.readAsDataURL(f);
   });
 })();
+</script>
+<script>
+// ═════════ PRODUCT CATEGORY CHECK — finds saved products whose Jewelry Type / Sub Type 1 / Sub Type 2
+// no longer exists in Jewelry Categories (e.g. renamed before auto-rename existed) and remaps them ═════════
+const jcKey=(t,a,b)=>[t,a,b].map(v=>String(v||"").trim().toLowerCase()).join("|");
+const jcLabel=(t,a,b)=>[t,a,b].filter(v=>v&&String(v).trim()).join(" › ");
+let jcfixState=null;
+
+async function jcFetchAllLinks(){
+  const out=[], PAGE=1000;
+  for(let off=0;;off+=PAGE){
+    const rows=await sb("product_jewel_cats?select=id,product_id,jewel_type,sub_type1,sub_type2&order=id.asc&limit="+PAGE+"&offset="+off)||[];
+    out.push(...rows); if(rows.length<PAGE) break;
+  }
+  return out;
+}
+function jcfixEnsureModal(){
+  let m=document.getElementById("jcfix-modal"); if(m) return m;
+  m=document.createElement("div"); m.className="modal-overlay"; m.id="jcfix-modal";
+  m.innerHTML=`<div class="modal" style="max-width:900px">
+    <div class="modal-header"><h2>Check product links</h2><button class="modal-close" onclick="jcfixClose()">x</button></div>
+    <div class="modal-body" id="jcfix-body"></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="jcfixClose()">Close</button><button class="btn btn-primary" id="jcfix-apply" onclick="jcfixApply()" style="display:none">Apply changes</button></div>
+  </div>`;
+  document.body.appendChild(m); return m;
+}
+function jcfixClose(){ document.getElementById("jcfix-modal")?.classList.remove("open"); }
+
+async function openJcFix(){
+  const modal=jcfixEnsureModal(), body=document.getElementById("jcfix-body"), applyBtn=document.getElementById("jcfix-apply");
+  modal.classList.add("open"); applyBtn.style.display="none";
+  body.innerHTML='<div style="color:var(--text-muted);font-size:13px">Checking all products…</div>';
+  try{
+    if(!allJewelCats||!allJewelCats.length) await loadJewelCats();
+    const links=await jcFetchAllLinks();
+    // what the master list allows: every full row, plus its Type and Type › Sub Type 1 prefixes
+    const full=new Set(), pre=new Set(), targets=[], seen=new Set();
+    allJewelCats.forEach(r=>{
+      const k=jcKey(r.jewel_type,r.sub_type1,r.sub_type2); full.add(k);
+      pre.add(jcKey(r.jewel_type,"","")); if(r.sub_type1) pre.add(jcKey(r.jewel_type,r.sub_type1,""));
+      if(!seen.has(k)){ seen.add(k); targets.push({jt:r.jewel_type||"",s1:r.sub_type1||"",s2:r.sub_type2||"",key:k}); }
+    });
+    const groups=new Map();
+    links.forEach(l=>{
+      const k=jcKey(l.jewel_type,l.sub_type1,l.sub_type2);
+      if(full.has(k)||pre.has(k)) return;
+      if(!groups.has(k)) groups.set(k,{jt:l.jewel_type||"",s1:l.sub_type1||"",s2:l.sub_type2||"",key:k,links:[]});
+      groups.get(k).links.push(l);
+    });
+    const orphans=[...groups.values()].sort((a,b)=>jcLabel(a.jt,a.s1,a.s2).localeCompare(jcLabel(b.jt,b.s1,b.s2)));
+    jcfixState={links,orphans,targets};
+    if(!orphans.length){
+      body.innerHTML=`<p style="font-size:14px;line-height:1.7">✔ All ${links.length} product category links match the Jewelry Categories list. Nothing to fix.</p>`;
+      return;
+    }
+    const sameKey=(a,b)=>String(a||"").toLowerCase()===String(b||"").toLowerCase();
+    const optHtml=(t,i)=>`<option value="${i}">${esc(jcLabel(t.jt,t.s1,t.s2))}</option>`;
+    let rows="";
+    orphans.forEach((g,gi)=>{
+      const nProd=new Set(g.links.map(l=>l.product_id)).size;
+      const sib=[],sameType=[],other=[];
+      targets.forEach((t,ti)=>{ if(sameKey(t.jt,g.jt)&&sameKey(t.s1,g.s1)) sib.push([t,ti]); else if(sameKey(t.jt,g.jt)) sameType.push([t,ti]); else other.push([t,ti]); });
+      const pick=sib.length===1?sib[0][1]:"";
+      const grp=(label,arr)=>arr.length?`<optgroup label="${label}">${arr.map(([t,ti])=>`<option value="${ti}"${String(pick)===String(ti)?" selected":""}>${esc(jcLabel(t.jt,t.s1,t.s2))}</option>`).join("")}</optgroup>`:"";
+      rows+=`<tr>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-size:13px"><strong>${esc(jcLabel(g.jt,g.s1,g.s2))}</strong></td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap">${nProd} product${nProd===1?"":"s"}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--border)"><select class="filter-select" id="jcfix-sel-${gi}" style="width:100%;min-width:260px">
+          <option value=""${pick===""?" selected":""}>Leave as is</option>
+          <option value="__add__">Add this to the Jewelry Categories list</option>
+          ${grp("Same type and Sub Type 1",sib)}${grp("Same jewelry type",sameType)}${grp("Other categories",other)}
+        </select></td></tr>`;
+    });
+    body.innerHTML=`<p style="font-size:13px;line-height:1.7;color:var(--text-muted);margin-bottom:14px">These names are saved on products but are not in the Jewelry Categories list, usually because they were renamed before products were updated automatically. Choose what each should become, then apply.</p>
+      <table style="width:100%;border-collapse:collapse"><thead><tr>
+        <th style="text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">On products now</th>
+        <th style="text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Used by</th>
+        <th style="text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Change to</th></tr></thead><tbody>${rows}</tbody></table>`;
+    applyBtn.style.display="";
+  }catch(e){ body.innerHTML=`<p style="color:var(--danger);font-size:13px">Could not check products: ${esc(e.message||e)}</p>`; }
+}
+
+async function jcfixApply(){
+  const st=jcfixState; if(!st) return;
+  const btn=document.getElementById("jcfix-apply"); btn.disabled=true; btn.textContent="Applying…";
+  // keys each product already has (valid ones), so remapping never creates a duplicate link
+  const orphanKeys=new Set(st.orphans.map(g=>g.key)), byProd=new Map();
+  st.links.forEach(l=>{ if(orphanKeys.has(jcKey(l.jewel_type,l.sub_type1,l.sub_type2))) return;
+    if(!byProd.has(l.product_id)) byProd.set(l.product_id,new Set()); byProd.get(l.product_id).add(jcKey(l.jewel_type,l.sub_type1,l.sub_type2)); });
+  let patched=0, removed=0, added=0, failed=0;
+  const chunks=(a,n)=>{ const o=[]; for(let i=0;i<a.length;i+=n) o.push(a.slice(i,i+n)); return o; };
+  for(let gi=0; gi<st.orphans.length; gi++){
+    const g=st.orphans[gi], v=document.getElementById("jcfix-sel-"+gi)?.value;
+    if(!v) continue;
+    try{
+      if(v==="__add__"){
+        const [saved]=await sb("jewel_categories","POST",{jewel_type:g.jt,sub_type1:g.s1||null,sub_type2:g.s2||null});
+        if(saved) allJewelCats.push(saved); added++; continue;
+      }
+      const t=st.targets[Number(v)]; if(!t) continue;
+      const patchIds=[], delIds=[];
+      g.links.forEach(l=>{
+        if(!byProd.has(l.product_id)) byProd.set(l.product_id,new Set());
+        const set=byProd.get(l.product_id);
+        if(set.has(t.key)) delIds.push(l.id); else { patchIds.push(l.id); set.add(t.key); }
+      });
+      for(const c of chunks(patchIds,100)){ await sb("product_jewel_cats?id=in.("+c.join(",")+")","PATCH",{jewel_type:t.jt,sub_type1:t.s1||null,sub_type2:t.s2||null}); patched+=c.length; }
+      for(const c of chunks(delIds,100)){ await sb("product_jewel_cats?id=in.("+c.join(",")+")","DELETE"); removed+=c.length; }
+    }catch(e){ failed++; console.error("jcfix group failed:",e); }
+  }
+  btn.disabled=false; btn.textContent="Apply changes";
+  const parts=[]; if(patched) parts.push(patched+" updated"); if(removed) parts.push(removed+" duplicate"+(removed===1?"":"s")+" removed"); if(added) parts.push(added+" added to the list");
+  toast((parts.join(", ")||"Nothing changed")+(failed?` — ${failed} group(s) failed, see console`:"."), failed?"error":"success");
+  try{ sortJewelCats(); populateJewelTypeFilter(); renderJewelCatsTable(); }catch(_){}
+  try{ await loadProducts(); }catch(_){}
+  if(patched||removed||added){ try{ playSaveSound(); }catch(_){} }
+  openJcFix();
+}
 </script>
 <script src="admin-members.js"></script>
 <script src="admin-duplicate-name.js?v=8"></script>
