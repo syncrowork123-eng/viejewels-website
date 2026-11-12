@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ring Size Guide | Vie Jewels</title>
+  <meta name="description" content="Find your perfect ring size. Measure at home and convert between US, UK, European, Indian, Chinese, Hong Kong and Japanese ring sizes with our international ring size chart." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── RING SIZE GUIDE — same system as the Diamond Journey / Metals / Chain guides ── */
+    .guide-hero{padding-top:20px;padding-bottom:22px;text-align:center}
+    .guide-hero h1{font-family:var(--font-display);font-size:18px;font-weight:400;letter-spacing:.22em;text-transform:uppercase;max-width:620px;margin:0 auto}
+    .guide-hero h1::after{content:"";display:block;width:56px;height:1px;background:#c9b27c;margin:14px auto 0}
+    .guide-hero p.guide-subtitle{font-family:var(--font-display);font-style:italic;font-size:14px;letter-spacing:.03em;color:#8a7f69;max-width:560px;margin:8px auto 0}
+    @media(max-width:640px){.guide-hero h1{font-size:14px}}
+    .guide-content{max-width:960px;margin:0 auto;padding-bottom:40px}
+    .guide-banner{width:100%;border-radius:10px;overflow:hidden;margin-bottom:24px;border:1px solid #e3d9c2;box-shadow:0 14px 40px rgba(22,20,18,.10);background:#fff}
+    .guide-banner img{width:100%;height:auto;display:block}
+    .guide-text{font-size:13px;color:#6f6a60;line-height:1.8;max-width:760px;margin:0 auto 24px;text-align:center}
+    .guide-h2{font-family:var(--font-display);font-size:20px;font-weight:400;color:#1a1a1a;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin:56px 0 14px;scroll-margin-top:90px}
+    .guide-h2::after{content:"";display:block;width:48px;height:1px;background:#c9b27c;margin:12px auto 0}
+    .guide-nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 8px}
+    .guide-nav a{font-size:12px;letter-spacing:.06em;color:#737373;text-decoration:none;border:1px solid #e3d9c2;border-radius:999px;padding:5px 14px;transition:color var(--transition),border-color var(--transition)}
+    .guide-nav a:hover{color:#8f7236;border-color:#c9b27c;background:#fffdf8}
+
+    /* measuring methods */
+    .method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .method-tile{background:#fff;border:1px solid #e8e1d2;border-radius:10px;padding:22px 20px 20px;box-shadow:0 1px 2px rgba(22,20,18,.04);transition:box-shadow var(--transition),transform var(--transition),border-color var(--transition)}
+    .method-tile:hover{box-shadow:0 14px 34px rgba(22,20,18,.10);transform:translateY(-2px);border-color:#c9b27c}
+    .method-num{font-family:var(--font-display);font-size:26px;color:#c9b27c;line-height:1}
+    .method-tile h3{font-family:var(--font-display);font-size:17px;font-weight:500;color:#1a1a1a;letter-spacing:.05em;margin:8px 0 10px;padding-bottom:8px;border-bottom:1px solid #efe8d6}
+    .method-tile ol{margin:0;padding-left:18px;font-size:13px;color:#6f6a60;line-height:1.75}
+    .method-tile p{margin:0;font-size:13px;color:#6f6a60;line-height:1.75}
+
+    /* tips */
+    .tip-box{max-width:760px;margin:24px auto 0;background:#fffdf8;border:1px solid #e3d9c2;border-radius:10px;padding:16px 22px}
+    .tip-box h4{font-family:var(--font-display);font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#8f7236;margin:0 0 8px}
+    .tip-box ul{margin:0;padding-left:18px;font-size:13px;color:#6f6a60;line-height:1.75}
+
+    /* size finder */
+    .finder{max-width:760px;margin:0 auto 26px;background:#fff;border:1px solid #e3d9c2;border-radius:10px;padding:18px 20px;box-shadow:0 14px 40px rgba(22,20,18,.06)}
+    .finder-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:flex-end}
+    .finder label{display:flex;flex-direction:column;gap:5px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a7f69;min-width:200px}
+    .finder select{font:inherit;font-size:13px;letter-spacing:0;text-transform:none;color:#1a1a1a;padding:9px 12px;border:1px solid #e3d9c2;border-radius:6px;background:#fff}
+    .finder select:focus{outline:none;border-color:#c9b27c;box-shadow:0 0 0 3px rgba(201,178,124,.2)}
+    .finder-result{margin-top:16px;display:none;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;text-align:center}
+    .finder-result.show{display:grid}
+    .finder-result div{border:1px solid #efe8d6;border-radius:8px;padding:10px 6px;background:#fffdf8}
+    .finder-result span{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a7f69;margin-bottom:4px}
+    .finder-result strong{font-family:var(--font-display);font-size:18px;font-weight:500;color:#1a1a1a}
+    .finder-result .diam{background:#1a1a1a;border-color:#1a1a1a}
+    .finder-result .diam span{color:#c9b27c}
+    .finder-result .diam strong{color:#fff}
+    .finder-note{text-align:center;font-size:12px;color:#8a7f69;margin-top:12px;display:none}
+    .finder-note.show{display:block}
+
+    /* chart table */
+    .chart-wrap{border:1px solid #e3d9c2;border-radius:10px;background:#fff;box-shadow:0 14px 40px rgba(22,20,18,.08);overflow:auto;max-height:640px}
+    .size-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:720px}
+    .size-table thead th{position:sticky;top:0;z-index:2;background:#1a1a1a;color:#fff;font-family:var(--font-display);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:12px 10px;text-align:center;line-height:1.35;white-space:nowrap}
+    .size-table thead th small{display:block;font-size:10px;letter-spacing:.06em;text-transform:none;color:#c9b27c;font-weight:400}
+    .size-table tbody th,.size-table tbody td{padding:9px 10px;text-align:center;color:#4a463f;border-bottom:1px solid #f1ebdc}
+    .size-table tbody th{font-weight:500;color:#8f7236;background:#fffdf8;position:sticky;left:0;border-right:1px solid #efe8d6}
+    .size-table thead th:first-child{left:0;z-index:3}
+    .size-table tbody tr:nth-child(even) td{background:#fcfaf4}
+    .size-table tbody tr:hover td,.size-table tbody tr:hover th{background:#f7f0dd}
+    .size-table tbody tr.hl td,.size-table tbody tr.hl th{background:#f3e8c6;color:#1a1a1a;font-weight:500}
+    .size-table td:empty,.size-table td{font-variant-numeric:tabular-nums}
+    .chart-hint{display:none;text-align:center;font-size:11px;color:#8a7f69;margin-top:8px}
+    @media(max-width:760px){.chart-hint{display:block}.method-grid{grid-template-columns:1fr}}
+
+    .guide-back-wrap{text-align:center;margin-top:44px}
+    .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition)}
+    .guide-back:hover{color:#8f7236}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero guide-hero">
+      <h1>Ring Size Guide</h1>
+      <p class="guide-subtitle">Find Your Perfect Fit &amp; Convert Between Sizing Systems</p>
+    </section>
+
+    <section class="section">
+      <div class="guide-content">
+        <div class="guide-banner"><img src="/assets/ring-size-banner.jpg" alt="Ring mandrel, ring sizer band and ring size gauge set" /></div>
+
+        <nav class="guide-nav" aria-label="On this page">
+          <a href="#how-to-measure">How to measure</a><a href="#size-finder">Size finder</a><a href="#size-chart">Size chart</a>
+        </nav>
+
+        <p class="guide-text" style="margin-top:28px">A well-fitting ring should slide over the knuckle with slight resistance and sit comfortably at the base of the finger. Ring sizes vary from country to country, so use the chart below to convert between the most common international systems.</p>
+
+        <h2 class="guide-h2" id="how-to-measure">How to Measure</h2>
+        <p class="guide-text" style="margin-bottom:20px">Choose whichever method is most convenient. For best accuracy, we recommend using a ring sizer or visiting a jeweler.</p>
+        <div class="method-grid">
+          <article class="method-tile">
+            <div class="method-num">01</div>
+            <h3>Ring Sizer / Gauge</h3>
+            <ol>
+              <li>Pick the sizer ring that slides over your knuckle with a little friction.</li>
+              <li>It should come off comfortably without being loose.</li>
+              <li>Note the size marked on that ring or on the mandrel.</li>
+            </ol>
+          </article>
+          <article class="method-tile">
+            <div class="method-num">02</div>
+            <h3>Paper or String</h3>
+            <ol>
+              <li>Wrap a thin strip of paper or string around the base of your finger.</li>
+              <li>Mark where the ends meet and measure the length in mm.</li>
+              <li>Divide by 3.14 to get the inner diameter, then match it in the chart.</li>
+            </ol>
+          </article>
+          <article class="method-tile">
+            <div class="method-num">03</div>
+            <h3>An Existing Ring</h3>
+            <ol>
+              <li>Choose a ring that fits the intended finger well.</li>
+              <li>Measure its inside diameter edge to edge, in mm.</li>
+              <li>Find the closest inner diameter in the chart.</li>
+            </ol>
+          </article>
+        </div>
+
+        <div class="tip-box">
+          <h4>Tips for an accurate size</h4>
+          <ul>
+            <li>Measure at the end of the day, when fingers are at their largest. Avoid measuring when cold.</li>
+            <li>Measure the same finger the ring will be worn on; your dominant hand is often slightly larger.</li>
+            <li>For wide bands (6&nbsp;mm and above), consider going up half a size.</li>
+            <li>If you fall between two sizes, choose the larger one.</li>
+          </ul>
+        </div>
+
+        <h2 class="guide-h2" id="size-finder">Size Finder</h2>
+        <p class="guide-text" style="margin-bottom:20px">Select your country’s system and size to see the equivalent sizes everywhere else.</p>
+        <div class="finder">
+          <div class="finder-row">
+            <label>Sizing system
+              <select id="sf-system" aria-label="Sizing system">
+                <option value="1">United States / Canada</option>
+                <option value="2">India</option>
+                <option value="3">Europe</option>
+                <option value="4">UK / Australia / South Africa</option>
+                <option value="5">Hong Kong</option>
+                <option value="6">China</option>
+                <option value="7">Singapore / Japan</option>
+                <option value="0">Inner diameter (mm)</option>
+              </select>
+            </label>
+            <label>Your size
+              <select id="sf-size" aria-label="Your size"></select>
+            </label>
+          </div>
+          <div class="finder-result" id="sf-result" aria-live="polite"></div>
+          <p class="finder-note" id="sf-note">Some sizes have no exact equivalent in every system; the closest chart row is shown.</p>
+        </div>
+
+        <h2 class="guide-h2" id="size-chart">International Ring Size Chart</h2>
+        <p class="guide-text" style="margin-bottom:20px">Inner diameter is measured across the inside of the ring in millimeters. A dash means that system has no size at that diameter.</p>
+        <div class="chart-wrap" tabindex="0" role="region" aria-label="Ring size chart">
+          <table class="size-table" id="size-table">
+            <thead><tr><th scope="col">Inner Diameter<small>mm</small></th><th scope="col">United States<small>Canada</small></th><th scope="col">India</th><th scope="col">Europe</th><th scope="col">UK<small>Australia · South Africa</small></th><th scope="col">Hong Kong</th><th scope="col">China</th><th scope="col">Singapore<small>Japan</small></th></tr></thead>
+            <tbody>
+            <tr><th scope="row">14.01</th><td>3</td><td>4</td><td>44</td><td>F½</td><td>6</td><td>6</td><td>4</td></tr>
+            <tr><th scope="row">14.33</th><td>–</td><td>5</td><td>45</td><td>G</td><td>–</td><td>–</td><td>5</td></tr>
+            <tr><th scope="row">14.50</th><td>3½</td><td>–</td><td>–</td><td>G½</td><td>7.5</td><td>7</td><td>–</td></tr>
+            <tr><th scope="row">14.65</th><td>–</td><td>6</td><td>46</td><td>H</td><td>–</td><td>–</td><td>6</td></tr>
+            <tr><th scope="row">14.97</th><td>4</td><td>7</td><td>47</td><td>H½</td><td>9</td><td>8</td><td>7</td></tr>
+            <tr><th scope="row">15.10</th><td>–</td><td>–</td><td>–</td><td>I</td><td>–</td><td>9</td><td>–</td></tr>
+            <tr><th scope="row">15.29</th><td>4½</td><td>8</td><td>48</td><td>I½</td><td>10</td><td>–</td><td>8</td></tr>
+            <tr><th scope="row">15.50</th><td>–</td><td>–</td><td>–</td><td>J</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">15.61</th><td>5</td><td>9</td><td>49</td><td>J½</td><td>11</td><td>10</td><td>9</td></tr>
+            <tr><th scope="row">15.92</th><td>–</td><td>10</td><td>50</td><td>K</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">16.10</th><td>5½</td><td>–</td><td>–</td><td>K½</td><td>12</td><td>11</td><td>10</td></tr>
+            <tr><th scope="row">16.24</th><td>–</td><td>11</td><td>51</td><td>L</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">16.56</th><td>6</td><td>12</td><td>52</td><td>L½</td><td>13</td><td>12</td><td>11</td></tr>
+            <tr><th scope="row">16.70</th><td>–</td><td>–</td><td>–</td><td>M</td><td>–</td><td>13</td><td>12</td></tr>
+            <tr><th scope="row">16.88</th><td>6½</td><td>13</td><td>53</td><td>M½</td><td>14.5</td><td>–</td><td>13</td></tr>
+            <tr><th scope="row">17.10</th><td>–</td><td>–</td><td>–</td><td>N</td><td>–</td><td>14</td><td>–</td></tr>
+            <tr><th scope="row">17.20</th><td>7</td><td>14</td><td>54</td><td>N½</td><td>16</td><td>–</td><td>14</td></tr>
+            <tr><th scope="row">17.52</th><td>–</td><td>15</td><td>55</td><td>O</td><td>–</td><td>15</td><td>–</td></tr>
+            <tr><th scope="row">17.70</th><td>7½</td><td>–</td><td>–</td><td>O½</td><td>17</td><td>–</td><td>15</td></tr>
+            <tr><th scope="row">17.83</th><td>–</td><td>16</td><td>56</td><td>P</td><td>–</td><td>16</td><td>–</td></tr>
+            <tr><th scope="row">18.15</th><td>8</td><td>17</td><td>57</td><td>P½</td><td>–</td><td>17</td><td>16</td></tr>
+            <tr><th scope="row">18.20</th><td>–</td><td>–</td><td>–</td><td>–</td><td>18</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">18.30</th><td>–</td><td>–</td><td>–</td><td>Q</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">18.47</th><td>8½</td><td>18</td><td>58</td><td>Q½</td><td>19</td><td>18</td><td>17</td></tr>
+            <tr><th scope="row">18.79</th><td>–</td><td>19</td><td>59</td><td>R</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">19.00</th><td>9</td><td>–</td><td>–</td><td>R½</td><td>20.5</td><td>19</td><td>18</td></tr>
+            <tr><th scope="row">19.11</th><td>–</td><td>20</td><td>60</td><td>S</td><td>–</td><td>20</td><td>–</td></tr>
+            <tr><th scope="row">19.43</th><td>9½</td><td>21</td><td>61</td><td>S½</td><td>22</td><td>–</td><td>19</td></tr>
+            <tr><th scope="row">19.60</th><td>–</td><td>–</td><td>–</td><td>T</td><td>–</td><td>21</td><td>–</td></tr>
+            <tr><th scope="row">19.75</th><td>10</td><td>22</td><td>62</td><td>T½</td><td>23</td><td>–</td><td>20</td></tr>
+            <tr><th scope="row">20.00</th><td>–</td><td>23</td><td>–</td><td>U</td><td>–</td><td>22</td><td>21</td></tr>
+            <tr><th scope="row">20.06</th><td>10½</td><td>24</td><td>63</td><td>U½</td><td>24</td><td>–</td><td>22</td></tr>
+            <tr><th scope="row">20.38</th><td>–</td><td>–</td><td>64</td><td>V</td><td>–</td><td>23</td><td>–</td></tr>
+            <tr><th scope="row">20.60</th><td>11</td><td>25</td><td>–</td><td>V½</td><td>25</td><td>–</td><td>23</td></tr>
+            <tr><th scope="row">20.70</th><td>–</td><td>–</td><td>65</td><td>W</td><td>–</td><td>24</td><td>–</td></tr>
+            <tr><th scope="row">21.02</th><td>11½</td><td>26</td><td>66</td><td>W½</td><td>26</td><td>25</td><td>24</td></tr>
+            <tr><th scope="row">21.20</th><td>–</td><td>–</td><td>–</td><td>X</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">21.34</th><td>12</td><td>27</td><td>67</td><td>X½</td><td>27.75</td><td>26</td><td>25</td></tr>
+            <tr><th scope="row">21.60</th><td>–</td><td>28</td><td>–</td><td>Y</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">21.66</th><td>12½</td><td>–</td><td>68</td><td>Z</td><td>–</td><td>–</td><td>26</td></tr>
+            <tr><th scope="row">21.97</th><td>–</td><td>29</td><td>69</td><td>Z½</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">22.29</th><td>13</td><td>30</td><td>70</td><td>–</td><td>30</td><td>–</td><td>27</td></tr>
+            <tr><th scope="row">22.40</th><td>–</td><td>–</td><td>–</td><td>Z+1</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">22.61</th><td>13½</td><td>31</td><td>71</td><td>Z+2</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">22.90</th><td>–</td><td>32</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">23.20</th><td>–</td><td>33</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">23.50</th><td>–</td><td>34</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">23.90</th><td>–</td><td>35</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+            <tr><th scope="row">24.20</th><td>–</td><td>36</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="chart-hint">Swipe sideways to see all sizing systems →</p>
+
+        <div class="guide-back-wrap">
+          <a class="guide-back" href="jewelry-guide.html">&larr; Back to Jewelry Guide</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+
+  <script>
+  (function(){
+    var table=document.getElementById('size-table');
+    var rows=[].slice.call(table.tBodies[0].rows).map(function(tr){
+      return {tr:tr,cells:[].slice.call(tr.cells).map(function(c){var t=c.textContent.trim();return t==='–'?'':t;})};
+    });
+    var heads=['Inner Diameter','US / Canada','India','Europe','UK / Australia / S. Africa','Hong Kong','China','Singapore / Japan'];
+    var sys=document.getElementById('sf-system'),size=document.getElementById('sf-size'),
+        out=document.getElementById('sf-result'),note=document.getElementById('sf-note');
+    function fill(){
+      var i=+sys.value,seen={},html='<option value="">Select size</option>';
+      rows.forEach(function(r,idx){var v=r.cells[i];if(v&&!seen[v]){seen[v]=1;html+='<option value="'+idx+'">'+v+(i===0?' mm':'')+'</option>';}});
+      size.innerHTML=html;clear();
+    }
+    function clear(){rows.forEach(function(r){r.tr.classList.remove('hl');});out.className='finder-result';out.innerHTML='';note.className='finder-note';}
+    function show(){
+      clear();if(size.value==='')return;
+      var r=rows[+size.value];r.tr.classList.add('hl');
+      var html='',missing=false;
+      r.cells.forEach(function(v,i){
+        if(!v)missing=true;
+        html+='<div'+(i===0?' class="diam"':'')+'><span>'+heads[i]+'</span><strong>'+(v||'–')+(i===0&&v?' mm':'')+'</strong></div>';
+      });
+      out.innerHTML=html;out.className='finder-result show';
+      if(missing)note.className='finder-note show';
+    }
+    sys.addEventListener('change',fill);size.addEventListener('change',show);fill();
+  })();
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
