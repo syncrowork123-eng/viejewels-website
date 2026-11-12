@@ -625,6 +625,7 @@
       <button class="sub-tab-btn" data-sub="sizes">Jewelry Sizes</button>
       <button class="sub-tab-btn" data-sub="tags">Tags</button>
       <button class="sub-tab-btn" data-sub="sitesettings">Site Settings</button>
+      <button class="sub-tab-btn" data-sub="audio">Audio</button>
     </div>
     <div class="sub-panel" id="sub-metals">
       <!-- Step 1: INR rate per gram -->
@@ -1172,6 +1173,44 @@
         <button class="btn btn-primary" onclick="openSiteSettingModal()">+ Add Setting</button>
       </div>
       <div class="table-wrap"><table><thead><tr><th>Key</th><th>Value</th><th>Actions</th></tr></thead><tbody id="sitesettings-tbody"><tr><td colspan="3" class="state-msg">Loading...</td></tr></tbody></table></div>
+    </div>
+    <div class="sub-panel" id="sub-audio">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;max-width:760px;">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent)">Audio</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px">A sound plays when a product entry is saved: the product form (add / update), inline edits in the products table, product sizes, and bulk import (once, when it finishes). Settings are kept on this browser.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:20px;padding:20px;">
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="audio-enabled" style="width:16px;height:16px;accent-color:var(--accent);"> Play a sound when a product is saved
+          </label>
+          <div class="form-group" style="max-width:320px;">
+            <label for="audio-sound">Sound</label>
+            <select id="audio-sound" class="filter-select">
+              <option value="chime">Chime</option>
+              <option value="ding">Ding</option>
+              <option value="success">Success</option>
+              <option value="bell">Bell</option>
+              <option value="pop">Pop</option>
+              <option value="custom">My own file</option>
+            </select>
+          </div>
+          <div class="form-group" style="max-width:320px;">
+            <label for="audio-volume">Volume <span id="audio-volume-val" style="text-transform:none;letter-spacing:0;color:var(--text)">60%</span></label>
+            <input type="range" id="audio-volume" min="0" max="100" step="5" value="60" style="accent-color:var(--accent);">
+          </div>
+          <div class="form-group">
+            <label>Your own sound (optional)</label>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <input type="file" id="audio-file" accept="audio/*" style="font-size:12px;">
+              <span id="audio-file-name" style="font-size:12px;color:var(--text-muted)">No file chosen</span>
+              <button class="btn btn-secondary btn-sm" id="audio-file-remove" style="display:none" onclick="vjAudioRemoveCustom()">Remove</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted)">MP3, WAV or OGG, up to 600 KB. Short sounds work best.</div>
+          </div>
+          <div><button class="btn btn-primary" onclick="playSaveSound(true)">&#9654; Play sound</button></div>
+        </div>
+      </div>
     </div>
     <div class="sub-panel active" id="sub-currencies">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
@@ -3298,7 +3337,7 @@ async function saveCellEditor(){
       await sb("products?id=eq."+p.id,"PATCH",patch);
       Object.assign(p,patch);
     }
-    closeCellEditor(); filterProducts(); toast("Saved.");
+    closeCellEditor(); filterProducts(); toast("Saved."); try{ playSaveSound(); }catch(_){}
   }catch(err){
     console.error("cell edit failed:",err); ed.saving=false;
     if(btn){ btn.disabled=false; btn.textContent="Save"; }
@@ -4072,7 +4111,7 @@ async function saveProduct(opts){
       }
     }
 
-    toast(editingProductId?"Product updated.":"Product added.");
+    toast(editingProductId?"Product updated.":"Product added."); try{ playSaveSound(); }catch(_){}
     if(!keepOpen) closeProductModal();
     await loadProducts();
     return true;
@@ -4310,7 +4349,7 @@ async function svmSaveVariant(){
       }catch(e){}
     }
 
-    toast(svmEditingVariantId?"Size updated.":"Size added.");
+    toast(svmEditingVariantId?"Size updated.":"Size added."); try{ playSaveSound(); }catch(_){}
     svmCancelForm();
     await svmLoadVariants();
   }catch(e){ toast("Error: "+e.message,"error"); }
@@ -5388,6 +5427,7 @@ async function importProductsCore(){
     else setImportStatus("ok","✔ All products imported successfully",summary);
   }catch(_){}
   try{ toast(failed?`Import finished: ${failed} of ${valid.length} rows failed`:`Import complete: ${valid.length} product${valid.length!==1?"s":""} saved`, failed?"error":"success"); }catch(_){}
+  try{ if(valid.length-failed>0) playSaveSound(); }catch(_){}
   if(!failed && !warns.length){
     showImportResult(true,"Upload successful",[`${counts} (${valid.length} rows processed).`,"All products, categories, stones and images were saved without errors."],[]);
   } else if(!failed){
@@ -8210,6 +8250,89 @@ function closeConfirm(){ document.getElementById("confirm-modal").classList.remo
 
   function init(){ document.querySelectorAll("table").forEach(enhance); }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>
+<script>
+// ═════════ AUDIO (masters) — sound played when a product entry is saved ═════════
+// Settings live in this browser's localStorage. Built-in sounds are synthesised (no files needed).
+const VJ_AUDIO_KEY="vj_admin_audio_v1";
+const VJ_AUDIO_DEFAULT={enabled:true,sound:"chime",volume:60,custom:null,customName:""};
+let vjAudioCtx=null;
+function vjAudioLoad(){ try{ return {...VJ_AUDIO_DEFAULT,...JSON.parse(localStorage.getItem(VJ_AUDIO_KEY)||"{}")}; }catch(e){ return {...VJ_AUDIO_DEFAULT}; } }
+function vjAudioStore(cfg){ try{ localStorage.setItem(VJ_AUDIO_KEY,JSON.stringify(cfg)); return true; }catch(e){ return false; } }
+function vjAudioCtxGet(){
+  const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null;
+  if(!vjAudioCtx) vjAudioCtx=new AC();
+  if(vjAudioCtx.state==="suspended") vjAudioCtx.resume();
+  return vjAudioCtx;
+}
+function vjTone(ctx,out,o){
+  const t=ctx.currentTime+(o.start||0), dur=o.dur||.5, peak=o.gain||.5;
+  const osc=ctx.createOscillator(), g=ctx.createGain();
+  osc.type=o.type||"sine"; osc.frequency.setValueAtTime(o.freq,t);
+  if(o.endFreq) osc.frequency.exponentialRampToValueAtTime(o.endFreq,t+dur);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(peak,t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  osc.connect(g); g.connect(out); osc.start(t); osc.stop(t+dur+0.05);
+}
+const VJ_SOUNDS={
+  chime:(c,o)=>{ vjTone(c,o,{freq:1046.5,dur:.9,gain:.5}); vjTone(c,o,{freq:1568,start:.12,dur:1.1,gain:.4}); },
+  ding:(c,o)=>{ vjTone(c,o,{freq:1318.5,dur:1,gain:.6}); vjTone(c,o,{freq:2637,dur:.5,gain:.15}); },
+  success:(c,o)=>{ [523.25,659.25,783.99,1046.5].forEach((f,i)=>vjTone(c,o,{freq:f,start:i*.09,dur:.35,type:"triangle",gain:.45})); },
+  bell:(c,o)=>{ [[880,1],[1760,.5],[2217,.3],[2637,.2]].forEach(([f,k])=>vjTone(c,o,{freq:f,dur:1.4,gain:.35*k})); },
+  pop:(c,o)=>{ vjTone(c,o,{freq:700,endFreq:180,dur:.14,gain:.7}); }
+};
+// force=true plays even when the sound is switched off (used by the "Play sound" test button)
+function playSaveSound(force){
+  try{
+    const cfg=vjAudioLoad();
+    if(!cfg.enabled && !force) return;
+    const vol=Math.max(0,Math.min(1,(Number(cfg.volume)||0)/100));
+    if(cfg.sound==="custom" && cfg.custom){
+      const a=new Audio(cfg.custom); a.volume=vol; a.play().catch(()=>{}); return;
+    }
+    const ctx=vjAudioCtxGet(); if(!ctx) return;
+    const master=ctx.createGain(); master.gain.value=vol; master.connect(ctx.destination);
+    (VJ_SOUNDS[cfg.sound]||VJ_SOUNDS.chime)(ctx,master);
+  }catch(e){ console.warn("playSaveSound:",e); }
+}
+function vjAudioRefreshUi(){
+  const cfg=vjAudioLoad(), $=id=>document.getElementById(id);
+  if(!$("audio-enabled")) return;
+  $("audio-enabled").checked=!!cfg.enabled;
+  $("audio-volume").value=cfg.volume; $("audio-volume-val").textContent=cfg.volume+"%";
+  const customOpt=$("audio-sound").querySelector('option[value="custom"]');
+  customOpt.disabled=!cfg.custom;
+  $("audio-sound").value=(cfg.sound==="custom"&&!cfg.custom)?"chime":cfg.sound;
+  $("audio-file-name").textContent=cfg.custom?cfg.customName||"Custom sound":"No file chosen";
+  $("audio-file-remove").style.display=cfg.custom?"":"none";
+}
+function vjAudioRemoveCustom(){
+  const cfg=vjAudioLoad(); cfg.custom=null; cfg.customName=""; if(cfg.sound==="custom") cfg.sound="chime";
+  vjAudioStore(cfg); const f=document.getElementById("audio-file"); if(f) f.value="";
+  vjAudioRefreshUi(); toast("Custom sound removed.");
+}
+(function vjAudioInit(){
+  const $=id=>document.getElementById(id); if(!$("audio-enabled")) return;
+  vjAudioRefreshUi();
+  $("audio-enabled").addEventListener("change",e=>{ const c=vjAudioLoad(); c.enabled=e.target.checked; vjAudioStore(c); toast(c.enabled?"Save sound turned on.":"Save sound turned off."); });
+  $("audio-sound").addEventListener("change",e=>{ const c=vjAudioLoad(); c.sound=e.target.value; vjAudioStore(c); playSaveSound(true); });
+  $("audio-volume").addEventListener("input",e=>{ $("audio-volume-val").textContent=e.target.value+"%"; });
+  $("audio-volume").addEventListener("change",e=>{ const c=vjAudioLoad(); c.volume=Number(e.target.value); vjAudioStore(c); playSaveSound(true); });
+  $("audio-file").addEventListener("change",e=>{
+    const f=e.target.files&&e.target.files[0]; if(!f) return;
+    if(!/^audio\//.test(f.type)){ toast("Please choose an audio file.","error"); e.target.value=""; return; }
+    if(f.size>600*1024){ toast("That file is over 600 KB. Please choose a shorter sound.","error"); e.target.value=""; return; }
+    const r=new FileReader();
+    r.onload=()=>{
+      const c=vjAudioLoad(); c.custom=r.result; c.customName=f.name; c.sound="custom";
+      if(!vjAudioStore(c)){ toast("Could not store this sound in the browser.","error"); return; }
+      vjAudioRefreshUi(); toast("Custom sound saved."); playSaveSound(true);
+    };
+    r.onerror=()=>toast("Could not read that file.","error");
+    r.readAsDataURL(f);
+  });
 })();
 </script>
 <script src="admin-members.js"></script>
