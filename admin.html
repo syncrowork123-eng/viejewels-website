@@ -6393,6 +6393,12 @@ function renderJewelCatsTable(){
   document.getElementById("jewelcats-count").textContent=rows.length+" of "+allJewelCats.length+" entries";
 }
 
+// Build a PostgREST filter string; null/blank values match IS NULL
+function jcFilter(f){
+  return Object.entries(f).map(([k,v])=> k+"="+((v===null||v===undefined||v==="")?"is.null":"eq."+encodeURIComponent(v))).join("&");
+}
+function jcMatch(r,f){ return Object.keys(f).every(k=>(r[k]||"")===(f[k]||"")); }
+
 async function saveJewelCatCell(input){
   const id=input.dataset.id;
   const col=input.dataset.col;
@@ -6403,6 +6409,51 @@ async function saveJewelCatCell(input){
     if(row) input.value=row.jewel_type||"";
     return;
   }
+  const oldVal=row?(row[col]||""):"";
+  if(row && oldVal===val){ input.value=val; return; }   // nothing really changed
+
+  // ── RENAME (old name -> new name): update master + every saved product ──
+  if(row && oldVal && val){
+    // Which entries are being renamed
+    let scope;
+    if(col==='jewel_type')      scope={jewel_type:oldVal};
+    else if(col==='sub_type1')  scope={jewel_type:row.jewel_type, sub_type1:oldVal};
+    else                        scope={jewel_type:row.jewel_type, sub_type1:row.sub_type1, sub_type2:oldVal};
+    const label=col==='jewel_type'?'Jewelry Type':(col==='sub_type1'?'Sub Type 1':'Sub Type 2');
+    const masterRows=allJewelCats.filter(r=>jcMatch(r,scope));
+    let links=[];
+    try{ links=await sb("product_jewel_cats?select=id,product_id&"+jcFilter(scope))||[]; }
+    catch(e){ toast("Could not check products: "+e.message,"error"); input.value=oldVal; return; }
+    const nProducts=new Set(links.map(l=>l.product_id)).size;
+    const msg=`Rename ${label} "${oldVal}" to "${val}"?\n\nThis will update ${masterRows.length} categor${masterRows.length===1?'y':'ies'} and ${nProducts} saved product${nProducts===1?'':'s'}.`;
+    if(!confirm(msg)){ input.value=oldVal; return; }
+
+    let masterDone=false;
+    try{
+      await sb("jewel_categories?"+jcFilter(scope),"PATCH",{[col]:val});
+      masterDone=true;
+      if(links.length) await sb("product_jewel_cats?"+jcFilter(scope),"PATCH",{[col]:val});
+    }catch(e){
+      // roll the master back so master and products never disagree
+      if(masterDone){ try{ await sb("jewel_categories?"+jcFilter({...scope,[col]:val}),"PATCH",{[col]:oldVal}); }catch(_){} }
+      toast("Rename failed: "+e.message,"error");
+      input.value=oldVal;
+      return;
+    }
+    // keep everything on screen in sync
+    masterRows.forEach(r=>{ r[col]=val; });
+    (allProducts||[]).forEach(p=>(p.product_jewel_cats||[]).forEach(c=>{ if(jcMatch(c,scope)) c[col]=val; }));
+    try{ (productJewelCats||[]).forEach(c=>{ if(jcMatch(c,scope)) c[col]=val; }); }catch(_){}
+    sortJewelCats();
+    populateJewelTypeFilter();
+    renderJewelCatsTable();
+    try{ populateMasterDropdowns(); }catch(_){}
+    try{ renderProductsTable(allProducts); }catch(_){}
+    toast(`Renamed "${oldVal}" to "${val}" — ${masterRows.length} categor${masterRows.length===1?'y':'ies'} and ${nProducts} product${nProducts===1?'':'s'} updated.`);
+    return;
+  }
+
+  // ── Not a rename (filling a blank, or clearing a value): save this row only ──
   const payload={[col]: val||null};
   try{
     await sb("jewel_categories?id=eq."+id,"PATCH",payload);
