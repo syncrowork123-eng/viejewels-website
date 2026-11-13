@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment Options | VIE Jewels</title>
+<meta name="description" content="Pay for your VIE Jewels order securely with PayPal, Paytm or bank transfer.">
+<style>
+:root{--bg:#fff;--panel:#f2e8e8;--ink:#1c1a1a;--muted:#4a4545;--line:#e6d9d9;--accent:#dc8a8a}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1717;--panel:#2a2222;--ink:#f3ecec;--muted:#cbbfbf;--line:#3d3333}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;line-height:1.7}
+.banner{display:grid;grid-template-columns:3fr 2fr;background:var(--panel)}
+.banner img{display:block;width:100%;height:100%;object-fit:cover}
+.banner h1{margin:0;align-self:center;padding:0 5%;font-weight:300;font-size:clamp(1.6rem,5vw,4.2rem);letter-spacing:.04em}
+main{max-width:980px;margin:0 auto;padding:48px 24px 72px}
+p{max-width:75ch;color:var(--muted);margin:0 0 1.4em}
+h2{font-size:1rem;letter-spacing:.06em;text-transform:uppercase;margin:2.2em 0 1em}
+.methods{display:flex;flex-wrap:wrap;gap:20px;list-style:none;padding:0;margin:0}
+.methods li{width:200px}
+.methods img{display:block;width:100%;height:auto;border-radius:6px}
+a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media (max-width:640px){.banner{grid-template-columns:1fr}.banner h1{padding:20px 24px}.methods li{width:calc(50% - 10px)}}
+</style>
+</head>
+<body>
+<header class="banner">
+  <img src="images/payment-banner.jpg" alt="Illustration of payment icons behind the word Payment">
+  <h1>OPTIONS</h1>
+</header>
+<main>
+  <p>You can shop at VIE Jewels with confidence. We have been using leading payment gateways to accept and process online payments safely and securely. Pressing the “checkout” button on the shopping cart page will take you into our secured payment environment. We adhere to strict industry standards for payment processing. Additionally, full credit card numbers are never stored on our servers or made available to be viewed by any individuals at any time.</p>
+  <p>We accept the following methods of payment:</p>
+  <h2>Online payment options:</h2>
+  <ul class="methods">
+    <li><img src="images/paypal.png" alt="PayPal"></li>
+    <li><img src="images/paytm.png" alt="Paytm"></li>
+    <li><img src="images/bank-transfer.png" alt="Bank transfer"></li>
+  </ul>
+</main>
+</body>
+</html>
