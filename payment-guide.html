@@ -1,42 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Payment Options | VIE Jewels</title>
-<meta name="description" content="Pay for your VIE Jewels order securely with PayPal, Paytm or bank transfer.">
-<style>
-:root{--bg:#fff;--panel:#f2e8e8;--ink:#1c1a1a;--muted:#4a4545;--line:#e6d9d9;--accent:#dc8a8a}
-@media (prefers-color-scheme:dark){:root{--bg:#1b1717;--panel:#2a2222;--ink:#f3ecec;--muted:#cbbfbf;--line:#3d3333}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;line-height:1.7}
-.banner{display:grid;grid-template-columns:3fr 2fr;background:var(--panel)}
-.banner img{display:block;width:100%;height:100%;object-fit:cover}
-.banner h1{margin:0;align-self:center;padding:0 5%;font-weight:300;font-size:clamp(1.6rem,5vw,4.2rem);letter-spacing:.04em}
-main{max-width:980px;margin:0 auto;padding:48px 24px 72px}
-p{max-width:75ch;color:var(--muted);margin:0 0 1.4em}
-h2{font-size:1rem;letter-spacing:.06em;text-transform:uppercase;margin:2.2em 0 1em}
-.methods{display:flex;flex-wrap:wrap;gap:20px;list-style:none;padding:0;margin:0}
-.methods li{width:200px}
-.methods img{display:block;width:100%;height:auto;border-radius:6px}
-a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
-@media (max-width:640px){.banner{grid-template-columns:1fr}.banner h1{padding:20px 24px}.methods li{width:calc(50% - 10px)}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Options | Vie Jewels</title>
+  <meta name="description" content="Shop at Vie Jewels with confidence. Pay securely with PayPal, Paytm or bank transfer." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── PAYMENT GUIDE — same system as the Jewelry Care / Diamond Journey / Metals / Chain guides ── */
+    .guide-hero{padding-top:20px;padding-bottom:22px;text-align:center}
+    .guide-hero h1{font-family:var(--font-display);font-size:18px;font-weight:400;letter-spacing:.22em;text-transform:uppercase;max-width:620px;margin:0 auto}
+    .guide-hero h1::after{content:"";display:block;width:56px;height:1px;background:#c9b27c;margin:14px auto 0}
+    .guide-hero p.guide-subtitle{font-family:var(--font-display);font-style:italic;font-size:14px;letter-spacing:.03em;color:#8a7f69;max-width:560px;margin:8px auto 0}
+    @media(max-width:640px){.guide-hero h1{font-size:14px}}
+    .guide-content{max-width:960px;margin:0 auto;padding-bottom:40px}
+    .guide-banner{width:100%;border-radius:10px;overflow:hidden;margin-bottom:24px;border:1px solid #e3d9c2;box-shadow:0 14px 40px rgba(22,20,18,.10);background:#fff}
+    .guide-banner img{width:100%;height:auto;display:block}
+    .guide-text{font-size:13px;color:#6f6a60;line-height:1.8;max-width:760px;margin:0 auto 28px;text-align:center}
+    .pay-heading{font-family:var(--font-display);font-size:13px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;text-align:center;margin:0 0 18px;color:#5f5a52}
+    .pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:720px;margin:0 auto}
+    .pay-tile{display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #e8e1d2;border-radius:10px;padding:18px;box-shadow:0 1px 2px rgba(22,20,18,.04);transition:box-shadow var(--transition),transform var(--transition),border-color var(--transition)}
+    .pay-tile:hover{box-shadow:0 14px 34px rgba(22,20,18,.10);transform:translateY(-2px);border-color:#c9b27c}
+    .pay-tile img{max-width:100%;height:auto;display:block;border-radius:6px}
+    .guide-back-wrap{text-align:center;margin-top:44px}
+    .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition)}
+    .guide-back:hover{color:#8f7236}
+    @media(max-width:640px){.pay-grid{grid-template-columns:1fr;max-width:260px}}
+  </style>
 </head>
 <body>
-<header class="banner">
-  <img src="assets/payment-banner.jpg" alt="Illustration of payment icons behind the word Payment">
-  <h1>OPTIONS</h1>
-</header>
-<main>
-  <p>You can shop at VIE Jewels with confidence. We have been using leading payment gateways to accept and process online payments safely and securely. Pressing the “checkout” button on the shopping cart page will take you into our secured payment environment. We adhere to strict industry standards for payment processing. Additionally, full credit card numbers are never stored on our servers or made available to be viewed by any individuals at any time.</p>
-  <p>We accept the following methods of payment:</p>
-  <h2>Online payment options:</h2>
-  <ul class="methods">
-    <li><img src="assets/paypal.png" alt="PayPal"></li>
-    <li><img src="assets/paytm.png" alt="Paytm"></li>
-    <li><img src="assets/bank-transfer.png" alt="Bank transfer"></li>
-  </ul>
-</main>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero guide-hero">
+      <h1>Payment Options</h1>
+      <p class="guide-subtitle">Shop with Confidence</p>
+    </section>
+
+    <section class="section">
+      <div class="guide-content">
+        <div class="guide-banner"><img src="/assets/payment-banner.jpg" alt="Illustration of payment icons behind the word Payment" /></div>
+        <p class="guide-text">You can shop at Vie Jewels with confidence. We have been using leading payment gateways to accept and process online payments safely and securely. Pressing the “checkout” button on the shopping cart page will take you into our secured payment environment. We adhere to strict industry standards for payment processing. Additionally, full credit card numbers are never stored on our servers or made available to be viewed by any individuals at any time.</p>
+        <p class="guide-text">We accept the following methods of payment:</p>
+
+        <h2 class="pay-heading">Online Payment Options</h2>
+        <div class="pay-grid">
+          <div class="pay-tile"><img src="/assets/paypal.png" alt="PayPal" loading="lazy" /></div>
+          <div class="pay-tile"><img src="/assets/paytm.png" alt="Paytm" loading="lazy" /></div>
+          <div class="pay-tile"><img src="/assets/bank-transfer.png" alt="Bank transfer" loading="lazy" /></div>
+        </div>
+
+        <div class="guide-back-wrap">
+          <a class="guide-back" href="jewelry-guide.html">&larr; Back to Jewelry Guide</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
 </body>
 </html>
