@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jewelry Type Guide | Vie Jewels</title>
+  <meta name="description" content="Explore the main types of jewelry: rings, earrings, pendants, necklaces, bangles, bracelets, nose pins and chains." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .js-wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+    .js-title{text-align:center;font-weight:300;font-size:30px;letter-spacing:.06em;text-transform:uppercase;margin:40px 0 18px}
+    .js-intro{font-size:13px;line-height:1.85;color:var(--text-muted,#737373);margin:0 0 18px;text-align:center}
+    .jt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;margin:30px 0 24px}
+    .jt-tile{display:block;text-decoration:none;background:var(--surface-alt,#f3f3f3);border:1px solid var(--border-light,rgba(0,0,0,.05));border-radius:14px;box-shadow:0 4px 18px rgba(22,20,18,.07);padding:16px 16px 18px;transition:transform .35s ease,box-shadow .35s ease;will-change:transform}
+    .jt-tile:hover,.jt-tile:focus-visible{transform:translateY(-4px);box-shadow:0 12px 32px rgba(22,20,18,.13)}
+    .jt-tile:focus-visible{outline:2px solid #1a1a1a;outline-offset:3px}
+    .jt-tile h2{font-weight:500;font-size:16px;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin:2px 0 14px;color:var(--text,#1a1a1a)}
+    .jt-img{background:#fff;border-radius:10px;overflow:hidden;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+    .jt-img img{width:100%;height:100%;object-fit:contain;display:block}
+    .js-back{text-align:center;margin:36px 0 40px}
+    .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition,.2s)}
+    .guide-back:hover{color:#1a1a1a}
+    .site-footer a{color:inherit}
+    @media (prefers-reduced-motion:reduce){.jt-tile{transition:none}.jt-tile:hover,.jt-tile:focus-visible{transform:none}}
+    @media(max-width:1000px){.jt-grid{grid-template-columns:repeat(3,1fr);gap:22px}}
+    @media(max-width:760px){.js-wrap{padding:0 20px}.jt-grid{grid-template-columns:repeat(2,1fr);gap:16px}.jt-tile{padding:12px 12px 14px}.jt-tile h2{font-size:13px}}
+    @media(max-width:420px){.jt-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="js-wrap">
+      <h1 class="js-title">Jewelry Type Guide</h1>
+      <p class="js-intro">Various types of jewelry. Select a tile to learn more about each type.</p>
+
+      <section class="jt-grid" aria-label="Jewelry types">
+        <a class="jt-tile" href="jewelry-type-rings.html"><h2>Rings</h2><div class="jt-img"><img src="/assets/Rings.jpg" alt="Rings" width="600" height="600" loading="lazy" /></div></a>
+        <a class="jt-tile" href="jewelry-type-earrings.html"><h2>Earrings</h2><div class="jt-img"><img src="/assets/Earrings.jpg" alt="Earrings" width="600" height="600" loading="lazy" /></div></a>
+        <a class="jt-tile" href="jewelry-type-pendants.html"><h2>Pendants</h2><div class="jt-img"><img src="/assets/Pendants.jpg" alt="Pendants" width="600" height="600" loading="lazy" /></div></a>
+        <a class="jt-tile" href="jewelry-type-necklaces.html"><h2>Necklaces</h2><div class="jt-img"><img src="/assets/Necklaces.jpg" alt="Necklaces" width="600" height="600" loading="lazy" /></div></a>
+        <a class="jt-tile" href="jewelry-type-bangles.html"><h2>Bangles</h2><div class="jt-img"><img src="/assets/Bangles.jpg" alt="Bangles" width="600" height="600" loading="lazy" /></div></a>
+        <a class="jt-tile" href="jewelry-type-bracelets.html"><h2>Bracelets</h2><div class="jt-img"><img src="/assets/Bracelets.jpg" alt="Bracelets" width="600" height="600" loading="lazy" /></div></a>
+        <a class="jt-tile" href="jewelry-type-nosepins.html"><h2>Nose pins</h2><div class="jt-img"><img src="/assets/Nosepins.jpg" alt="Nose pins" width="600" height="600" loading="lazy" /></div></a>
+        <a class="jt-tile" href="jewelry-type-chains.html"><h2>Chains</h2><div class="jt-img"><img src="/assets/Chains.jpg" alt="Chains" width="600" height="600" loading="lazy" /></div></a>
+        </section>
+
+      <p class="js-back"><a class="guide-back" href="jewelry-guide.html">&larr; Back to Jewelry Guide</a></p>
+    </div>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
