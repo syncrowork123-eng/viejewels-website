@@ -17,11 +17,8 @@
     .guide-banner{width:100%;border-radius:10px;overflow:hidden;margin-bottom:24px;border:1px solid #e3d9c2;box-shadow:0 14px 40px rgba(22,20,18,.10);background:#fff}
     .guide-banner img{width:100%;height:auto;display:block}
     .guide-text{font-size:13px;color:#6f6a60;line-height:1.8;max-width:760px;margin:0 auto 28px;text-align:center}
-    .sc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;max-width:900px;margin:0 auto}
-    .sc-text p{font-size:14px;color:#6f6a60;line-height:1.9;margin:0}
-    .sc-img{background:#fff;border:1px solid #e3d9c2;border-radius:10px;overflow:hidden;box-shadow:0 14px 40px rgba(22,20,18,.10)}
-    .sc-img img{width:100%;height:auto;display:block}
-    @media(max-width:760px){.sc-wrap{grid-template-columns:1fr;gap:24px}.sc-text{order:2;text-align:center}}
+    .cad-banner{background:#fff}
+    .cad-banner img{max-height:420px;width:auto;max-width:100%;margin:0 auto;padding:18px}
     .guide-back-wrap{text-align:center;margin-top:44px}
     .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition)}
     .guide-back:hover{color:#8f7236}
@@ -55,12 +52,8 @@
 
     <section class="section">
       <div class="guide-content">
-        <div class="sc-wrap">
-          <div class="sc-text">
-            <p>Our talented artists employ cutting-edge software and tools to transform your ideas by crafting lifelike 3D sculptures that closely resemble your vision with remarkable realism and meticulous craftsmanship.</p>
-          </div>
-          <div class="sc-img"><img src="/assets/sculpting-banner.jpg" alt="A hand with a hammer and chisel sculpting a marble bust shown on a tablet" /></div>
-        </div>
+        <div class="guide-banner cad-banner"><img src="/assets/sculpting-banner.jpg" alt="A hand with a hammer and chisel sculpting a marble bust shown on a tablet" /></div>
+        <p class="guide-text">Our talented artists employ cutting-edge software and tools to transform your ideas by crafting lifelike 3D sculptures that closely resemble your vision with remarkable realism and meticulous craftsmanship.</p>
 
         <div class="guide-back-wrap">
           <a class="guide-back" href="bespoke-services.html">&larr; Back to Bespoke Services</a>
