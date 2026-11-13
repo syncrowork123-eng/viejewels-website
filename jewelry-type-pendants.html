@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pendants | Jewelry Type Guide | Vie Jewels</title>
+  <meta name="description" content="Pendant views, bail options and the most popular pendant types." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .js-banner{width:100%;line-height:0;background:#fff;border-bottom:1px solid var(--border-light,rgba(0,0,0,.05))}
+    .js-banner img{width:100%;height:360px;display:block;object-fit:contain;object-position:center}
+    .js-wrap{max-width:1000px;margin:0 auto;padding:0 32px}
+    .js-title{text-align:center;font-weight:300;font-size:30px;letter-spacing:.06em;text-transform:uppercase;margin:40px 0 18px}
+    .js-intro{font-size:13px;line-height:1.85;color:var(--text-muted,#737373);margin:0 0 18px}
+    .js-card{background:var(--surface,#fff);border:1px solid var(--border-light,rgba(0,0,0,.05));border-radius:14px;box-shadow:0 4px 18px rgba(22,20,18,.07);padding:26px 30px 30px;margin:24px 0;transition:transform .35s ease,box-shadow .35s ease;will-change:transform}
+    .js-card:hover,.js-tile:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(22,20,18,.13)}
+    .js-card h2,.js-h2{font-weight:500;font-size:16px;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin:0 0 10px;color:var(--text,#1a1a1a)}
+    .js-card>p,.js-sub{font-size:13px;line-height:1.85;color:var(--text-muted,#737373);margin:0 0 14px}
+    .js-figs{display:grid;gap:24px 20px;margin:18px auto 8px;justify-items:center}
+    .js-figs.c4{grid-template-columns:repeat(4,1fr);max-width:820px}
+    .js-figs.c3{grid-template-columns:repeat(3,1fr);max-width:700px}
+    .js-figs.c1{grid-template-columns:1fr;max-width:620px}
+    .js-figs figure{margin:0;text-align:center}
+    .js-figs img{height:150px;width:auto;max-width:100%;display:block;margin:0 auto 8px}
+    .js-figs.c1 img{height:auto;width:100%;max-height:380px;object-fit:contain}
+    .js-figs.prof img{height:120px}
+    .js-figs figcaption{font-size:12px;color:var(--text,#1a1a1a);line-height:1.4}
+    .js-tiles{display:flex;flex-direction:column;gap:16px;margin:14px 0 24px}
+    .js-tile{display:grid;grid-template-columns:230px 1fr;align-items:center;background:var(--surface,#fff);border:1px solid var(--border-light,rgba(0,0,0,.05));border-radius:14px;overflow:hidden;box-shadow:0 4px 18px rgba(22,20,18,.07);transition:transform .35s ease,box-shadow .35s ease;will-change:transform}
+    .js-tile.rev{grid-template-columns:1fr 230px}
+    .js-tile.rev .js-media{order:2;border-right:none;border-left:1px solid var(--border-light,rgba(0,0,0,.05))}
+    .js-media{display:flex;align-items:center;justify-content:center;align-self:stretch;background:#fff;padding:14px;border-right:1px solid var(--border-light,rgba(0,0,0,.05))}
+    .js-media img{max-width:100%;max-height:170px;width:auto;height:auto;display:block}
+    .js-body{padding:16px 28px}
+    .js-body h3{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:0 0 6px;color:var(--text,#1a1a1a)}
+    .js-body p{font-size:12.5px;line-height:1.7;color:var(--text-muted,#737373);margin:0 0 10px}
+    .js-body p:last-child{margin-bottom:0}
+    .js-list{list-style:none;margin:0 0 10px;padding:0;font-size:12.5px;line-height:1.8;color:var(--text-muted,#737373)}
+    .js-back{text-align:center;margin:36px 0 40px}
+    .guide-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#737373;text-decoration:none;transition:color var(--transition,.2s)}
+    .guide-back:hover{color:#1a1a1a}
+    .site-footer a{color:inherit}
+    @media (prefers-reduced-motion:reduce){.js-card,.js-tile{transition:none}.js-card:hover,.js-tile:hover{transform:none}}
+    @media(max-width:700px){
+      .js-wrap{padding:0 20px}.js-card{padding:22px 18px 24px}
+      .js-banner img{height:240px}
+      .js-figs.c4{grid-template-columns:repeat(2,1fr)}
+      .js-figs img{height:120px}.js-figs.prof img{height:100px}
+      .js-tile,.js-tile.rev{grid-template-columns:1fr}
+      .js-tile.rev .js-media{order:0;border-left:none}
+      .js-media,.js-tile.rev .js-media{border-right:none;border-bottom:1px solid var(--border-light,rgba(0,0,0,.05))}
+      .js-body{padding:14px 20px 18px}
+    }
+    .js-figs.flex{display:flex;flex-wrap:wrap;justify-content:center;max-width:720px;gap:22px 20px}
+    .js-figs.flex figure{flex:0 0 calc((100% - 40px)/3);margin-bottom:6px}
+    .js-figs.flex img{height:90px}
+    .js-figs.views img{height:130px}
+    .js-body h4{font-size:12.5px;font-weight:600;margin:14px 0 4px;color:var(--text,#1a1a1a)}
+    .js-sub-item{display:flex;align-items:center;gap:16px;margin:0 0 10px}
+    .js-sub-item img{width:110px;height:auto;flex:0 0 110px}
+    .js-sub-item p{margin:0}
+    .js-body h4+p{margin-top:0}
+    @media(max-width:700px){.js-figs.flex figure{flex:0 0 50%}.js-sub-item{flex-direction:column;align-items:flex-start}}
+    .js-figs.bails img{height:70px}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <div class="js-banner"><img src="/assets/Pendants.jpg" alt="Diamond pendant on a chain" /></div>
+
+  <main>
+    <div class="js-wrap">
+      <h1 class="js-title">Pendants</h1>
+      <p class="js-intro">The word “pendant” comes from the Old French “pendre” and the Latin “pendere”, both meaning “to hang down.” Use this guide to compare pendant views and bail options, and to explore the most popular pendant types.</p>
+
+      <section class="js-card" id="anatomy">
+        <h2>Anatomy of a Pendant</h2>
+        <div class="js-figs c1"><figure><img src="/assets/Pendant-Anatomy.jpg" alt="Front and side view of a diamond pendant on a chain" loading="lazy" /></figure></div>
+      </section>
+
+      <section class="js-card" id="views">
+        <h2>Views of a Pendant</h2>
+        <div class="js-figs c3 views"><figure><img src="/assets/Pendant-View-Perspective.jpg" alt="Perspective View" loading="lazy" /><figcaption>Perspective View</figcaption></figure><figure><img src="/assets/Pendant-View-Front.jpg" alt="Front View" loading="lazy" /><figcaption>Front View</figcaption></figure><figure><img src="/assets/Pendant-View-Gallery.jpg" alt="Gallery View" loading="lazy" /><figcaption>Gallery View</figcaption></figure></div>
+      </section>
+
+      <section class="js-card" id="bails">
+        <h2>Bail (Bale) Options</h2>
+        <p style="text-align:center">A bail, or “bale”, is a component that is used to attach a pendant or stone. The bail is normally placed in the center from where the pendant hangs. The following are some of the types of pendant bails.</p>
+        <div class="js-figs c3 bails"><figure><img src="/assets/Pendant-Bail-Circular.jpg" alt="Circular" loading="lazy" /><figcaption>Circular</figcaption></figure><figure><img src="/assets/Pendant-Bail-Tapered.jpg" alt="Tapered" loading="lazy" /><figcaption>Tapered</figcaption></figure><figure><img src="/assets/Pendant-Bail-Forked.jpg" alt="Forked" loading="lazy" /><figcaption>Forked</figcaption></figure><figure><img src="/assets/Pendant-Bail-Bale-With-Ring.jpg" alt="Bale with Ring" loading="lazy" /><figcaption>Bale with Ring</figcaption></figure><figure><img src="/assets/Pendant-Bail-Tapered-With-Diamonds.jpg" alt="Tapered with Diamonds" loading="lazy" /><figcaption>Tapered with Diamonds</figcaption></figure><figure><img src="/assets/Pendant-Bail-Forked-With-Diamonds.jpg" alt="Forked with Diamonds" loading="lazy" /><figcaption>Forked with Diamonds</figcaption></figure></div>
+      </section>
+
+      <h2 class="js-h2" id="types" style="margin-top:36px">Pendant Types</h2>
+      <p class="js-sub" style="text-align:center">Here are some popular pendant types:</p>
+      <section class="js-tiles" aria-label="Pendant types">
+      <article class="js-tile"><div class="js-media"><img src="/assets/Pendant-Type-Solitaire.jpg" alt="Solitaire pendant" loading="lazy" /></div><div class="js-body"><h3>Solitaire</h3><p>A solitaire pendant is a kind of a pendant comprising of a single or a solitaire stone of any shape and size.</p></div></article>
+      <article class="js-tile rev"><div class="js-media"><img src="/assets/Pendant-Type-Alphabet.jpg" alt="Alphabet pendant" loading="lazy" /></div><div class="js-body"><h3>Alphabet</h3><p>Alphabet pendant collection consists of the pendants with initials, names, words, numerals or a combination of these with a variety of fonts to choose from.</p><h4>Initial</h4><p>With a variety of font types to choose from, an initial pendant can be any alphabet from A to Z.</p><h4>Numeral</h4><p>Numeral pendants can be any numeral or digits from 1 to 0 or a combination of numbers with a variety of fonts to choose from.</p><h4>Name</h4><p>It is a type of pendants that can be a name or a word with a variety of fonts to choose from.</p></div></article>
+      <article class="js-tile"><div class="js-media"><img src="/assets/Pendant-Type-Fashion.jpg" alt="Fashion pendant" loading="lazy" /></div><div class="js-body"><h3>Fashion</h3><p>Fashion pendants are a type of fashion jewelry that people wear partly for fashion or styling purposes and partly for functional purposes.</p></div></article>
+      <article class="js-tile rev"><div class="js-media"><img src="/assets/Pendant-Type-Heart.jpg" alt="Heart pendant" loading="lazy" /></div><div class="js-body"><h3>Heart</h3><p>A heart pendant creates the perfect time and atmosphere for adornments and symbols of love, commitment and strength. This pendant type is perfect to fit all the love and romance in the air specially on Valentine’s Day.</p></div></article>
+      <article class="js-tile"><div class="js-media"><img src="/assets/Pendant-Type-Circle.jpg" alt="Circle pendant" loading="lazy" /></div><div class="js-body"><h3>Circle</h3><p>Just as you cannot find the beginning and ending of the circle, a circle pendant symbolizes eternity, which means there is no end and this pendant type can be worn to symbolize eternal love.</p></div></article>
+      <article class="js-tile rev"><div class="js-media"><img src="/assets/Pendant-Type-Journey.jpg" alt="Journey pendant" loading="lazy" /></div><div class="js-body"><h3>Journey</h3><p>A “Journey Pendant” is called so because the stones start out small and gradually get bigger in size, which symbolizes the way a relationship grows and changes over the course of time, or over the course of a life’s journey.</p></div></article>
+      <article class="js-tile"><div class="js-media"><img src="/assets/Pendant-Type-Navgrah.jpg" alt="Navgrah pendant" loading="lazy" /></div><div class="js-body"><h3>Navgrah</h3><p>The word Nav means ‘nine’ and Grah means ‘planets’ in the Sanskrit language. Navgrah pendant refers to the nine gemstones related to the nine planets used in Vedic astrology which are listed below with the names of ruling planet associated with each as follows:</p><ul class="js-list"><li>Ruby - Sun</li><li>Pearl - Moon</li><li>Coral - Mars</li><li>Emerald - Mercury</li><li>Yellow Sapphire - Brahaspati</li><li>Diamond - Venus</li><li>Blue Sapphire - Saturn</li><li>Hessonite - Rahu</li><li>Cat’s Eye - Ketu</li></ul><p>This pendant category is getting more and more famous because of its stylish looks and astrological benefits.</p></div></article>
+      <article class="js-tile rev"><div class="js-media"><img src="/assets/Pendant-Type-Religious.jpg" alt="Religious pendant" loading="lazy" /></div><div class="js-body"><h3>Religious</h3><p>Every faith has jewelry to help inspire those who believe. Cross pendants, om symbol, evil eyes, deities, gods etc. are a few types of religious pendants.</p></div></article>
+      <article class="js-tile"><div class="js-media"><img src="/assets/Pendant-Type-Tanmaniya.jpg" alt="Tanmaniya pendant" loading="lazy" /></div><div class="js-body"><h3>Tanmaniya</h3><p>One of the most sacred customs in Hindu weddings is tying the mangalsutra which is basically a black and gold beaded chain with a gold or diamond pendant, called Tanmaniya. The word mangalsutra can be deciphered as ‘sacred thread or cord’; as ‘mangal’ means auspicious and ‘sutra’ means thread or cord. It is worn as a symbol of marital dignity and chastity and is a promise between a husband and wife that they will always stay together.</p></div></article>
+      <article class="js-tile rev"><div class="js-media"><img src="/assets/Pendant-Type-Reversible.jpg" alt="Reversible pendant" loading="lazy" /></div><div class="js-body"><h3>Reversible</h3><p>A reversible pendant can be worn in two ways by turning the reversible portion around.</p></div></article>
+      </section>
+
+      <p class="js-back"><a class="guide-back" href="jewelry-type-guide.html">&larr; Back to Jewelry Type Guide</a></p>
+    </div>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
