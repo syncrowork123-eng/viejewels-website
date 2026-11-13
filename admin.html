@@ -3436,6 +3436,16 @@ function renderProductsTable(products){
 let productJewelCats = [];   // [{jewel_type,sub_type1,sub_type2}] added to this product
 let productStoneRows = [];   // [{stone_type,setting_type,shape,pcs,length_mm,width_mm}]
 let productSetLinks  = [];   // [{id,sku,name}] linked set products
+let origSetLinkIds   = [];   // set-link ids as loaded, used to work out what was removed on save
+
+// Every product linked to `pid`, whichever side the link was saved from.
+function getSetLinkIds(pid){
+  const ids = new Set();
+  const me = allProducts.find(x=>String(x.id)===String(pid));
+  (me?.product_set_links||[]).forEach(l=>ids.add(l.linked_product_id));
+  allProducts.forEach(o=>{ if(String(o.id)!==String(pid) && (o.product_set_links||[]).some(l=>String(l.linked_product_id)===String(pid))) ids.add(o.id); });
+  return [...ids];
+}
 
 // ── JEWELRY CATEGORY PICKER (inside product modal) ────────────────────────
 function populateProductJewelTypeDropdown(){
@@ -3683,6 +3693,9 @@ function removeSetLink(id){
 }
 
 function renderSetChips(){
+  productSetLinks.forEach(l=>{
+    if(!l.sku || !l.name){ const lp=allProducts.find(x=>String(x.id)===String(l.id)); if(lp){ l.sku=l.sku||lp.sku||''; l.name=l.name||lp.name||''; } }
+  });
   document.getElementById('f-set-chips').innerHTML = productSetLinks.map(l=>`
     <div style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:12px;">
       <span><strong>${esc(l.sku||'—')}</strong> ${esc(l.name||'')}</span>
@@ -3711,6 +3724,7 @@ function openProductModal(id=null){
   productJewelCats=[];
   productStoneRows=[];
   productSetLinks=[];
+  origSetLinkIds=[];
   productMediaRows=[];
   pmPreviewIdx=0;
   document.getElementById("product-modal-title").textContent=id?"Edit Product":"Add Product";
@@ -3735,7 +3749,9 @@ function openProductModal(id=null){
     // Stone rows
     productStoneRows = (p.product_stones||[]).map(s=>({stone_type:s.stone_type||'',setting_type:s.setting_type||'',shape:s.shape||'',pcs:s.pcs||'',length_mm:s.length_mm||'',width_mm:s.width_mm||''}));
     // Set links
-    productSetLinks  = (p.product_set_links||[]).map(l=>({id:l.linked_product_id,sku:l.linked_sku||'',name:l.linked_name||''}));
+    // (links in both directions, so a link made from the other product also shows here)
+    productSetLinks  = getSetLinkIds(p.id).map(lid=>{ const lp=allProducts.find(x=>String(x.id)===String(lid)); return {id:lp?lp.id:lid,sku:lp?.sku||'',name:lp?.name||''}; });
+    origSetLinkIds   = productSetLinks.map(l=>l.id);
     // Size — populate dropdown based on first jewel cat
     const firstCat = productJewelCats[0];
     if(firstCat) populateProductSizeDropdown(firstCat.jewel_type);
@@ -4100,9 +4116,26 @@ async function saveProduct(opts){
       try{ await sb("product_stones?product_id=eq."+pid,"DELETE"); } catch(e){}
       for(const s of productStoneRows) try{ await sb("product_stones","POST",{product_id:pid,...s}); } catch(e){}
 
-      // Set links (bidirectional)
-      try{ await sb("product_set_links?product_id=eq."+pid,"DELETE"); } catch(e){}
-      for(const l of productSetLinks) try{ await sb("product_set_links","POST",{product_id:pid,linked_product_id:l.id}); } catch(e){}
+      // Set links (bidirectional): A -> B also saves B -> A, and every piece in the set
+      // links to every other piece, so each one shows the rest in its own "Part of a Set".
+      try{
+        const newIds = productSetLinks.map(l=>l.id);
+        const removed = (origSetLinkIds||[]).filter(id=>!newIds.some(n=>String(n)===String(id)));
+        // unlink removed pieces (both directions)
+        for(const rid of removed){
+          try{ await sb("product_set_links?product_id=eq."+pid+"&linked_product_id=eq."+rid,"DELETE"); }catch(e){}
+          try{ await sb("product_set_links?product_id=eq."+rid+"&linked_product_id=eq."+pid,"DELETE"); }catch(e){}
+        }
+        // members of the set = this product + everything chosen
+        const members = [pid, ...newIds];
+        for(const a of members){
+          for(const b of members){
+            if(String(a)===String(b)) continue;
+            try{ await sb("product_set_links?product_id=eq."+a+"&linked_product_id=eq."+b,"DELETE"); }catch(e){}
+            try{ await sb("product_set_links","POST",{product_id:a,linked_product_id:b}); }catch(e){}
+          }
+        }
+      } catch(e){ console.error("set links:",e); }
 
       // Photos / video
       try{ await sb("product_media?product_id=eq."+pid,"DELETE"); } catch(e){}
@@ -4125,6 +4158,7 @@ function confirmDeleteProduct(id,name){
     try{
       await sb("product_tags?product_id=eq."+id,"DELETE");
       await sb("product_media?product_id=eq."+id,"DELETE");
+      try{ await sb("product_set_links?product_id=eq."+id,"DELETE"); await sb("product_set_links?linked_product_id=eq."+id,"DELETE"); }catch(e){}
       await sb("products?id=eq."+id,"DELETE");
       toast("Product deleted."); await loadProducts();
     } catch(e){ toast("Error: "+e.message,"error"); }
