@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us | Vie Jewels</title>
+  <meta name="description" content="Vie Jewels is a fourth generation family diamond and jewelry business. Our story, passion, process and team." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── ANIMATION VIDEO GUIDE — same system as the Jewelry Care / Diamond Journey / Metals / Chain guides ── */
+    .guide-hero{padding-top:20px;padding-bottom:22px;text-align:center}
+    .guide-hero h1{font-family:var(--font-display);font-size:18px;font-weight:400;letter-spacing:.22em;text-transform:uppercase;max-width:620px;margin:0 auto}
+    .guide-hero h1::after{content:"";display:block;width:56px;height:1px;background:#c9b27c;margin:14px auto 0}
+    .guide-hero p.guide-subtitle{font-family:var(--font-display);font-style:italic;font-size:14px;letter-spacing:.03em;color:#8a7f69;max-width:560px;margin:8px auto 0}
+    @media(max-width:640px){.guide-hero h1{font-size:14px}}
+    .about{max-width:none}
+    .about-hero-img{max-width:760px;margin:0 auto;padding:6px 24px 0}
+    .about-hero-img img{width:100%;height:auto;display:block}
+    .about-sec{padding:72px 24px;background:#fff}
+    .about-sec.alt{background:#fbf8f1}
+    .about-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:5fr 6fr;gap:64px;align-items:center}
+    .about-sec.rev .about-inner{grid-template-columns:6fr 5fr}
+    .about-sec.rev .about-media{order:2}
+    .about-media{position:relative;padding:0 0 18px 18px}
+    .about-media::before{content:"";position:absolute;left:0;bottom:0;right:18px;top:18px;border:1px solid #c9b27c;border-radius:4px}
+    .about-media .frame{position:relative;aspect-ratio:4/3;background:#f1efeb;border-radius:4px;overflow:hidden;box-shadow:0 24px 50px rgba(22,20,18,.14)}
+    .about-media img{width:100%;height:100%;object-fit:cover;display:block}
+    .about-num{display:block;font-family:var(--font-display);font-size:12px;letter-spacing:.32em;color:#b0924f;margin-bottom:14px}
+    .about-copy h2{font-family:var(--font-display);font-weight:400;font-size:26px;letter-spacing:.14em;text-transform:uppercase;margin:0;color:#161412}
+    .about-copy h2::after{content:"";display:block;width:56px;height:1px;background:#c9b27c;margin:18px 0 22px}
+    .about-copy p{font-size:14px;line-height:1.95;color:#5f5a52;margin:0 0 16px}
+    .about-copy strong{color:#161412;font-weight:600}
+    .about-quote{background:#161412;color:#f3ecdc;text-align:center;padding:84px 24px}
+    .about-quote .mark{font-family:var(--font-display);font-size:56px;line-height:.6;color:#c9b27c;display:block;margin-bottom:18px}
+    .about-quote blockquote{margin:0 auto;max-width:640px;font-family:var(--font-display);font-style:italic;font-size:clamp(20px,3vw,28px);line-height:1.7;letter-spacing:.02em}
+    .about-quote cite{display:block;margin-top:26px;font-style:normal;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:#c9b27c}
+    @media(max-width:860px){.about-sec{padding:48px 22px}.about-inner,.about-sec.rev .about-inner{grid-template-columns:1fr;gap:34px}.about-sec.rev .about-media{order:0}.about-copy h2{font-size:21px}}
+    </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-strip">
+      <span>Vie Jewels</span>
+      <span>Fine Jewelry • Diamonds • Bespoke Designs</span>
+    </div>
+    <nav class="main-nav">
+      <a class="brand" href="index.html"><img src="/assets/logo.svg" alt="Vie Jewels" /></a>
+      <div class="nav-links">
+        <a href="collections.html">Collections</a>
+        <a href="knowledge-lounge.html" aria-current="page">Knowledge Lounge</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="nav-icons">
+        <a href="cart.html" aria-label="Shopping Cart">🛒 <span class="nav-badge" data-cart-count style="display:none"></span></a>
+        <a href="account.html" aria-label="My Account">◎</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero guide-hero">
+      <h1>About Us</h1>
+      <p class="guide-subtitle">Four Generations of Diamonds &amp; Fine Jewelry</p>
+    </section>
+
+    <div class="about-hero-img"><img src="/assets/about-wordcloud.jpg" alt="Word cloud of our values: ethics, connection, commitment, craftsmanship and more" /></div>
+
+    <section class="about-sec ">
+      <div class="about-inner">
+        <div class="about-media"><div class="frame"><img src="/assets/about-story.jpg" alt="Hands assembling puzzle pieces on a chalkboard with a rising arrow" loading="lazy" /></div></div>
+        <div class="about-copy">
+          <span class="about-num">01</span>
+          <h2>Our Story</h2>
+          <p>Vie Jewels is a fourth generation family business that was established in the early 1900’s. The forefathers started as polished diamond traders, after which each new generation has steered the business to the next level. From trading in polished diamonds to importing rough diamonds and manufacturing them, since over a decade ago, Vie Jewels has developed their own Jewelry manufacturing department. The new generation has initiated the launch of an e-commerce website adapting to the current consumer trends, thereby connecting and catering to consumers globally, by showcasing near to real vision of our products and services available online, in an endeavor to tender a beautiful shopping experience.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-sec alt rev">
+      <div class="about-inner">
+        <div class="about-media"><div class="frame"><img src="/assets/about-passion.jpg" alt="Figures holding Mission and Passion puzzle pieces" loading="lazy" /></div></div>
+        <div class="about-copy">
+          <span class="about-num">02</span>
+          <h2>Our Passion</h2>
+          <p>At Vie Jewels we strive to provide our customers with high-grade diamonds, exquisite fine jewelry and state of the art services. We connect and communicate with individual buyers to understand their personas and deliver on our promise each time. In our quest for excellence we constantly push the bar to innovate and implement new ideas by optimum utilizing modern resources in our systems. As a result we can lead the way in offering our customers high quality products and services at even further lower prices. We cherish the long term customer relationship of commitment, trust and integrity built through our journey.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-sec ">
+      <div class="about-inner">
+        <div class="about-media"><div class="frame"><img src="/assets/about-process.jpg" alt="Puzzle pieces labeled Diamonds, Services and Jewelry joined together" loading="lazy" /></div></div>
+        <div class="about-copy">
+          <span class="about-num">03</span>
+          <h2>Our Process</h2>
+          <p>Whether it is Diamonds or Jewelry that you wish to purchase or would like to use any of our services, you can always rely on Vie Jewels to fulfill your needs. You can start by selecting from our extensive Diamond inventory or an ensemble of various made to order Jewelry Styles. Besides these if you have any specific requirements we will custom-make your orders too.</p>
+          <p>Our <strong>Diamonds</strong> go through a rigorous process of quality controls and strict assortment standards ensuring consistency and precision.</p>
+          <p>Our philosophy of creating <strong>Jewelry</strong> consists of contemporary designs with trendy styles keeping traditional values alive. Right from the designing stage to each step in manufacturing until it is delivered to the consumer, every piece of our jewelry undergoes stringent quality control measures ensuring elegant finishes.</p>
+          <p>Our <strong>Service</strong> section demonstrates our commitment to convert your imagination into an actual product with high quality of service, support and advice. Our in-house design team can help you with a variety of professional services which range from creating the perfect bespoke jewelry, to furnishing with high quality rendered images, video animations to superior quality photo enhancing.</p>
+          <p>A fully integrated diamond and jewelry company with manufacturing facilities in China and India, Vie Jewels provides unbeatable value to our Consumers.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-sec alt rev">
+      <div class="about-inner">
+        <div class="about-media"><div class="frame"><img src="/assets/about-team.jpg" alt="Figures building the word Teamwork from lettered blocks" loading="lazy" /></div></div>
+        <div class="about-copy">
+          <span class="about-num">04</span>
+          <h2>Our Team</h2>
+          <p>With backgrounds of more than twenty years of hands on experience in manufacturing of Diamonds and Jewelry, earning degrees in Diamond grading and Jewelry manufacturing from renowned Institutions such as GIA, the Directors at Vie Jewels, strongly believe in personal involvement and interaction between the teams and the consumers.</p>
+          <p>We have recruited skilled designers, professional craftsmen, friendly sales staff, trained gemologists, passionate artisans who function in unison and harmony at every stage of planning, production and marketing to ensure customers with a high level standard of services. As unique as we are individually, we share a mutual passion for providing excellent products and services to our clients. We pride ourselves and recognize the merit and respect the dignity of all team members who work tirelessly and diligently to ensure we achieve this common goal.</p>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="about-quote">
+      <span class="mark" aria-hidden="true">“</span>
+      <blockquote>Coming together is the beginning.<br>Keeping together is progress.<br>Working together is success.</blockquote>
+      <cite>Henry Ford</cite>
+    </section>
+  </main>
+
+  <footer id="contact" class="site-footer">
+    <div>
+      <h2>VIE JEWELS</h2>
+      <p>Jewels for life</p>
+    </div>
+    <div>
+      <h3>Contact Us</h3>
+      <p>Email: hello@viejewels.com</p>
+      <p>Website: <a href="https://www.viejewels.com">www.viejewels.com</a></p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
