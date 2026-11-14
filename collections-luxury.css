@@ -194,7 +194,25 @@ body.vj-collections .catalog-sidebar {
   padding-right: 16px;
   padding-left: 0;
   top: 40px;
+
+  /* Independent scrolling: the sidebar never grows taller than the
+     visible window, and scrolls on its own when its filters don't fit.
+     (position: sticky comes from styles.css; align-items:flex-start on
+     the grid lets the sidebar keep its own height.) */
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 24px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--vj-hair-strong) transparent;
 }
+body.vj-collections .catalog-sidebar::-webkit-scrollbar { width: 6px; }
+body.vj-collections .catalog-sidebar::-webkit-scrollbar-thumb {
+  background: var(--vj-hair-strong);
+  border-radius: 999px;
+}
+body.vj-collections .catalog-sidebar::-webkit-scrollbar-track { background: transparent; }
 
 /* PREMIUM SIDEBAR TITLE — "Refine" */
 body.vj-collections .catalog-sidebar h3 {
@@ -567,7 +585,8 @@ body.vj-collections .product-card-price {
   .vj-hero-title { font-size: 28px; }
   .vj-hero-right { padding-left: 0; border-left: none; padding-top: 20px; border-top: 1px solid var(--vj-hair); }
   body.vj-collections .catalog-layout { padding: 40px 24px 64px; gap: 32px; grid-template-columns: 1fr; }
-  body.vj-collections .catalog-sidebar { border-right: none; padding-right: 0; border-bottom: 1px solid var(--vj-hair); padding-bottom: 24px; }
+  /* On mobile the sidebar sits above the grid, so it must not become its own scroll box */
+  body.vj-collections .catalog-sidebar { border-right: none; padding-right: 0; border-bottom: 1px solid var(--vj-hair); padding-bottom: 24px; max-height: none; overflow: visible; }
   body.vj-collections .top-filter-group { border-right: none; border-bottom: 1px solid var(--vj-hair); }
   body.vj-collections .top-filter-group:last-child { border-bottom: none; }
 }
