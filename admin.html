@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Admin version shown in the bottom-right badge. Raise by 0.1 on every change (1.9 -> 2.0). -->
-  <meta name="vj-admin-version" content="1.2" />
+  <meta name="vj-admin-version" content="1.3" />
   <title>Admin | Vie Jewels</title>
   <link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -624,6 +624,7 @@
       <button class="sub-tab-btn" data-sub="jewelcats">Jewelry Categories</button>
       <button class="sub-tab-btn" data-sub="sizes">Jewelry Sizes</button>
       <button class="sub-tab-btn" data-sub="tags">Tags</button>
+      <button class="sub-tab-btn" data-sub="collectionthemes">Collection Themes</button>
       <button class="sub-tab-btn" data-sub="sitesettings">Site Settings</button>
       <button class="sub-tab-btn" data-sub="audio">Audio</button>
     </div>
@@ -1164,6 +1165,9 @@
     <div class="sub-panel" id="sub-tags">
       <div class="toolbar"><div class="toolbar-left"></div><button class="btn btn-primary" onclick="openMasterModal('tag')">+ Add Tag</button></div>
       <div class="table-wrap"><table><thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead><tbody id="tags-tbody"><tr><td colspan="3" class="state-msg">Loading...</td></tr></tbody></table></div>
+    </div>
+    <div class="sub-panel" id="sub-collectionthemes">
+      <div id="collection-themes-section"></div>
     </div>
     <div class="sub-panel" id="sub-sitesettings">
       <div class="toolbar">
@@ -8489,6 +8493,7 @@ async function jcfixApply(){
 }
 </script>
 <script src="admin-members.js"></script>
+<script src="admin-collection-themes.js?v=1"></script>
 <script src="admin-duplicate-name.js?v=8"></script>
 <script src="admin-version.js?v=4"></script>
 </body>
