@@ -559,6 +559,7 @@ async function renderProductGrid() {
   // restoration fires too early (page still short). We restore it ourselves.
   if (_isPaged()) { try { history.scrollRestoration = "manual"; } catch (e) {} }
   await loadPricingMasters(); // needed for live price computation on tiles
+  await loadCollectionThemes();
   const products = await getAllProducts();
   _allProductsCache = products;
   const params = new URLSearchParams(location.search);
@@ -1258,6 +1259,28 @@ const COLLECTION_THEMES = {
     // gallery: ["/assets/themes/bridal-1.jpg", "/assets/themes/bridal-2.jpg", "/assets/themes/bridal-3.jpg"],
   },
 };
+
+// Loads the themes saved in Admin > Masters > Collection Themes and merges them over the built-in ones.
+async function loadCollectionThemes() {
+  try {
+    const rows = await sbGet("collection_themes?select=*");
+    rows.forEach((r) => {
+      if (!r.tag_name) return;
+      const t = {};
+      if (r.title)        t.title = r.title;
+      if (r.intro)        t.intro = r.intro;
+      if (r.hero_image)   t.heroImage = r.hero_image;
+      if (r.hero_color)   t.heroColor = r.hero_color;
+      if (r.hero_overlay) t.heroOverlay = r.hero_overlay;
+      if (r.dark)         t.dark = true;
+      if (r.grid_image)   t.gridImage = r.grid_image;
+      if (r.grid_color)   t.gridColor = r.grid_color;
+      if (Array.isArray(r.gallery) && r.gallery.length) t.gallery = r.gallery;
+      Object.keys(COLLECTION_THEMES).forEach((k) => { if (k.toLowerCase() === r.tag_name.toLowerCase()) delete COLLECTION_THEMES[k]; });
+      COLLECTION_THEMES[r.tag_name] = t;
+    });
+  } catch (e) { console.warn("Collection themes not loaded", e); }
+}
 
 let _themeDefaults = null;   // the page's original hero text, captured once
 let _activeThemeKey = null;
