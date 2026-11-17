@@ -578,7 +578,7 @@
       // (send-enquiry-email), which builds the HTML email and calls Resend.
       // Best-effort: a failed email should not block checkout.
       try {
-        const emailRes = await fetch(SUPABASE_URL + "/functions/v1/send-enquiry-email", {
+        const emailRes = await fetch(SUPABASE_URL + "/functions/v1/super-processor", {
           method: "POST",
           headers: {
             Authorization: "Bearer " + session.access_token,
