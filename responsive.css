@@ -1,0 +1,105 @@
+/* Vie Jewels — responsive layer. Load AFTER styles.css (it only overrides; nothing here changes desktop). */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{overflow-x:clip}
+video,canvas,svg,iframe{max-width:100%}
+a,button{-webkit-tap-highlight-color:rgba(201,178,124,.25)}
+:focus-visible{outline:2px solid #c9b27c;outline-offset:3px}
+
+/* Mobile-only controls: hidden on desktop */
+.nav-toggle,.filter-toggle{display:none}
+
+/* ── Tablets (iPad portrait / small laptops) ───────────────────────── */
+@media (max-width:1100px){
+  .product-grid{grid-template-columns:repeat(3,1fr)}
+  .nav-links{gap:22px}
+  .section,.theme-section,.knowledge-section{padding-left:28px;padding-right:28px}
+}
+
+/* ── Phones and portrait tablets ───────────────────────────────────── */
+@media (max-width:860px){
+  /* Header: one compact row — logo left, icons + menu button right, links in a dropdown */
+  .main-nav{flex-direction:row;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:8px 16px;gap:6px}
+  .main-nav .brand img{height:52px}
+  .main-nav .nav-icons{position:static;transform:none;margin-left:auto;order:2;gap:4px}
+  .nav-icons a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
+  .nav-badge{top:4px;right:2px}
+  .nav-links{order:4;width:100%;gap:2px 18px}
+  .nav-links a{padding:10px 4px;min-height:44px;display:inline-flex;align-items:center}
+
+  /* Once the script has added the menu button */
+  .main-nav.nav-ready{flex-wrap:nowrap}
+  .main-nav.nav-ready .nav-toggle{display:flex;order:3;width:44px;height:44px;padding:0;border:0;background:transparent;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;color:var(--text)}
+  .nav-toggle span{display:block;width:22px;height:1.5px;background:currentColor;transition:transform .25s ease,opacity .2s ease}
+  .main-nav.nav-open .nav-toggle span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+  .main-nav.nav-open .nav-toggle span:nth-child(2){opacity:0}
+  .main-nav.nav-open .nav-toggle span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+  .site-header.header-overlay:not(.scrolled) .nav-toggle{color:#fff}
+
+  .site-header .main-nav.nav-ready .nav-links{display:none;position:absolute;left:0;right:0;top:100%;z-index:60;flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:0;width:auto;padding:6px 0;background:#fff;border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light);box-shadow:0 18px 30px rgba(22,20,18,.10)}
+  .site-header .main-nav.nav-ready.nav-open .nav-links{display:flex}
+  .site-header .main-nav.nav-ready .nav-links a{display:block;padding:15px 24px;min-height:44px;color:#4a4a4a;border-bottom:1px solid var(--border-light);font-size:13px}
+  .site-header .main-nav.nav-ready .nav-links a:last-child{border-bottom:0}
+  .site-header .main-nav.nav-ready .nav-links a:hover,
+  .site-header .main-nav.nav-ready .nav-links a[aria-current="page"]{color:#000;border-bottom-color:var(--border-light)}
+
+  /* Filters: collapsible on phones (collections page) */
+  .filter-toggle{display:flex;width:100%;min-height:46px;align-items:center;justify-content:space-between;padding:0 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font:600 11px var(--font);letter-spacing:.2em;text-transform:uppercase;color:var(--text);cursor:pointer}
+  .filter-toggle .ft-icon{font-size:18px;font-weight:400;letter-spacing:0}
+  .catalog-sidebar.filters-ready{display:none}
+  .catalog-sidebar.filters-ready.filters-open{display:block}
+  .catalog-layout{gap:20px}
+  .top-filter-group{flex:1 1 50%;min-width:0;padding:12px 14px}
+  .top-filter-row select{min-width:0}
+  .catalog-toolbar-right{width:100%;justify-content:space-between}
+  .catalog-toolbar input{max-width:none}
+  .sort-group{flex-wrap:nowrap;overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .sort-btn{flex:0 0 auto;white-space:nowrap;min-height:36px}
+  .pager-btn{min-width:40px;min-height:40px}
+  .load-more-btn{width:100%;min-height:46px}
+
+  /* Product page */
+  .product-detail-info h1{font-size:28px}
+  .product-actions .primary-btn,.product-actions .secondary-btn{flex:1 1 100%}
+  .product-thumbnails .thumb{width:54px;height:54px}
+
+  /* Stop iOS zooming into form fields */
+  input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:16px}
+
+  /* Cookie / privacy banner */
+  #vj-consent{left:10px!important;right:10px!important;bottom:10px!important;padding:14px!important}
+  #vj-consent div{width:100%}
+  #vj-consent button{flex:1;min-height:44px}
+}
+
+/* ── Small phones: two-up product tiles ────────────────────────────── */
+@media (max-width:540px){
+  .product-grid{grid-template-columns:repeat(2,1fr)}
+  .product-card-body{padding:10px 10px 14px}
+  .product-card-name{font-size:14px}
+  .product-card-sku{font-size:9px;letter-spacing:.12em;margin-bottom:6px}
+  .product-card-desc{font-size:12px;margin-bottom:10px}
+  .product-card-price{font-size:12px;padding-top:9px}
+  .product-card-stone-line{font-size:10px!important}
+  .category-grid{grid-template-columns:repeat(2,1fr)}
+  .category-card h3{font-size:14px;margin:12px 10px 2px}
+  .category-card p{font-size:11px;margin-bottom:12px}
+  .page-hero h1{font-size:24px}
+  .top-filter-group{flex-basis:100%}
+  .cart-page .qty-input{font-size:16px}
+  .btn-quote{display:block;text-align:center}
+}
+
+/* ── Landscape phones ──────────────────────────────────────────────── */
+@media (max-height:480px) and (orientation:landscape){
+  .site-header .main-nav.nav-ready .nav-links{max-height:70vh;overflow-y:auto}
+  .main-nav .brand img{height:40px}
+}
+
+/* ── Large screens ─────────────────────────────────────────────────── */
+@media (min-width:1600px){
+  .guide-content,.g-wrap,.why-wrap,.auth-sec,.g-sec{max-width:1200px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
