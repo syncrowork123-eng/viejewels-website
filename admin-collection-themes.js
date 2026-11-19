@@ -35,9 +35,11 @@
   function mount(){
     const host = $("#collection-themes-section"); if(!host || ready) return;
     ready = true;
+    try{
     if(!$("#ct-css")){ const s=document.createElement("style"); s.id="ct-css"; s.textContent=css; document.head.appendChild(s); }
     host.innerHTML = '<div class="ct"><p class="ct-intro">Choose a <b>Themes &amp; Collections</b> tag and set the look the Collections page takes on when a visitor selects only that tag: hero heading and text, hero and catalog backgrounds (colour or image), and an optional gallery strip. Saved themes go live immediately.</p><div class="ct-grid"><div class="ct-list" data-ct-list>Loading…</div><div data-ct-form><p class="ct-intro">Select a collection on the left.</p></div></div></div>';
     load();
+    }catch(e){ host.innerHTML='<p style="padding:14px;color:#c0392b;font-size:13px">Collection Themes failed to start: '+E(e.message)+'</p>'; }
   }
 
   async function load(){
