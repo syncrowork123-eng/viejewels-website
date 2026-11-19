@@ -11,7 +11,7 @@
 // "New version 1.4 — click to refresh".
 //
 // In admin.html, just before </body>:
-//     <script src="admin-version.js?v=4"></script>
+//     <script src="admin-version.js?v=5"></script>
 // ════════════════════════════════════════════════════════════════
 (function () {
   if (window.__vjVersionLoaded) return;
@@ -42,7 +42,7 @@
   const badge = document.createElement("div");
   badge.id = "vj-version-badge";
   badge.style.cssText =
-    "position:fixed;right:10px;bottom:8px;z-index:60;font:11px/1.4 system-ui,sans-serif;" +
+    "position:fixed;right:10px;bottom:8px;z-index:60;font:11px/1.4 Inter,system-ui,sans-serif;" +
     "padding:3px 9px;border-radius:999px;background:rgba(0,0,0,.06);color:#777;cursor:default;" +
     "user-select:none;backdrop-filter:blur(2px)";
   badge.textContent = loadedVersion ? "v" + loadedVersion : "version …";
