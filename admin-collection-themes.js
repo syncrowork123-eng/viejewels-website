@@ -103,8 +103,21 @@
     catch(e){ msg("Could not remove: "+e.message,true); }
   }
 
-  // mount when the sub-tab is opened (also covers the page being restored on it after a refresh)
-  document.addEventListener("click",e=>{ if(e.target.closest('.sub-tab-btn[data-sub="collectionthemes"]')) mount(); });
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>{ if($("#sub-collectionthemes.active")) mount(); },0));
-  else setTimeout(()=>{ if($("#sub-collectionthemes.active")) mount(); },0);
+  // Mount whenever the Collection Themes panel becomes visible, however it got opened:
+  // a click on the sub-tab, a page refresh that restores #masters/collectionthemes,
+  // or the admin sign-in finishing after this script has already run.
+  function check(){
+    const panel = $("#sub-collectionthemes");
+    if (panel && panel.classList.contains("active")) mount();
+  }
+  function init(){
+    check();
+    const panel = $("#sub-collectionthemes");
+    if (panel) new MutationObserver(check).observe(panel, { attributes: true, attributeFilter: ["class"] });
+    document.addEventListener("click", e => { if (e.target.closest('.sub-tab-btn[data-sub="collectionthemes"]')) setTimeout(check, 0); });
+    window.addEventListener("hashchange", () => setTimeout(check, 0));
+    let n = 0; const iv = setInterval(() => { check(); if (ready || ++n > 40) clearInterval(iv); }, 500); // safety net after sign-in
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
