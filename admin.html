@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Admin version shown in the bottom-right badge. Raise by 0.1 on every change (1.9 -> 2.0). -->
-  <meta name="vj-admin-version" content="1.9" />
+  <meta name="vj-admin-version" content="2.0" />
   <title>Admin | Vie Jewels</title>
   <!-- Favicon: the 32px icon is embedded so it works even when the icon files are not next to this page -->
   <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFa0lEQVR42u1XTWhc1xX+zr33zXszo5loLCmRAkpwQjCdRe1KVnZxDIFAQk3I4kLAMQYVLDtmFnKhXXQhXjddZVGG2rVsnMwQrWaVRaFxC/Vk1Sy8CWQwIemmjp002JLnzZuZ996993QxIyyVOJFpm4Ym3+rxfu75zvnuOfd7wA/4H4O2L9bW1gQAce0agKMArgFHjwIAXBiG7jtD9D++8NramgjD0P1sZeVlYvG0AA8cSAiwc6C8zfCHt9668LeTJ09ONhqNrVqt5gNAvV5Pjh+vlTc26t3l5eVSFEV9AKhUKv76+np/eXm5dOXKlUivruZx86ZttVrp8VqtvFEfvT8/Px+HYehUp9MhAFBQGQR+C2AgmIlIOElUFOReff75tRd9/7Y6c+ZMJUmSnnPuMQA3fd9WAHSVUhOFQiGz1sp+XxQB9AHsAxAVN4fTMXDrxIkTU6LbtbVazY/juBSGYQ8AyU6nw1pr2Wy+/cni4aWEQEeI6AsAKYA7RPSjqZk4W7/4+6uHDh2au3Tp0p2FhYXysWPHelG06S8tLaXWWul5niUiCaR85MgRjmOSBw7sH5ZKQbHZbN47ePDgTLPZ/GJxcfHxra2tzzudjtupLWmtxezsrEozdxXAjwH0AEiAGODACn4hi+MbbmKi6A0GqbVWSiltkhRpH4DYj1kpJYwxblSJopmeZi+KotT3fT9JkqRUKuWUUrZer3fHsVmMCXC1WuV6vZ5YcucAOIDGz9gBENJR3fd9S8YEURQlUk4Ubt0qpkRZsEmb1tqSlFIKpZRVSvnAl2mSiHyhUEg5CIJKpWKSJMnvDA4A2wQQhqHTWsvLFy5cZ8dvArwPQDaqArrMvASoXzYvXvxsampqUqksnZ7OKd/PqFwuk3N3Za8nRL9UIgDw/Sc8pbJ0MBiUky3Ri2M3NT8//4/thB/UXqS1FgBkZd/MVSI6uC0FAY6BojX2pcEg6kxOTnpdAPksoyTJm4kJI7tdQIie9X1feZ7Hzjm3maY5L02NEMI2Go2tndnvqsBOZq1WKzXkVgEYZhYAM4OZGSykfDMIAmWtlUVr5SjbgcqyjEw+I9/3FQD0+0IMlVL5QsGVSiXvq4JjXN5d2O6KjWbz1uLCs4IEvQRQBJAiwgDgZ4RUdPdO8KdcblhK0xREREOlqExExhjBXBBERDlkMH0OiOyX169fdw8z4e5LMTXzHoF+AiDa7gpm5AnudWOSv0opJ4wxZvfneRjPEA3hGZO7u7Gxe+PthHgAAa5Wq9xqtVJnsDrajKOuYDATgUEIx8MGQOBlmVKZGgEYeCJBIQiQfV3wr5RgG+12m7XW8p13GrcXFg8TEb0MICJAMSMhoieEkMUhcZuFKwYeYIeQRFYJITylSM7Nzf293W67f+eQIa21qFQqgsj7IwiL21Iw4MAogO0vAPcXa2WRKLNADgAHWdb/9EEbby8S7JJifX09A+jcfSmIAYAIBiTPWUsHrDC+tWLCOTMLZNFegn+tBP8qRbP59u3Di88yg386ng2KCBkRpiHwOFn+UAiaEULIe/c2P+h0Ovim4HsiMG5NaK3l/v1PftDrDZ4jwlNEGI6lSASJJx27wBqbCwL1bqPRiPbqIcQefQNXq1UOw9CAcY4ZyUgKZgIEwLFS6jWl5M3z589/rrWWe8n+oZ2O1lq2Wi27svLGKgO/GR3bLAAqM/P7c7Mzr4zPFd4rAfEwBFqtltNayxs3PqqD8D6ARxhEAGJn6ec7vCPvdU3xkBaOq9Uqt9ttMxpQFBMww879+vLl332stZbfioEda4yVlbO/Wjl99s87731rLpmZ6dSpU4XTp08/+t92zt/tHxtm/n5m/v+DfwJ99pPNWfVYrwAAAABJRU5ErkJggg==" />
@@ -1391,7 +1391,7 @@
       <div class="pm-top">
         <div class="pm-image">
           <div class="pm-image-main" id="pm-image-main">
-            <img id="pm-main-img" alt="Main product image" style="display:none" onload="pmMainImgLoaded()" onerror="pmMainImgError()" />
+            <img id="pm-main-img" alt="Main product image" style="display:none" onerror="pmMainImgError()" />
             <div class="pm-image-empty" id="pm-image-empty">Enter the SKU to load the product image</div>
           </div>
           <div class="pm-image-thumbs" id="pm-image-thumbs"></div>
@@ -1406,7 +1406,7 @@
         <div class="form-group"><label>Design Name</label><input type="text" id="f-name" placeholder="e.g. Petralia" /><div class="form-hint" id="f-name-hint"></div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px">
-        <button type="button" class="btn btn-secondary btn-sm" id="pm-suggest-btn" onclick="pmSuggest(true)" title="Suggest a design name, short description and product story from the main image">✨ Suggest from image</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="pm-suggest-btn" onclick="pmSuggest()" title="Suggest a design name, short description and product story">✨ Suggest text</button>
         <button type="button" class="btn btn-secondary btn-sm" id="pm-name-next" onclick="pmNextName()" title="Try another unique design name">↻ Another name</button>
         <span class="form-hint" id="pm-suggest-status"></span>
       </div>
@@ -3514,7 +3514,7 @@ function removeProductJewelCat(i){
 }
 
 function renderProductJewelCats(){
-  setTimeout(()=>{ try{ pmRecheckName(); }catch(e){} },0);
+  setTimeout(()=>{ try{ pmRecheckName(); }catch(e){} try{ pmAutoRefreshSoon(); }catch(e){} },0);
   const el = document.getElementById('f-jewel-cats-list');
   if(!productJewelCats.length){
     el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin-bottom:4px">No categories added yet — use the picker below</p>';
@@ -3648,6 +3648,7 @@ function removeStoneDetailRow(i){
 }
 
 function stoneDetailRowChanged(i, field, val){
+  try{ pmAutoRefreshSoon(); }catch(e){}
   const r=productStoneRows[i]; if(!r) return;
   if(field==='length_mm' && stoneWidthFollowsLength(r,val)){
     r.width_mm=val;
@@ -3657,6 +3658,7 @@ function stoneDetailRowChanged(i, field, val){
 }
 
 function renderStoneDetailRows(){
+  try{ pmAutoRefreshSoon(); }catch(e){}
   const tbody = document.getElementById('f-stone-tbody');
   if(!productStoneRows.length){
     tbody.innerHTML='<tr><td colspan="7" class="state-msg" style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No stones added yet.</td></tr>';
@@ -3910,18 +3912,16 @@ function pmMainImgError(){
   const img=document.getElementById("pm-main-img"), empty=document.getElementById("pm-image-empty");
   img.style.display="none"; empty.style.display=""; empty.textContent="Image not found — check the SKU / host";
 }
-// ══════ AI SUGGESTIONS (Add Product): design name, short description and product story, from the main image ══════
-// Calls the "suggest-product" Supabase Edge Function (it holds the AI key — never put the key in this file).
-const PM_SUGGEST_URL = SUPABASE_URL + "/functions/v1/suggest-product";
-let pmSug = { token:0, running:false, autoTried:false, cands:[], idx:0, timer:null };
+// ══════ SUGGESTED TEXT (Add Product): design name, short description and product story ══════
+// Built right here in the browser from what is filled in (jewelry category, sub types, stone rows) — no AI service, no extra setup.
+let pmSug = { tried:new Set(), timer:null };
 const pmEl = id => document.getElementById(id);
+const pmLc = x => String(x||"").trim().toLowerCase();
 function pmSugStatus(msg, err){ const s=pmEl("pm-suggest-status"); if(s){ s.textContent=msg||""; s.style.color=err?"#b3261e":"var(--text-muted)"; } }
 function pmSugReset(){
-  pmSug.token++; clearTimeout(pmSug.timer);
-  pmSug.running=false; pmSug.autoTried=false; pmSug.cands=[]; pmSug.idx=0;
+  clearTimeout(pmSug.timer); pmSug.tried=new Set();
   ["f-name","f-short-desc","f-description"].forEach(id=>{ const e=pmEl(id); if(e) e.dataset.auto=""; });
   pmSugStatus(""); const h=pmEl("f-name-hint"); if(h) h.textContent="";
-  const b=pmEl("pm-suggest-btn"); if(b) b.disabled=false;
 }
 // Typing in a field makes it "yours": automatic suggestions never overwrite it again
 ["f-name","f-short-desc","f-description"].forEach(id=>{
@@ -3929,6 +3929,7 @@ function pmSugReset(){
   e.addEventListener("input",()=>{ e.dataset.auto=""; if(id==="f-name") pmCheckName(); });
 });
 
+// ── Design name: unique within the same category ──
 // "Same category" = the product's Jewelry Type(s) (Rings, Earrings, ...). Until one is added, every product counts.
 function pmScopeTypes(){
   const t=[...new Set((productJewelCats||[]).map(c=>c.jewel_type).filter(Boolean))];
@@ -3936,104 +3937,169 @@ function pmScopeTypes(){
   return t;
 }
 function pmUsedNames(types){
-  const lc=x=>String(x||"").trim().toLowerCase(), map=new Map();
+  const map=new Map();
   (allProducts||[]).forEach(p=>{
     if(!p.name || String(p.id)===String(editingProductId)) return;
-    const pt=(p.product_jewel_cats||[]).map(c=>lc(c.jewel_type));
-    if(!types.length || types.some(t=>pt.includes(lc(t)))) map.set(lc(p.name), p.sku||"");
+    const pt=(p.product_jewel_cats||[]).map(c=>pmLc(c.jewel_type));
+    if(!types.length || types.some(t=>pt.includes(pmLc(t)))) map.set(pmLc(p.name), p.sku||"");
   });
   return map;
 }
 function pmCheckName(){
   const el=pmEl("f-name"), h=pmEl("f-name-hint"); if(!el||!h) return true;
-  const v=el.value.trim().toLowerCase(); if(!v){ h.textContent=""; return true; }
+  const v=pmLc(el.value); if(!v){ h.textContent=""; return true; }
   const types=pmScopeTypes(), used=pmUsedNames(types), scope=types.length?types.join(", "):"all products";
   if(used.has(v)){ h.style.color="#b3261e"; h.textContent="⚠ Already used"+(used.get(v)?" by "+used.get(v):"")+" in "+scope; return false; }
   h.style.color="var(--success)"; h.textContent="✓ Unique in "+scope; return true;
 }
-// Put the next suggested name that is not used yet into the Design Name box
-function pmPickName(){
-  const el=pmEl("f-name"); if(!el) return false;
-  const used=pmUsedNames(pmScopeTypes());
-  for(let k=pmSug.idx;k<pmSug.cands.length;k++){
-    const n=String(pmSug.cands[k]||"").trim();
-    if(n && !used.has(n.toLowerCase())){ el.value=n; el.dataset.auto="1"; pmSug.idx=k+1; pmCheckName(); return true; }
-  }
-  return false;
+const PM_NAME_BANK = ["Aurelia","Seraphina","Lumiere","Elara","Calista","Isolde","Odalys","Marisol","Valentia","Zephyra","Aveline","Cordelia","Thalassa","Rosalind","Ondine","Liora","Evangeline","Solene","Anastasia","Corinna","Daphne","Eirene","Fiora","Giselle","Helena","Ilaria","Jasmina","Kalinda","Lavinia","Mirabel","Octavia","Perla","Rhea","Selene","Tamsin","Vesper","Xanthe","Zinnia","Alcyone","Bellara","Celestine","Delphine","Esmeray","Floriane","Galatea","Hesperia","Iolanthe","Juniper","Lysandra","Maeve","Nerissa","Oriana","Persephone","Rosabel","Saphira","Titania","Valeria","Yara","Zaria",
+  "Amalfi","Capri","Sorrento","Verona","Siena","Palermo","Taormina","Ravello","Positano","Cefalu","Noto","Ortigia","Lucerne","Bellagio","Portofino","Syracuse","Modica","Ragusa","Trapani","Erice",
+  "Callisto","Europa","Oberon","Mimas","Phoebe","Ariel","Lyra","Vega","Altair","Andromeda","Cassiopeia","Orion","Auriga","Pleione","Merope","Electra","Maia","Taygeta","Calypso","Dione","Triton","Nereid","Proteus","Larissa","Despina","Galatea","Thebe","Metis","Amalthea","Himalia",
+  "Anaya","Meher","Noor","Zoya","Ishani","Mehr","Roshni","Chandni","Kavya","Nayra","Amara","Sitara","Mahi","Ira","Veda","Anika","Naira","Avni","Tanvi","Reva"];
+function pmFreeName(){
+  const used=pmUsedNames(pmScopeTypes()), cur=pmLc(pmEl("f-name")?.value);
+  const ok=n=>n && !used.has(pmLc(n)) && pmLc(n)!==cur && !pmSug.tried.has(pmLc(n));
+  const pool=[...new Set(PM_NAME_BANK)].filter(ok);
+  if(pool.length) return pool[Math.floor(Math.random()*pool.length)];
+  // bank used up for this category: make up new names
+  const A=["Ae","Al","Au","Be","Ca","El","Fi","Ha","Ia","Ka","Li","Ma","Ni","Ol","Pe","Ra","Se","Ta","Vi","Zo"],
+        B=["l","r","n","m","s","th","v","ly","ri","na"], C=["ra","ia","ene","ora","elle","is","on","ys","ara","ina"];
+  const r=a=>a[Math.floor(Math.random()*a.length)];
+  for(let i=0;i<400;i++){ let n=r(A)+r(B)+r(C); n=n[0].toUpperCase()+n.slice(1).toLowerCase(); if(ok(n)) return n; }
+  return "";
 }
-// If the category changes and an automatic name is now taken, swap it for the next free one
+function pmPickName(){
+  const el=pmEl("f-name"), n=pmFreeName(); if(!el||!n) return false;
+  el.value=n; el.dataset.auto="1"; pmSug.tried.add(pmLc(n)); pmCheckName(); return true;
+}
+// If the category changes and an automatic name is now taken, swap it for a free one
 function pmRecheckName(){
   const el=pmEl("f-name"); if(!el) return;
   if(el.dataset.auto==="1" && !pmCheckName()) pmPickName();
   pmCheckName();
 }
-async function pmNextName(){
-  if(pmPickName()) return;
-  await pmSuggest(true,"name");
+function pmNextName(){
+  if(pmPickName()){ pmSugStatus("New name suggested — edit freely."); }
+  else pmSugStatus("Could not find an unused name.",true);
 }
-// The image is sent by its public link. Formats the AI can't read (bmp, tiff...) are converted to jpg by the image host.
-function pmAiUrl(u){
-  u=String(u||"");
-  if(/res\.cloudinary\.com/i.test(u) && u.includes("/upload/"))
-    return u.replace("/upload/","/upload/w_1024,c_limit,f_jpg,q_auto/").replace(/\.[A-Za-z0-9]+(\?.*)?$/,".jpg");
-  if(/ik\.imagekit\.io/i.test(u)) return u.split("?")[0]+"?tr=w-1024,f-jpg";
-  return u;
-}
-function pmMainImgLoaded(){
-  if(editingProductId || pmSug.autoTried) return;            // automatic only for NEW products, once per window
-  clearTimeout(pmSug.timer);
-  pmSug.timer=setTimeout(()=>{ if(!editingProductId && !pmSug.autoTried){ pmSug.autoTried=true; pmSuggest(false); } },700);
-}
-// manual=true  -> button press: replaces all three fields (asks first if you typed something)
-// manual=false -> automatic: fills only fields that are still empty
-// only="name"  -> just fetch more name ideas
-async function pmSuggest(manual, only){
-  const img=pmEl("pm-main-img");
-  if(!img || img.style.display==="none" || !img.complete || !img.naturalWidth){
-    if(manual) pmSugStatus("Enter the SKU / add a working image first.",true); return;
-  }
-  if(pmSug.running) return;
-  const f={name:pmEl("f-name"), short:pmEl("f-short-desc"), story:pmEl("f-description")};
-  const typed=el=>el.value.trim() && el.dataset.auto!=="1";
-  if(!manual && Object.values(f).every(typed)) return;
-  if(manual && !only && Object.values(f).some(typed) && !confirm("Replace the name, short description and story you typed with new suggestions?")) return;
-  const take=el=> manual ? true : (!el.value.trim() || el.dataset.auto==="1");
 
-  const types=pmScopeTypes(), first=productJewelCats[0]||{};
-  const tok0=pmSug.token, btn=pmEl("pm-suggest-btn");
-  pmSug.running=true; if(btn) btn.disabled=true; pmSugStatus("✨ Looking at the image…");
-  try{
-    const t=await adminToken();
-    const res=await fetch(PM_SUGGEST_URL,{method:"POST",
-      headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+t},
-      body:JSON.stringify({
-        image_url:pmAiUrl(img.currentSrc||img.src),
-        jewelry_type:types.join(", "), sub_type1:first.sub_type1||"", sub_type2:first.sub_type2||"",
-        existing_names:[...pmUsedNames(types).keys()].slice(0,800),
-        want: only==="name" ? "name" : "all"
-      })});
-    let data=null; try{ data=await res.json(); }catch(e){}
-    if(tok0!==pmSug.token) return;                          // window was closed / another product opened meanwhile
-    if(!res.ok || !data){
-      pmSugStatus(res.status===404 ? "Suggestion service is not set up yet (deploy the suggest-product function)." : ((data&&data.error)||("Suggestion failed ("+res.status+")")), true);
-      return;
-    }
-    let did=[];
-    if(Array.isArray(data.names) && data.names.length){
-      pmSug.cands=data.names; pmSug.idx=0;
-      if(only==="name" || take(f.name)){ if(pmPickName()) did.push("name"); else pmSugStatus("No unused name found — press ↻ Another name.",true); }
-    }
-    if(only!=="name"){
-      if(data.short_description && take(f.short)){ f.short.value=data.short_description; f.short.dataset.auto="1"; did.push("short description"); }
-      if(data.story && take(f.story)){ f.story.value=data.story; f.story.dataset.auto="1"; did.push("story"); }
-    }
-    if(did.length) pmSugStatus("Suggested: "+did.join(", ")+" — edit freely.");
-    else if(!pmEl("pm-suggest-status").textContent.startsWith("No unused")) pmSugStatus("Nothing to fill — fields already have your text.");
-  }catch(e){
-    if(tok0===pmSug.token) pmSugStatus("Suggestion failed: "+(e.message||e),true);
-  }finally{
-    if(tok0===pmSug.token){ pmSug.running=false; if(btn) btn.disabled=false; }
+// ── Short description + story: built from category, sub types and stone rows ──
+const PM_TYPE_WORD = {ring:"ring",rings:"ring",earring:"earrings",earrings:"earrings",pendant:"pendant",pendants:"pendant",necklace:"necklace",necklaces:"necklace",bangle:"bangle",bangles:"bangle",bracelet:"bracelet",bracelets:"bracelet",chain:"chain",chains:"chain",nosepin:"nose pin",nosepins:"nose pin","nose pin":"nose pin","nose pins":"nose pin"};
+const pmTypeWord = t => { const k=pmLc(t); return PM_TYPE_WORD[k] || k.replace(/s$/,""); };
+const pmStoneWord = t => { const k=pmLc(t); return (!k||k==="natural"||k.includes("lab")) ? "diamond" : k; };
+function pmStoneInfo(){
+  const rows=(productStoneRows||[]).filter(r=>r.stone_type||r.shape), num=v=>parseFloat(v)||0, uniq=a=>[...new Set(a.filter(Boolean))];
+  const main=rows.slice().sort((a,b)=>num(b.length_mm)-num(a.length_mm))[0]||null;
+  return { rows, main, shapes:uniq(rows.map(r=>pmLc(r.shape))), words:uniq(rows.map(r=>pmStoneWord(r.stone_type))), settings:uniq(rows.map(r=>pmLc(r.setting_type))) };
+}
+function pmShortDesc(){
+  const c=(productJewelCats||[])[0]; if(!c||!c.jewel_type) return "";
+  const type=pmTypeWord(c.jewel_type), si=pmStoneInfo(), style=pmLc(c.sub_type1);
+  const w=[];
+  if(si.main){
+    if(si.main.shape) w.push(pmLc(si.main.shape));
+    if(si.settings.some(x=>/^pav[eé]$/.test(x)) && !/pav[eé]/.test(style)) w.push("pavé");
+    w.push(pmStoneWord(si.main.stone_type));
   }
+  if(style && style!==type) w.push(style);
+  w.push(type);
+  const out=w.filter((x,i)=>x && x!==w[i-1]).join(" ").split(/\s+/).slice(0,6).join(" ");
+  return out.charAt(0).toUpperCase()+out.slice(1);
+}
+// Real-world references: sub type first, then stone shape, then jewelry type
+const PM_MOTIFS = [
+ {k:/solitaire|single/, ref:"the Pole Star, the one fixed light sailors steered by for centuries", echo:"a single, centred stone"},
+ {k:/halo/, ref:"the corona that glows around the sun during a total eclipse", echo:"a bright centre ringed by a delicate halo of light"},
+ {k:/eternity|band|channel/, ref:"the endless knotwork of the Book of Kells, where one line loops without beginning or end", echo:"an unbroken line of stones"},
+ {k:/pav[eé]|micro|cluster/, ref:"the glittering tesserae of the Byzantine mosaics of Ravenna", echo:"many tiny stones laid close together like a mosaic"},
+ {k:/flower|floral|blossom|bloom|petal|rose|lotus/, ref:"a lotus opening at first light on a still pond", echo:"petal-like stones opening around the centre"},
+ {k:/leaf|vine|branch|nature/, ref:"the veins of a peepal leaf held up to the sun", echo:"flowing, leaf-like lines"},
+ {k:/three.?stone|trilogy|trinity/, ref:"the three arches of the Arch of Constantine in Rome", echo:"three stones standing for past, present and future"},
+ {k:/hoop|huggie|loop|circle/, ref:"the rings of Saturn", echo:"a continuous circle that frames the face"},
+ {k:/chandelier/, ref:"the crystal chandeliers of the Hall of Mirrors at Versailles", echo:"tiers of stones that cascade and sway"},
+ {k:/drop|dangle|teardrop/, ref:"a raindrop just before it falls from a leaf", echo:"a graceful, falling line"},
+ {k:/stud|tops/, ref:"stars scattered across a clear night sky", echo:"a small, bright point of light"},
+ {k:/cuff|kada|open/, ref:"the sweeping colonnade of St. Peter's Square in Rome", echo:"a bold, open curve"},
+ {k:/tennis|line/, ref:"the evenly spaced lamps along the Pont Alexandre III in Paris", echo:"stones set in one even, flowing row"},
+ {k:/heart/, ref:"the heart-shaped leaf of the sacred peepal tree", echo:"a softly curved heart"}
+];
+const PM_SHAPES = [
+ {k:/round/, ref:"a full moon rising over still water", echo:"a perfectly round stone"},
+ {k:/oval/, ref:"the elliptical sweep of the Colosseum in Rome", echo:"soft, oval lines"},
+ {k:/pear/, ref:"a raindrop just before it falls", echo:"a tapering, teardrop line"},
+ {k:/marquise/, ref:"the pointed lancet windows of Chartres Cathedral", echo:"long, pointed lines"},
+ {k:/emerald|baguette/, ref:"the stepped terraces of the Chrysler Building's crown", echo:"clean, stepped facets"},
+ {k:/princess|square/, ref:"the symmetrical charbagh gardens of the Mughal era", echo:"crisp, square geometry"},
+ {k:/cushion/, ref:"a river pebble polished smooth by centuries of water", echo:"soft, rounded corners"},
+ {k:/heart/, ref:"the heart-shaped leaf of the sacred peepal tree", echo:"a softly curved heart"},
+ {k:/trillion|triangle/, ref:"the pyramids of Giza", echo:"bold triangular facets"}
+];
+const PM_TYPES = [
+ {k:/ear/, ref:"dewdrops strung on a spider's web at dawn", echo:"a delicate point of light near the face"},
+ {k:/^rings?$|\bring/, ref:"the great rose window of Notre-Dame de Paris", echo:"a circle that catches the light"},
+ {k:/pendant/, ref:"a dewdrop resting at the tip of a leaf", echo:"a single, suspended point of light"},
+ {k:/necklace/, ref:"the Milky Way arching across a night sky", echo:"a gentle arc of light"},
+ {k:/bangle/, ref:"the sweeping colonnade of St. Peter's Square in Rome", echo:"a graceful, unbroken circle"},
+ {k:/bracelet/, ref:"the graceful arch of the Rialto Bridge in Venice", echo:"a smooth, flowing curve"},
+ {k:/chain/, ref:"the braided channels of a river delta seen from above", echo:"links that flow into one another"},
+ {k:/nose/, ref:"a single dewdrop on a jasmine petal", echo:"a tiny, bright point of light"}
+];
+const PM_CLOSE = {
+ ring:["Made to be worn every day and kept for a lifetime.","Designed to sit comfortably on the hand and catch the light as you move."],
+ earrings:["Light to wear and bright against the face, from morning to evening.","Designed to frame the face and catch the light with every turn of the head."],
+ pendant:["A quiet point of light, worn close to the heart.","Made to rest softly at the neckline and be worn often."],
+ necklace:["Designed to sit softly at the neckline and catch the light as you move.","Made to be layered, worn alone and remembered."],
+ bangle:["Made to be stacked, shared and worn every day.","A bold circle of light that moves gracefully with the wrist."],
+ bracelet:["Made to move gracefully with the wrist, from day into evening.","Designed to be worn often and layered with ease."],
+ chain:["A fine line of light that pairs with everything.","Made to be worn daily, alone or layered."],
+ "nose pin":["A small, bright detail made for everyday elegance."]
+};
+function pmSeed(){ const s=String(pmEl("f-sku")?.value||"")+"|"+String((productJewelCats[0]||{}).jewel_type||""); let h=0; for(const ch of s) h=(h*31+ch.charCodeAt(0))>>>0; return h; }
+function pmStory(){
+  const c=(productJewelCats||[])[0]; if(!c||!c.jewel_type) return "";
+  const si=pmStoneInfo(), type=pmTypeWord(c.jewel_type), styleText=pmLc(c.sub_type1)+" "+pmLc(c.sub_type2);
+  let m=PM_MOTIFS.find(x=>x.k.test(styleText));
+  if(!m && si.main) m=PM_SHAPES.find(x=>x.k.test(pmLc(si.main.shape)));
+  if(!m) m=PM_TYPES.find(x=>x.k.test(pmLc(c.jewel_type)));
+  if(!m) return "";
+  const join=a=>a.length<=1?(a[0]||""):a.slice(0,-1).join(", ")+" and "+a[a.length-1];
+  let stones="";
+  if(si.rows.length){
+    stones=(si.shapes.length?join(si.shapes)+" ":"")+join(si.words.map(x=>x+"s"));
+    if(si.settings.length) stones+=" in "+join(si.settings.map(x=>x==="pave"?"pavé":x))+" settings";
+  }
+  const close=(PM_CLOSE[type]||["Made to be worn often and remembered."]); 
+  return [
+    "This design takes its inspiration from "+m.ref+".",
+    "It echoes that spirit through "+m.echo+(stones?", set with "+stones:"")+".",
+    close[pmSeed()%close.length]
+  ].join(" ");
+}
+// force=false: fill only empty fields or fields that still hold an earlier automatic suggestion
+function pmRefreshText(force){
+  const f={short:pmEl("f-short-desc"), story:pmEl("f-description")};
+  const take=el=> force || !el.value.trim() || el.dataset.auto==="1";
+  const sd=pmShortDesc(), st=pmStory();
+  if(sd && take(f.short)){ f.short.value=sd; f.short.dataset.auto="1"; }
+  if(st && take(f.story)){ f.story.value=st; f.story.dataset.auto="1"; }
+}
+// New products only: once a Jewelry Category is added, suggest a name and fill the text; stone rows keep it up to date
+function pmAutoRefresh(){
+  if(editingProductId || !(productJewelCats||[]).length) return;
+  const nm=pmEl("f-name"); if(nm && !nm.value.trim()) pmPickName();
+  pmRefreshText(false);
+}
+function pmAutoRefreshSoon(){
+  if(editingProductId) return;
+  clearTimeout(pmSug.timer); pmSug.timer=setTimeout(pmAutoRefresh,400);
+}
+// ✨ Suggest text button: replaces all three fields (asks first if you typed something)
+function pmSuggest(){
+  if(!(productJewelCats||[]).length){ pmSugStatus("Add a Jewelry Category first (and stone rows, if any) — the text is built from them.",true); return; }
+  const typed=id=>{ const e=pmEl(id); return e && e.value.trim() && e.dataset.auto!=="1"; };
+  if(["f-name","f-short-desc","f-description"].some(typed) && !confirm("Replace the name, short description and story you typed with new suggestions?")) return;
+  pmPickName(); pmRefreshText(true);
+  pmSugStatus("Suggested name, short description and story — edit freely.");
 }
 
 function renderProductMedia(){
