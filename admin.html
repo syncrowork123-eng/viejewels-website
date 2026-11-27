@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Admin version shown in the bottom-right badge. Raise by 0.1 on every change (1.9 -> 2.0). -->
-  <meta name="vj-admin-version" content="1.8" />
+  <meta name="vj-admin-version" content="1.9" />
   <title>Admin | Vie Jewels</title>
   <!-- Favicon: the 32px icon is embedded so it works even when the icon files are not next to this page -->
   <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFa0lEQVR42u1XTWhc1xX+zr33zXszo5loLCmRAkpwQjCdRe1KVnZxDIFAQk3I4kLAMQYVLDtmFnKhXXQhXjddZVGG2rVsnMwQrWaVRaFxC/Vk1Sy8CWQwIemmjp002JLnzZuZ996993QxIyyVOJFpm4Ym3+rxfu75zvnuOfd7wA/4H4O2L9bW1gQAce0agKMArgFHjwIAXBiG7jtD9D++8NramgjD0P1sZeVlYvG0AA8cSAiwc6C8zfCHt9668LeTJ09ONhqNrVqt5gNAvV5Pjh+vlTc26t3l5eVSFEV9AKhUKv76+np/eXm5dOXKlUivruZx86ZttVrp8VqtvFEfvT8/Px+HYehUp9MhAFBQGQR+C2AgmIlIOElUFOReff75tRd9/7Y6c+ZMJUmSnnPuMQA3fd9WAHSVUhOFQiGz1sp+XxQB9AHsAxAVN4fTMXDrxIkTU6LbtbVazY/juBSGYQ8AyU6nw1pr2Wy+/cni4aWEQEeI6AsAKYA7RPSjqZk4W7/4+6uHDh2au3Tp0p2FhYXysWPHelG06S8tLaXWWul5niUiCaR85MgRjmOSBw7sH5ZKQbHZbN47ePDgTLPZ/GJxcfHxra2tzzudjtupLWmtxezsrEozdxXAjwH0AEiAGODACn4hi+MbbmKi6A0GqbVWSiltkhRpH4DYj1kpJYwxblSJopmeZi+KotT3fT9JkqRUKuWUUrZer3fHsVmMCXC1WuV6vZ5YcucAOIDGz9gBENJR3fd9S8YEURQlUk4Ubt0qpkRZsEmb1tqSlFIKpZRVSvnAl2mSiHyhUEg5CIJKpWKSJMnvDA4A2wQQhqHTWsvLFy5cZ8dvArwPQDaqArrMvASoXzYvXvxsampqUqksnZ7OKd/PqFwuk3N3Za8nRL9UIgDw/Sc8pbJ0MBiUky3Ri2M3NT8//4/thB/UXqS1FgBkZd/MVSI6uC0FAY6BojX2pcEg6kxOTnpdAPksoyTJm4kJI7tdQIie9X1feZ7Hzjm3maY5L02NEMI2Go2tndnvqsBOZq1WKzXkVgEYZhYAM4OZGSykfDMIAmWtlUVr5SjbgcqyjEw+I9/3FQD0+0IMlVL5QsGVSiXvq4JjXN5d2O6KjWbz1uLCs4IEvQRQBJAiwgDgZ4RUdPdO8KdcblhK0xREREOlqExExhjBXBBERDlkMH0OiOyX169fdw8z4e5LMTXzHoF+AiDa7gpm5AnudWOSv0opJ4wxZvfneRjPEA3hGZO7u7Gxe+PthHgAAa5Wq9xqtVJnsDrajKOuYDATgUEIx8MGQOBlmVKZGgEYeCJBIQiQfV3wr5RgG+12m7XW8p13GrcXFg8TEb0MICJAMSMhoieEkMUhcZuFKwYeYIeQRFYJITylSM7Nzf293W67f+eQIa21qFQqgsj7IwiL21Iw4MAogO0vAPcXa2WRKLNADgAHWdb/9EEbby8S7JJifX09A+jcfSmIAYAIBiTPWUsHrDC+tWLCOTMLZNFegn+tBP8qRbP59u3Di88yg386ng2KCBkRpiHwOFn+UAiaEULIe/c2P+h0Ovim4HsiMG5NaK3l/v1PftDrDZ4jwlNEGI6lSASJJx27wBqbCwL1bqPRiPbqIcQefQNXq1UOw9CAcY4ZyUgKZgIEwLFS6jWl5M3z589/rrWWe8n+oZ2O1lq2Wi27svLGKgO/GR3bLAAqM/P7c7Mzr4zPFd4rAfEwBFqtltNayxs3PqqD8D6ARxhEAGJn6ec7vCPvdU3xkBaOq9Uqt9ttMxpQFBMww879+vLl332stZbfioEda4yVlbO/Wjl99s87731rLpmZ6dSpU4XTp08/+t92zt/tHxtm/n5m/v+DfwJ99pPNWfVYrwAAAABJRU5ErkJggg==" />
@@ -3230,7 +3230,7 @@ function openCellEditor(td){
   el.addEventListener("change",()=>{ if(cellEd) cellEd.dirty=true; });
   el.addEventListener("keydown",ceKey);
   if(field==="jewel") ceRenderJewel(); else if(field==="stones") ceRenderStones();
-  else if(field==="sizes" && cellEd.sizeMode==="select") pickSizeOption("ce-size-sel","ce-size-custom",p.size);
+  else if(field==="sizes" && cellEd.sizeMode==="select"){ pickSizeOption("ce-size-sel","ce-size-custom",p.size); if(window.VieSizeSelect) VieSizeSelect.enhance(document.getElementById("ce-size-sel")); }
   cePosition();
   const f=el.querySelector("input,textarea,select"); if(f){ f.focus(); if(f.select) try{f.select();}catch(e){} }
 }
@@ -8632,6 +8632,249 @@ async function jcfixApply(){
   else init();
 })();
 
+</script>
+<!-- ── PREMIUM SIZE PICKER (Products: product form, Sizes modal, inline cell editor) ── -->
+<script>
+(function(){
+  var CSS = [
+    '.vsz-native{display:none!important}',
+    '.vsz{position:relative;display:block;width:100%;font-family:var(--font)}',
+    '.vsz *{box-sizing:border-box}',
+    '.vsz-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font:inherit;font-size:14px;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}',
+    '.vsz-sm .vsz-trigger{padding:7px 9px;font-size:13px;border-radius:6px}',
+    '.vsz-trigger:hover{border-color:#cdc3b3}',
+    '.vsz-trigger:focus-visible,.vsz.vsz-open .vsz-trigger{outline:none;border-color:var(--accent);background:var(--surface)}',
+    '.vsz-val{flex:1;min-width:0;display:flex;align-items:baseline;gap:10px;overflow:hidden;white-space:nowrap}',
+    '.vsz-val b{font-weight:600;flex:none}',
+    '.vsz-val .vsz-sub{color:var(--text-muted);font-size:12px;overflow:hidden;text-overflow:ellipsis}',
+    '.vsz-ph{color:var(--text-muted)}',
+    '.vsz-chev{width:8px;height:8px;flex:none;border-right:1.5px solid var(--text-muted);border-bottom:1.5px solid var(--text-muted);transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s}',
+    '.vsz-open .vsz-chev{transform:rotate(-135deg) translate(-2px,-2px)}',
+    '.vsz-panel{position:fixed;z-index:500;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 22px 48px -22px rgba(26,20,16,.38);font-family:var(--font);color:var(--text);animation:vsz-in .14s ease-out;overflow:hidden}',
+    '.vsz-panel *{box-sizing:border-box}',
+    '@keyframes vsz-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}',
+    '@media (prefers-reduced-motion:reduce){.vsz-panel{animation:none}.vsz-chev{transition:none}}',
+    '.vsz-search{flex:none;padding:12px 14px 10px;border-bottom:1px solid var(--border)}',
+    '.vsz-search input{width:100%;padding:6px 0;background:transparent;border:0;border-bottom:1px solid var(--border);border-radius:0;font:inherit;font-size:13px;color:var(--text);outline:none}',
+    '.vsz-search input:focus{border-bottom-color:var(--accent)}',
+    '.vsz-search input::placeholder{color:var(--text-muted)}',
+    '.vsz-list{flex:1;min-height:0;overflow-y:auto;padding:6px 0}',
+    '.vsz-row{width:100%;display:flex;align-items:baseline;gap:16px;padding:10px 16px 10px 14px;background:transparent;border:0;border-left:2px solid transparent;font:inherit;font-size:13px;color:var(--text);text-align:left;cursor:pointer}',
+    '.vsz-row:hover,.vsz-row:focus-visible{background:#faf7f1;outline:none}',
+    '.vsz-row[aria-selected="true"]{border-left-color:var(--accent);background:#faf7f1}',
+    '.vsz-p{flex:none;min-width:84px;font-weight:500;font-variant-numeric:tabular-nums}',
+    '.vsz-row[aria-selected="true"] .vsz-p{font-weight:700}',
+    '.vsz-s{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:2px 16px;font-size:12px;color:var(--text)}',
+    '.vsz-k{color:var(--text-muted);margin-right:4px}',
+    '.vsz-empty{padding:18px 16px;font-size:13px;color:var(--text-muted)}',
+    '.vsz-foot{flex:none;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted)}',
+    '.vsz-clear{background:none;border:0;padding:0;font:inherit;font-size:12px;color:var(--text);text-decoration:underline;text-underline-offset:3px;cursor:pointer}',
+    '.vsz-clear:focus-visible{outline:1px solid var(--accent);outline-offset:2px}'
+  ].join('\n');
+
+  var cssDone = false;
+  function injectCss(){
+    if(cssDone) return;
+    var s = document.createElement('style'); s.id = 'vsz-css'; s.textContent = CSS;
+    document.head.appendChild(s); cssDone = true;
+  }
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(text != null) n.textContent = text;
+    return n;
+  }
+  // "US 6" -> key "US", value "6"   |   "ID 54mm" -> key "ID", value "54mm"
+  function splitSeg(seg){
+    var i = seg.indexOf(' ');
+    return i < 0 ? {k:'', v:seg} : {k:seg.slice(0,i), v:seg.slice(i+1)};
+  }
+  function parts(label){
+    var segs = String(label).split(' / ').map(function(s){return s.trim();}).filter(Boolean);
+    return {first: segs[0] || '', rest: segs.slice(1)};
+  }
+  function segNode(seg, cls){
+    var p = splitSeg(seg), n = el('span', cls);
+    if(p.k){ n.appendChild(el('span','vsz-k',p.k)); }
+    n.appendChild(document.createTextNode(p.v));
+    return n;
+  }
+
+  function enhance(sel){
+    if(!sel || sel._vsz) return sel && sel._vsz;
+    injectCss();
+
+    var open = false, panel = null, list = null, search = null, guard = null;
+    var root = el('div', 'vsz' + (sel.classList.contains('ce-in') ? ' vsz-sm' : ''));
+    var trigger = el('button', 'vsz-trigger'); trigger.type = 'button';
+    trigger.setAttribute('aria-haspopup','listbox');
+    var val = el('span','vsz-val');
+    trigger.appendChild(val); trigger.appendChild(el('i','vsz-chev'));
+    root.appendChild(trigger);
+    sel.parentNode.insertBefore(root, sel);
+    sel.classList.add('vsz-native');
+    sel.tabIndex = -1; sel.setAttribute('aria-hidden','true');
+
+    function options(){
+      return Array.prototype.filter.call(sel.options, function(o){ return o.value !== ''; });
+    }
+    function placeholder(){
+      var f = sel.options[0];
+      return f && f.value === '' && f.textContent.trim() ? f.textContent.trim() : 'Select size...';
+    }
+    function current(){ return sel.selectedIndex > -1 && sel.value !== '' ? sel.options[sel.selectedIndex] : null; }
+
+    function syncTrigger(){
+      // the page hides the native select for bracelets (display:none) — mirror that
+      root.style.display = sel.style.display === 'none' ? 'none' : '';
+      val.innerHTML = '';
+      var c = current();
+      if(!c){ val.className = 'vsz-val vsz-ph'; val.textContent = placeholder(); }
+      else {
+        val.className = 'vsz-val';
+        var p = parts(c.textContent), b = el('b'); b.textContent = p.first;
+        val.appendChild(b);
+        if(p.rest.length) val.appendChild(el('span','vsz-sub',p.rest.join('   ')));
+      }
+      trigger.disabled = sel.disabled;
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function fire(){ sel.dispatchEvent(new Event('change',{bubbles:true})); }
+
+    function pick(opt){
+      sel.selectedIndex = opt.index;
+      fire(); close(); trigger.focus();
+    }
+
+    function buildRows(q){
+      list.innerHTML = '';
+      var c = current(), n = 0;
+      options().forEach(function(o){
+        if(q && o.textContent.toLowerCase().indexOf(q) < 0) return;
+        n++;
+        var p = parts(o.textContent);
+        var row = el('button','vsz-row'); row.type = 'button';
+        row.setAttribute('role','option');
+        row.setAttribute('aria-selected', o === c ? 'true' : 'false');
+        row.appendChild(segNode(p.first,'vsz-p'));
+        if(p.rest.length){
+          var s = el('span','vsz-s');
+          p.rest.forEach(function(seg){ s.appendChild(segNode(seg,'')); });
+          row.appendChild(s);
+        }
+        row.addEventListener('click', function(){ pick(o); });
+        list.appendChild(row);
+      });
+      if(!n) list.appendChild(el('div','vsz-empty', options().length ? 'No matching sizes.' : 'No sizes available for this jewelry type.'));
+    }
+
+    function place(){
+      if(!panel) return;
+      var r = trigger.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+      var w = Math.min(Math.max(r.width, 400), vw - 16);
+      var left = Math.min(Math.max(8, r.left), vw - w - 8);
+      var below = vh - r.bottom - 14, above = r.top - 14;
+      var want = 380, up = below < 260 && above > below;
+      var h = Math.max(180, Math.min(want, up ? above : below));
+      panel.style.width = w + 'px'; panel.style.left = left + 'px';
+      panel.style.maxHeight = h + 'px';
+      if(up){ panel.style.top = ''; panel.style.bottom = (vh - r.top + 6) + 'px'; }
+      else { panel.style.bottom = ''; panel.style.top = (r.bottom + 6) + 'px'; }
+    }
+
+    function openPanel(){
+      if(sel.disabled || open) return;
+      open = true; root.classList.add('vsz-open');
+      panel = el('div','vsz-panel'); panel.setAttribute('role','listbox');
+      var many = options().length > 8;
+      if(many){
+        var sw = el('div','vsz-search');
+        search = el('input'); search.type = 'text'; search.placeholder = 'Search size'; search.autocomplete = 'off';
+        search.addEventListener('input', function(){ buildRows(search.value.trim().toLowerCase()); place(); });
+        sw.appendChild(search); panel.appendChild(sw);
+      }
+      list = el('div','vsz-list'); panel.appendChild(list);
+      buildRows('');
+      if(current()){
+        var foot = el('div','vsz-foot');
+        foot.appendChild(el('span','', 'Selected: ' + parts(current().textContent).first));
+        var clr = el('button','vsz-clear','Clear'); clr.type = 'button';
+        clr.addEventListener('click', function(){ sel.selectedIndex = 0; if(sel.value !== '') sel.value = ''; fire(); close(); trigger.focus(); });
+        foot.appendChild(clr); panel.appendChild(foot);
+      }
+      document.body.appendChild(panel);
+      place(); syncTrigger();
+      var target = search || list.querySelector('[aria-selected="true"]') || list.querySelector('.vsz-row');
+      if(target) target.focus();
+      var sel0 = list.querySelector('[aria-selected="true"]'); if(sel0 && sel0.scrollIntoView) sel0.scrollIntoView({block:'nearest'});
+      // if the select is removed from the page (e.g. the inline editor closes), drop the panel too
+      guard = setInterval(function(){ if(!sel.isConnected) close(); }, 250);
+    }
+    function close(){
+      if(!open) return;
+      open = false; root.classList.remove('vsz-open');
+      if(panel){ panel.remove(); panel = null; list = null; search = null; }
+      if(guard){ clearInterval(guard); guard = null; }
+      syncTrigger();
+    }
+
+    trigger.addEventListener('click', function(){ open ? close() : openPanel(); });
+    trigger.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowDown' && !open){ e.preventDefault(); openPanel(); }
+    });
+    // keyboard navigation inside the panel
+    document.addEventListener('keydown', function(e){
+      if(!open || !panel) return;
+      if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); close(); trigger.focus(); return; }
+      if(e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      if(!panel.contains(document.activeElement)) return;
+      var rows = Array.prototype.slice.call(list.querySelectorAll('.vsz-row'));
+      if(!rows.length) return;
+      e.preventDefault();
+      var i = rows.indexOf(document.activeElement);
+      if(e.key === 'ArrowDown') (rows[i + 1] || rows[0]).focus();
+      else if(i <= 0 && search) search.focus();
+      else (rows[i - 1] || rows[rows.length - 1]).focus();
+    }, true);
+    document.addEventListener('mousedown', function(e){
+      if(open && !root.contains(e.target) && !(panel && panel.contains(e.target))) close();
+    });
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', function(e){ if(open && !(panel && panel.contains(e.target))) place(); }, true);
+
+    // keep in sync when page code sets sel.value / sel.selectedIndex directly
+    ['value','selectedIndex'].forEach(function(prop){
+      var d = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, prop);
+      if(!d) return;
+      Object.defineProperty(sel, prop, {
+        configurable: true,
+        get: function(){ return d.get.call(sel); },
+        set: function(v){ d.set.call(sel, v); syncTrigger(); if(open && list) buildRows(search ? search.value.trim().toLowerCase() : ''); }
+      });
+    });
+    // sizes are rebuilt when the jewelry type changes, and the select is hidden for bracelets
+    new MutationObserver(function(){
+      syncTrigger();
+      if(open && list) buildRows(search ? search.value.trim().toLowerCase() : '');
+    }).observe(sel, {childList:true, subtree:true, attributes:true, attributeFilter:['disabled','style']});
+    sel.addEventListener('change', syncTrigger);
+
+    var api = { refresh: function(){ syncTrigger(); } };
+    sel._vsz = api;
+    syncTrigger();
+    return api;
+  }
+
+  window.VieSizeSelect = { enhance: enhance };
+
+  function init(){
+    enhance(document.getElementById('f-size'));            // product form
+    enhance(document.getElementById('svm-size-select'));   // additional-sizes modal
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
 </script>
 <script src="admin-duplicate-name.js?v=8"></script>
 <script src="admin-version.js?v=4"></script>
