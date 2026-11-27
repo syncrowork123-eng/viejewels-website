@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Admin version shown in the bottom-right badge. Raise by 0.1 on every change (1.9 -> 2.0). -->
-  <meta name="vj-admin-version" content="1.8" />
+  <meta name="vj-admin-version" content="1.9" />
   <title>Admin | Vie Jewels</title>
   <!-- Favicon: the 32px icon is embedded so it works even when the icon files are not next to this page -->
   <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFa0lEQVR42u1XTWhc1xX+zr33zXszo5loLCmRAkpwQjCdRe1KVnZxDIFAQk3I4kLAMQYVLDtmFnKhXXQhXjddZVGG2rVsnMwQrWaVRaFxC/Vk1Sy8CWQwIemmjp002JLnzZuZ996993QxIyyVOJFpm4Ym3+rxfu75zvnuOfd7wA/4H4O2L9bW1gQAce0agKMArgFHjwIAXBiG7jtD9D++8NramgjD0P1sZeVlYvG0AA8cSAiwc6C8zfCHt9668LeTJ09ONhqNrVqt5gNAvV5Pjh+vlTc26t3l5eVSFEV9AKhUKv76+np/eXm5dOXKlUivruZx86ZttVrp8VqtvFEfvT8/Px+HYehUp9MhAFBQGQR+C2AgmIlIOElUFOReff75tRd9/7Y6c+ZMJUmSnnPuMQA3fd9WAHSVUhOFQiGz1sp+XxQB9AHsAxAVN4fTMXDrxIkTU6LbtbVazY/juBSGYQ8AyU6nw1pr2Wy+/cni4aWEQEeI6AsAKYA7RPSjqZk4W7/4+6uHDh2au3Tp0p2FhYXysWPHelG06S8tLaXWWul5niUiCaR85MgRjmOSBw7sH5ZKQbHZbN47ePDgTLPZ/GJxcfHxra2tzzudjtupLWmtxezsrEozdxXAjwH0AEiAGODACn4hi+MbbmKi6A0GqbVWSiltkhRpH4DYj1kpJYwxblSJopmeZi+KotT3fT9JkqRUKuWUUrZer3fHsVmMCXC1WuV6vZ5YcucAOIDGz9gBENJR3fd9S8YEURQlUk4Ubt0qpkRZsEmb1tqSlFIKpZRVSvnAl2mSiHyhUEg5CIJKpWKSJMnvDA4A2wQQhqHTWsvLFy5cZ8dvArwPQDaqArrMvASoXzYvXvxsampqUqksnZ7OKd/PqFwuk3N3Za8nRL9UIgDw/Sc8pbJ0MBiUky3Ri2M3NT8//4/thB/UXqS1FgBkZd/MVSI6uC0FAY6BojX2pcEg6kxOTnpdAPksoyTJm4kJI7tdQIie9X1feZ7Hzjm3maY5L02NEMI2Go2tndnvqsBOZq1WKzXkVgEYZhYAM4OZGSykfDMIAmWtlUVr5SjbgcqyjEw+I9/3FQD0+0IMlVL5QsGVSiXvq4JjXN5d2O6KjWbz1uLCs4IEvQRQBJAiwgDgZ4RUdPdO8KdcblhK0xREREOlqExExhjBXBBERDlkMH0OiOyX169fdw8z4e5LMTXzHoF+AiDa7gpm5AnudWOSv0opJ4wxZvfneRjPEA3hGZO7u7Gxe+PthHgAAa5Wq9xqtVJnsDrajKOuYDATgUEIx8MGQOBlmVKZGgEYeCJBIQiQfV3wr5RgG+12m7XW8p13GrcXFg8TEb0MICJAMSMhoieEkMUhcZuFKwYeYIeQRFYJITylSM7Nzf293W67f+eQIa21qFQqgsj7IwiL21Iw4MAogO0vAPcXa2WRKLNADgAHWdb/9EEbby8S7JJifX09A+jcfSmIAYAIBiTPWUsHrDC+tWLCOTMLZNFegn+tBP8qRbP59u3Di88yg386ng2KCBkRpiHwOFn+UAiaEULIe/c2P+h0Ovim4HsiMG5NaK3l/v1PftDrDZ4jwlNEGI6lSASJJx27wBqbCwL1bqPRiPbqIcQefQNXq1UOw9CAcY4ZyUgKZgIEwLFS6jWl5M3z589/rrWWe8n+oZ2O1lq2Wi27svLGKgO/GR3bLAAqM/P7c7Mzr4zPFd4rAfEwBFqtltNayxs3PqqD8D6ARxhEAGJn6ec7vCPvdU3xkBaOq9Uqt9ttMxpQFBMww879+vLl332stZbfioEda4yVlbO/Wjl99s87731rLpmZ6dSpU4XTp08/+t92zt/tHxtm/n5m/v+DfwJ99pPNWfVYrwAAAABJRU5ErkJggg==" />
@@ -1391,7 +1391,7 @@
       <div class="pm-top">
         <div class="pm-image">
           <div class="pm-image-main" id="pm-image-main">
-            <img id="pm-main-img" alt="Main product image" style="display:none" onerror="pmMainImgError()" />
+            <img id="pm-main-img" alt="Main product image" style="display:none" onload="pmMainImgLoaded()" onerror="pmMainImgError()" />
             <div class="pm-image-empty" id="pm-image-empty">Enter the SKU to load the product image</div>
           </div>
           <div class="pm-image-thumbs" id="pm-image-thumbs"></div>
@@ -1403,7 +1403,12 @@
       <p class="section-label">Style Identity</p>
       <div class="form-grid">
         <div class="form-group"><label>SKU (Unique) *</label><input type="text" id="f-sku" placeholder="E.G. VB1002" onchange="syncStdImagesFromSku()" /></div>
-        <div class="form-group"><label>Design Name</label><input type="text" id="f-name" placeholder="e.g. Petralia" /></div>
+        <div class="form-group"><label>Design Name</label><input type="text" id="f-name" placeholder="e.g. Petralia" /><div class="form-hint" id="f-name-hint"></div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button type="button" class="btn btn-secondary btn-sm" id="pm-suggest-btn" onclick="pmSuggest(true)" title="Suggest a design name, short description and product story from the main image">✨ Suggest from image</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="pm-name-next" onclick="pmNextName()" title="Try another unique design name">↻ Another name</button>
+        <span class="form-hint" id="pm-suggest-status"></span>
       </div>
 
       
@@ -3509,6 +3514,7 @@ function removeProductJewelCat(i){
 }
 
 function renderProductJewelCats(){
+  setTimeout(()=>{ try{ pmRecheckName(); }catch(e){} },0);
   const el = document.getElementById('f-jewel-cats-list');
   if(!productJewelCats.length){
     el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin-bottom:4px">No categories added yet — use the picker below</p>';
@@ -3742,6 +3748,7 @@ function openProductModal(id=null){
   origSetLinkIds=[];
   productMediaRows=[];
   pmPreviewIdx=0;
+  pmSugReset();
   document.getElementById("product-modal-title").textContent=id?"Edit Product":"Add Product";
 
   populateProductJewelTypeDropdown();
@@ -3903,6 +3910,132 @@ function pmMainImgError(){
   const img=document.getElementById("pm-main-img"), empty=document.getElementById("pm-image-empty");
   img.style.display="none"; empty.style.display=""; empty.textContent="Image not found — check the SKU / host";
 }
+// ══════ AI SUGGESTIONS (Add Product): design name, short description and product story, from the main image ══════
+// Calls the "suggest-product" Supabase Edge Function (it holds the AI key — never put the key in this file).
+const PM_SUGGEST_URL = SUPABASE_URL + "/functions/v1/suggest-product";
+let pmSug = { token:0, running:false, autoTried:false, cands:[], idx:0, timer:null };
+const pmEl = id => document.getElementById(id);
+function pmSugStatus(msg, err){ const s=pmEl("pm-suggest-status"); if(s){ s.textContent=msg||""; s.style.color=err?"#b3261e":"var(--text-muted)"; } }
+function pmSugReset(){
+  pmSug.token++; clearTimeout(pmSug.timer);
+  pmSug.running=false; pmSug.autoTried=false; pmSug.cands=[]; pmSug.idx=0;
+  ["f-name","f-short-desc","f-description"].forEach(id=>{ const e=pmEl(id); if(e) e.dataset.auto=""; });
+  pmSugStatus(""); const h=pmEl("f-name-hint"); if(h) h.textContent="";
+  const b=pmEl("pm-suggest-btn"); if(b) b.disabled=false;
+}
+// Typing in a field makes it "yours": automatic suggestions never overwrite it again
+["f-name","f-short-desc","f-description"].forEach(id=>{
+  const e=pmEl(id); if(!e) return;
+  e.addEventListener("input",()=>{ e.dataset.auto=""; if(id==="f-name") pmCheckName(); });
+});
+
+// "Same category" = the product's Jewelry Type(s) (Rings, Earrings, ...). Until one is added, every product counts.
+function pmScopeTypes(){
+  const t=[...new Set((productJewelCats||[]).map(c=>c.jewel_type).filter(Boolean))];
+  if(!t.length){ const v=pmEl("f-jcat-type")?.value; if(v) t.push(v); }
+  return t;
+}
+function pmUsedNames(types){
+  const lc=x=>String(x||"").trim().toLowerCase(), map=new Map();
+  (allProducts||[]).forEach(p=>{
+    if(!p.name || String(p.id)===String(editingProductId)) return;
+    const pt=(p.product_jewel_cats||[]).map(c=>lc(c.jewel_type));
+    if(!types.length || types.some(t=>pt.includes(lc(t)))) map.set(lc(p.name), p.sku||"");
+  });
+  return map;
+}
+function pmCheckName(){
+  const el=pmEl("f-name"), h=pmEl("f-name-hint"); if(!el||!h) return true;
+  const v=el.value.trim().toLowerCase(); if(!v){ h.textContent=""; return true; }
+  const types=pmScopeTypes(), used=pmUsedNames(types), scope=types.length?types.join(", "):"all products";
+  if(used.has(v)){ h.style.color="#b3261e"; h.textContent="⚠ Already used"+(used.get(v)?" by "+used.get(v):"")+" in "+scope; return false; }
+  h.style.color="var(--success)"; h.textContent="✓ Unique in "+scope; return true;
+}
+// Put the next suggested name that is not used yet into the Design Name box
+function pmPickName(){
+  const el=pmEl("f-name"); if(!el) return false;
+  const used=pmUsedNames(pmScopeTypes());
+  for(let k=pmSug.idx;k<pmSug.cands.length;k++){
+    const n=String(pmSug.cands[k]||"").trim();
+    if(n && !used.has(n.toLowerCase())){ el.value=n; el.dataset.auto="1"; pmSug.idx=k+1; pmCheckName(); return true; }
+  }
+  return false;
+}
+// If the category changes and an automatic name is now taken, swap it for the next free one
+function pmRecheckName(){
+  const el=pmEl("f-name"); if(!el) return;
+  if(el.dataset.auto==="1" && !pmCheckName()) pmPickName();
+  pmCheckName();
+}
+async function pmNextName(){
+  if(pmPickName()) return;
+  await pmSuggest(true,"name");
+}
+// The image is sent by its public link. Formats the AI can't read (bmp, tiff...) are converted to jpg by the image host.
+function pmAiUrl(u){
+  u=String(u||"");
+  if(/res\.cloudinary\.com/i.test(u) && u.includes("/upload/"))
+    return u.replace("/upload/","/upload/w_1024,c_limit,f_jpg,q_auto/").replace(/\.[A-Za-z0-9]+(\?.*)?$/,".jpg");
+  if(/ik\.imagekit\.io/i.test(u)) return u.split("?")[0]+"?tr=w-1024,f-jpg";
+  return u;
+}
+function pmMainImgLoaded(){
+  if(editingProductId || pmSug.autoTried) return;            // automatic only for NEW products, once per window
+  clearTimeout(pmSug.timer);
+  pmSug.timer=setTimeout(()=>{ if(!editingProductId && !pmSug.autoTried){ pmSug.autoTried=true; pmSuggest(false); } },700);
+}
+// manual=true  -> button press: replaces all three fields (asks first if you typed something)
+// manual=false -> automatic: fills only fields that are still empty
+// only="name"  -> just fetch more name ideas
+async function pmSuggest(manual, only){
+  const img=pmEl("pm-main-img");
+  if(!img || img.style.display==="none" || !img.complete || !img.naturalWidth){
+    if(manual) pmSugStatus("Enter the SKU / add a working image first.",true); return;
+  }
+  if(pmSug.running) return;
+  const f={name:pmEl("f-name"), short:pmEl("f-short-desc"), story:pmEl("f-description")};
+  const typed=el=>el.value.trim() && el.dataset.auto!=="1";
+  if(!manual && Object.values(f).every(typed)) return;
+  if(manual && !only && Object.values(f).some(typed) && !confirm("Replace the name, short description and story you typed with new suggestions?")) return;
+  const take=el=> manual ? true : (!el.value.trim() || el.dataset.auto==="1");
+
+  const types=pmScopeTypes(), first=productJewelCats[0]||{};
+  const tok0=pmSug.token, btn=pmEl("pm-suggest-btn");
+  pmSug.running=true; if(btn) btn.disabled=true; pmSugStatus("✨ Looking at the image…");
+  try{
+    const t=await adminToken();
+    const res=await fetch(PM_SUGGEST_URL,{method:"POST",
+      headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+t},
+      body:JSON.stringify({
+        image_url:pmAiUrl(img.currentSrc||img.src),
+        jewelry_type:types.join(", "), sub_type1:first.sub_type1||"", sub_type2:first.sub_type2||"",
+        existing_names:[...pmUsedNames(types).keys()].slice(0,800),
+        want: only==="name" ? "name" : "all"
+      })});
+    let data=null; try{ data=await res.json(); }catch(e){}
+    if(tok0!==pmSug.token) return;                          // window was closed / another product opened meanwhile
+    if(!res.ok || !data){
+      pmSugStatus(res.status===404 ? "Suggestion service is not set up yet (deploy the suggest-product function)." : ((data&&data.error)||("Suggestion failed ("+res.status+")")), true);
+      return;
+    }
+    let did=[];
+    if(Array.isArray(data.names) && data.names.length){
+      pmSug.cands=data.names; pmSug.idx=0;
+      if(only==="name" || take(f.name)){ if(pmPickName()) did.push("name"); else pmSugStatus("No unused name found — press ↻ Another name.",true); }
+    }
+    if(only!=="name"){
+      if(data.short_description && take(f.short)){ f.short.value=data.short_description; f.short.dataset.auto="1"; did.push("short description"); }
+      if(data.story && take(f.story)){ f.story.value=data.story; f.story.dataset.auto="1"; did.push("story"); }
+    }
+    if(did.length) pmSugStatus("Suggested: "+did.join(", ")+" — edit freely.");
+    else if(!pmEl("pm-suggest-status").textContent.startsWith("No unused")) pmSugStatus("Nothing to fill — fields already have your text.");
+  }catch(e){
+    if(tok0===pmSug.token) pmSugStatus("Suggestion failed: "+(e.message||e),true);
+  }finally{
+    if(tok0===pmSug.token){ pmSug.running=false; if(btn) btn.disabled=false; }
+  }
+}
+
 function renderProductMedia(){
   pmAutoSkips=0; renderProductImagePreview();
   const wrap=document.getElementById("f-media-list");
