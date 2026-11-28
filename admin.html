@@ -533,6 +533,7 @@
         <button class="btn btn-secondary" id="no-image-filter-btn" onclick="toggleNoImageFilter()" title="Show only products with no working image (missing or all broken)">📷 No Images Only</button>
         <button class="btn btn-secondary" onclick="applyStdImagesToAllProducts()" title="Adds SKU-W / Y / R / Model / Spot images to every product that is missing them">🖼 Apply SKU Images</button>
         <button class="btn btn-secondary" onclick="fixImageExtensionsForAllProducts()" title="Checks every saved image link and corrects the file extension (jpg / png / webp / bmp...) where the file on its host has a different one">🛠 Fix Image Extensions</button>
+        <button class="btn btn-secondary" onclick="ikSyncAll()" title="Reads the real file list from ImageKit and makes every product's images (names, new uploads, renames, deletions) match it">⟳ Sync with ImageKit</button>
         <button class="btn btn-secondary" id="export-products-btn" onclick="exportProductsXlsx()">⬇ Export Products</button>
         <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
       </div>
@@ -1474,6 +1475,7 @@
           <option value="auto">Auto — find each image on any host</option>
         </select>
       </div>
+      <div style="margin:0 0 8px"><button type="button" class="btn btn-secondary btn-sm" id="ik-sync-btn" onclick="ikSyncEditor()" title="Make this product's images match the files that are in ImageKit now (renamed, newly uploaded, deleted)">⟳ Sync from ImageKit</button> <span style="font-size:11px;color:var(--text-muted)">uses the files in ImageKit as the source of truth; click Save Product afterwards</span></div>
       <div class="media-list" id="f-media-list"></div>
       <div class="media-add-row">
         <div class="form-group"><label>Image / Video URL</label><input type="text" id="f-media-url" placeholder="https://res.cloudinary.com/.../photo.jpg" /></div>
@@ -3547,20 +3549,64 @@ function bangleSizeLabel(s){
 // bangle chart change have an older label, so fall back to matching on the
 // inner-diameter mm value; if nothing matches, keep the text in the custom box
 // so it is never silently lost on save.
+// Reads the measurements out of any size text (old or new format) as comparable tokens,
+// e.g. "ID 16.5mm / IND 14 / US 6" -> {id:"16.5", ind:"14", us:"6"}
+function sizeTokens(s){
+  const str = String(s||''), t = {};
+  const grab = (key, re, fix) => { const m = str.match(re); if(m){ let v = m[1].trim().toLowerCase(); t[key] = fix ? fix(v) : v; } };
+  const num = v => { const n = Number(v); return isNaN(n) ? v : String(n); };
+  grab('id',   /\bID\s*[:=]?\s*([\d.]+)\s*mm/i, num);
+  if(!t.id) grab('id', /([\d.]+)\s*mm\b/i, num);
+  if(!t.id) grab('id', /\bID\s*[:=]?\s*([\d.]+)/i, num);
+  grab('ind',  /\bIND(?:IA)?\s*[:=]?\s*([A-Za-z0-9.\/]+)/i);
+  grab('us',   /\bUS\s*[:=]?\s*([A-Za-z0-9.\/]+)/i);
+  grab('eu',   /\bEU(?:R|ROPE)?\s*[:=]?\s*([A-Za-z0-9.\/]+)/i);
+  grab('uk',   /\bUK\s*[:=]?\s*([A-Za-z0-9.\/]+)/i);
+  grab('anna', /\bAnna\s*([\d\-\/]+)/i);
+  grab('in',   /\bInches\s*([\d.]+)/i, num);
+  grab('circ', /\bCircumference\s*([\d.]+)/i, num);
+  return t;
+}
+const _normSize = s => String(s||'').toLowerCase().replace(/[\s"\u2033]+/g,'');
+
+// Select the dropdown option matching a saved size. Products saved with an older
+// size format are matched by their measurements (inner diameter mm, IND / US / EU / UK,
+// Anna, inches ...). If nothing matches, the text stays in the custom box AND is shown
+// in the dropdown itself, so it is never silently lost on save.
 function pickSizeOption(selId, customId, saved){
   const sel = document.getElementById(selId);
-  const val = String(saved || '');
+  const val = String(saved || '').trim();
   sv(customId, '');
-  if(!sel) return;
+  if(!sel){ return; }
+  const done = () => { if(sel._vsz) sel._vsz.refresh(); };
   sel.value = val;
-  if(val && sel.value === val) return;
-  const m = val.match(/ID\s*([\d.]+)\s*mm/i);
-  if(m){
-    const hit = [...sel.options].find(o => (o.value.match(/ID\s*([\d.]+)\s*mm/i)||[])[1] === m[1]);
-    if(hit){ sel.value = hit.value; return; }
+  if(val && sel.value === val){ done(); return; }
+  const opts = [...sel.options].filter(o => o.value !== '');
+  if(val){
+    // 1) same text ignoring spaces / quotes / case
+    const nv = _normSize(val);
+    let hit = opts.find(o => _normSize(o.value) === nv);
+    // 2) same measurements
+    if(!hit){
+      const st = sizeTokens(val), keys = Object.keys(st);
+      if(keys.length){
+        let best = null, bestScore = 0, tie = false;
+        opts.forEach(o => {
+          const ot = sizeTokens(o.value);
+          let score = 0, clash = false;
+          keys.forEach(k => { if(ot[k] !== undefined){ if(ot[k] === st[k]) score++; else clash = true; } });
+          if(clash || !score) return;
+          if(score > bestScore){ best = o; bestScore = score; tie = false; }
+          else if(score === bestScore){ tie = true; }
+        });
+        if(best && !tie) hit = best;
+      }
+    }
+    if(hit){ sel.value = hit.value; done(); return; }
   }
   sel.value = '';
   if(val) sv(customId, val);
+  done();
 }
 
 // Setting types come from the Labour Charges → Setting Charges table. Rows added there
@@ -8833,6 +8879,314 @@ async function jcfixApply(){
 })();
 
 </script>
+<!-- ── IMAGEKIT SYNC (Products: toolbar button + Edit Product button) ── -->
+<script>
+(function(){
+  'use strict';
+  var FOLDER = '/viejewels/products';
+  var IMG_RE = /\.(jpe?g|png|webp|gif|bmp|avif|tiff?)$/i;
+  var cache = null, plan = null;
+
+  function ls(k, v){
+    try{
+      if(v === undefined) return localStorage.getItem(k) || '';
+      if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v);
+    }catch(e){}
+    return '';
+  }
+  function endpoint(){
+    var m = String(CLOUD_PROVIDERS.imagekit.base).match(/^(https:\/\/ik\.imagekit\.io\/[^\/]+)/);
+    return m ? m[1] : '';
+  }
+  function fileUrl(f){
+    var p = f.path.split('/').map(function(s, i){ return i ? encodeURIComponent(s) : s; }).join('/');
+    return endpoint() + p + (f.updatedAt ? '?updatedAt=' + f.updatedAt : '');
+  }
+  function fileNameOfUrl(u){
+    var n = String(u || '').split('#')[0].split('?')[0].split('/').pop();
+    try{ return decodeURIComponent(n); }catch(e){ return n; }
+  }
+  function noExt(n){ return String(n).replace(/\.[^.]+$/, ''); }
+  function html(s){ return esc(s == null ? '' : String(s)); }
+
+  // ── 1. read the real file list from ImageKit ───────────────────────────
+  async function viaProxy(){
+    var url = ls('vj_ik_proxy') || (SUPABASE_URL + '/functions/v1/imagekit-files');
+    var tok = SUPABASE_KEY; try{ tok = (await adminToken()) || SUPABASE_KEY; }catch(e){}
+    var r = await fetch(url, { method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:'Bearer ' + tok, 'Content-Type':'application/json' }, body: JSON.stringify({ path: FOLDER }) });
+    if(!r.ok) throw new Error('the ImageKit edge function answered ' + r.status + (r.status === 404 ? ' (not deployed yet)' : ''));
+    var j = await r.json();
+    if(!j || !Array.isArray(j.files)) throw new Error('the edge function sent an unexpected reply');
+    return j.files;
+  }
+  async function viaKey(key){
+    var out = [], skip = 0;
+    for(;;){
+      var r = await fetch('https://api.imagekit.io/v1/files?path=' + encodeURIComponent(FOLDER) + '&type=file&limit=1000&skip=' + skip, { headers:{ Authorization:'Basic ' + btoa(key + ':') } });
+      if(!r.ok) throw new Error('ImageKit answered ' + r.status + (r.status === 401 ? ' (wrong private key)' : ''));
+      var page = await r.json(); out = out.concat(page);
+      if(page.length < 1000) break; skip += 1000;
+    }
+    return out;
+  }
+  async function fetchFiles(force){
+    if(cache && !force && Date.now() - cache.at < 120000) return cache.files;
+    var raw = null, why = [];
+    try{ raw = await viaProxy(); }catch(e){ why.push(e.message === 'Failed to fetch' ? 'the edge function could not be reached' : e.message); }
+    var key = ls('vj_ik_key');
+    if(!raw && key){
+      try{ raw = await viaKey(key); }
+      catch(e){ why.push(e.message === 'Failed to fetch' ? 'the browser blocked the direct call to ImageKit (CORS) - use the edge function instead' : e.message); }
+    }
+    if(!raw){ var err = new Error(why.join('; ') || 'no ImageKit connection set up'); err.needsSetup = true; throw err; }
+    var files = raw.filter(function(f){ return f && f.type !== 'folder' && f.name && (f.fileType === 'image' || IMG_RE.test(f.name)); })
+      .map(function(f){ return { name:f.name, path:f.filePath || (FOLDER + '/' + f.name), updatedAt: Date.parse(f.updatedAt || f.createdAt || '') || 0 }; });
+    if(!files.length){ var e0 = new Error('ImageKit returned no image files for ' + FOLDER + ' (check the folder path and the private key)'); e0.needsSetup = true; throw e0; }
+    cache = { files: files, at: Date.now() };
+    return files;
+  }
+
+  // ── 2. match files to products (by SKU) ────────────────────────────────
+  function indexFiles(files, products){
+    var skuMap = new Map();
+    products.forEach(function(p){ var s = String(p.sku || '').trim().toLowerCase(); if(s) skuMap.set(s, p); });
+    var idx = { byProduct:new Map(), orphans:[], byName:new Map(), byBase:new Map() };
+    files.forEach(function(f){
+      var ln = f.name.toLowerCase(), lb = noExt(ln);
+      var cur = idx.byName.get(ln); if(!cur || f.updatedAt > cur.updatedAt) idx.byName.set(ln, f);
+      cur = idx.byBase.get(lb);     if(!cur || f.updatedAt > cur.updatedAt) idx.byBase.set(lb, f);
+      var base = noExt(f.name), lc = base.toLowerCase(), best = null, bestLen = 0, cands = [lc];
+      for(var i = 1; i < lc.length; i++){ if('-_ .'.indexOf(lc[i]) >= 0) cands.push(lc.slice(0, i)); }
+      cands.forEach(function(c){ if(skuMap.has(c) && c.length > bestLen){ best = skuMap.get(c); bestLen = c.length; } });
+      if(!best){ idx.orphans.push(f); return; }
+      var rest = base.slice(bestLen).replace(/^[-_ .]+/, '');
+      // W / Y / R / Model / Spot, also when ImageKit added a random suffix to a re-upload (X-W_ab12cd3.jpg)
+      var m = rest.match(/^(W|Y|R|Model|Spot)(?:_[A-Za-z0-9]{5,10})?$/i);
+      var slot = m ? IMG_SUFFIXES.find(function(s){ return s.toLowerCase() === m[1].toLowerCase(); }) : null;
+      var e = idx.byProduct.get(String(best.id)); if(!e){ e = { slots:{}, extras:[] }; idx.byProduct.set(String(best.id), e); }
+      f.rest = rest;
+      if(slot){ (e.slots[slot] = e.slots[slot] || []).push(f); } else e.extras.push(f);
+    });
+    return idx;
+  }
+
+  // ── 3. work out what has to change for one product ─────────────────────
+  function planProduct(p, rows, idx, opts){
+    var e = idx.byProduct.get(String(p.id)) || { slots:{}, extras:[] };
+    var chosen = {}, dups = [];
+    IMG_SUFFIXES.forEach(function(s){
+      var arr = (e.slots[s] || []).slice().sort(function(a, b){ return b.updatedAt - a.updatedAt; });
+      if(arr.length){ chosen[s] = arr[0]; arr.slice(1).forEach(function(d){ dups.push(d.name); }); }
+    });
+    var used = new Set(), slotTaken = {};
+    var res = { patch:[], del:[], add:[], refreshed:0, dups:dups, lines:[], kept:0 };
+    var imgRows = rows.filter(function(r){ return r.media_type !== 'video' && r.url; });
+    imgRows.forEach(function(r){
+      var s = mediaRowSuffix(r), target = null, dupRow = false;
+      if(s && chosen[s]){
+        if(slotTaken[s]) dupRow = true; else { target = chosen[s]; slotTaken[s] = true; }
+      } else {
+        var nm = fileNameOfUrl(r.url).toLowerCase();
+        var f = idx.byName.get(nm) || idx.byBase.get(noExt(nm));
+        if(f){ if(used.has(f.path)) dupRow = true; else target = f; }
+      }
+      if(dupRow){ res.del.push(r); res.lines.push('\u2212 duplicate removed: ' + fileNameOfUrl(r.url)); return; }
+      if(target){
+        used.add(target.path);
+        var set = {}, nu = fileUrl(target);
+        var slotName = IMG_SUFFIXES.find(function(x){ return chosen[x] === target; });
+        var alt = slotName || r.alt_text || target.rest || null;
+        if(r.url !== nu) set.url = nu;
+        if((r.alt_text || null) !== alt) set.alt_text = alt;
+        if(Object.keys(set).length){
+          res.patch.push({ row:r, set:set });
+          if(set.url && String(r.url).split('?')[0] === nu.split('?')[0]) res.refreshed++;
+          else res.lines.push('\u270E ' + (slotName || 'image') + ': ' + fileNameOfUrl(r.url) + '  \u2192  ' + target.name);
+        } else res.kept++;
+        return;
+      }
+      var onIK = String(r.url).toLowerCase().indexOf((endpoint() + FOLDER + '/').toLowerCase()) === 0;   // only files that should be in the synced folder
+      if(onIK && opts.removeStale){ res.del.push(r); res.lines.push('\u2212 not in ImageKit any more: ' + fileNameOfUrl(r.url)); }
+      else res.kept++;
+    });
+    IMG_SUFFIXES.forEach(function(s){
+      var f = chosen[s];
+      if(f && !used.has(f.path)){ used.add(f.path); res.add.push({ url:fileUrl(f), alt_text:s, media_type:'image' }); res.lines.push('+ added ' + s + ': ' + f.name); }
+    });
+    if(opts.addExtras) e.extras.slice().sort(function(a, b){ return a.name.localeCompare(b.name); }).forEach(function(f){
+      if(used.has(f.path)) return; used.add(f.path);
+      res.add.push({ url:fileUrl(f), alt_text:f.rest || null, media_type:'image' }); res.lines.push('+ added: ' + f.name);
+    });
+    // exactly one primary image: keep the current one if it survives, else W, else the first
+    var gone = new Set(res.del);
+    var remain = imgRows.filter(function(r){ return !gone.has(r); });
+    if(remain.length + res.add.length){
+      var prim = remain.find(function(r){ return r.is_primary; });
+      if(!prim){
+        var w = remain.find(function(r){ return mediaRowSuffix(r) === 'W'; });
+        if(w){ prim = w; res.patch.push({ row:w, set:{ is_primary:true } }); }
+        else {
+          var aw = res.add.find(function(a){ return a.alt_text === 'W'; }) || (!remain.length ? res.add[0] : null);
+          if(aw) aw.is_primary = true; else if(remain[0]){ res.patch.push({ row:remain[0], set:{ is_primary:true } }); }
+        }
+      }
+    }
+    res.changed = res.patch.length + res.del.length + res.add.length > 0;
+    return res;
+  }
+
+  // ── 4. dialog ──────────────────────────────────────────────────────────
+  var ov = null;
+  function closeDlg(){ if(ov){ ov.remove(); ov = null; } }
+  function dlg(inner){
+    if(!ov){
+      ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99990;display:flex;align-items:center;justify-content:center;padding:16px';
+      ov.addEventListener('mousedown', function(e){ if(e.target === ov && !ov._busy) closeDlg(); });
+      document.body.appendChild(ov);
+    }
+    ov.innerHTML = '<div style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;width:100%;max-width:720px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)"><b style="font-size:16px">Sync images with ImageKit</b><button class="modal-close" id="ik-x" style="font-size:22px;background:none;border:none;cursor:pointer;color:var(--text-muted)">\u00d7</button></div>' +
+      '<div style="padding:18px 20px;overflow:auto;font-size:13px;line-height:1.55">' + inner + '</div></div>';
+    ov.querySelector('#ik-x').onclick = function(){ if(!ov._busy) closeDlg(); };
+    return ov;
+  }
+  var INPUT = 'width:100%;padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;margin-top:4px';
+
+  function setupView(msg){
+    dlg('<p style="color:var(--danger);margin:0 0 10px"><b>Could not read the ImageKit file list:</b> ' + html(msg) + '</p>' +
+      '<p style="margin:0 0 10px">The admin needs ImageKit\u2019s file list to see uploads, renames and deletions. ImageKit only gives that out with your <b>private key</b>, so it is kept on the server in a small Supabase Edge Function, not in this page.</p>' +
+      '<ol style="margin:0 0 14px 18px;padding:0"><li>In Supabase \u2192 Edge Functions, create a function named <b>imagekit-files</b> and paste the code from the file <b>imagekit-files/index.ts</b> that came with this admin.</li>' +
+      '<li>Supabase \u2192 Edge Functions \u2192 Secrets: add <b>IMAGEKIT_PRIVATE_KEY</b> (ImageKit \u2192 Developer options \u2192 API keys \u2192 Private key).</li><li>Come back here and press <b>Try again</b>.</li></ol>' +
+      '<details style="margin-bottom:14px"><summary style="cursor:pointer;color:var(--text-muted)">Quick alternative: paste the private key here (stored only in this browser)</summary>' +
+      '<input id="ik-key" type="password" placeholder="private_xxxxxxxx=" value="' + html(ls('vj_ik_key')) + '" style="' + INPUT + '" autocomplete="off" />' +
+      '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Works only if ImageKit allows browser calls; if you still get an error, use the edge function.</div></details>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-secondary" id="ik-cancel">Close</button><button class="btn btn-primary" id="ik-retry">Try again</button></div>');
+    ov.querySelector('#ik-cancel').onclick = closeDlg;
+    ov.querySelector('#ik-retry').onclick = function(){ var k = ov.querySelector('#ik-key'); if(k) ls('vj_ik_key', k.value.trim() || null); run(true); };
+  }
+
+  function computePlan(files, opts){
+    var products = (allProducts || []).filter(function(p){ return String(p.sku || '').trim(); });
+    var idx = indexFiles(files, products), out = [];
+    products.forEach(function(p){
+      var r = planProduct(p, p.product_media || [], idx, opts);
+      if(r.changed || r.refreshed || r.dups.length) out.push({ p:p, r:r });
+    });
+    return { items:out, idx:idx, files:files, opts:opts };
+  }
+
+  function reviewView(){
+    var o = plan.opts, items = plan.items;
+    var tot = { patch:0, del:0, add:0, refreshed:0, prods:0 };
+    items.forEach(function(it){ tot.patch += it.r.patch.filter(function(x){ return x.set.url || x.set.alt_text; }).length - it.r.refreshed; tot.del += it.r.del.length; tot.add += it.r.add.length; tot.refreshed += it.r.refreshed; if(it.r.changed) tot.prods++; });
+    var lines = [];
+    items.forEach(function(it){
+      it.r.lines.forEach(function(l){ lines.push('<div><span style="color:var(--text-muted)">' + html(it.p.sku) + '</span> &nbsp;' + html(l) + '</div>'); });
+      it.r.dups.forEach(function(d){ lines.push('<div style="color:var(--text-muted)"><span>' + html(it.p.sku) + '</span> &nbsp;\u26A0 older duplicate left alone in ImageKit: ' + html(d) + '</div>'); });
+    });
+    var shown = lines.slice(0, 400).join('') + (lines.length > 400 ? '<div style="color:var(--text-muted)">\u2026and ' + (lines.length - 400) + ' more</div>' : '');
+    var orph = plan.idx.orphans;
+    dlg('<p style="margin:0 0 12px">ImageKit folder <b>' + html(FOLDER) + '</b> has <b>' + plan.files.length + '</b> image files; <b>' + (plan.files.length - orph.length) + '</b> belong to a product SKU.' +
+      (orph.length ? ' <span style="color:var(--text-muted)">' + orph.length + ' do not start with any SKU (ignored).</span>' : '') + '</p>' +
+      '<label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" id="ik-o-stale" ' + (o.removeStale ? 'checked' : '') + '> Remove image rows whose file is no longer in ImageKit (renamed / deleted)</label>' +
+      '<label style="display:flex;gap:8px;align-items:center;margin:6px 0 14px"><input type="checkbox" id="ik-o-extra" ' + (o.addExtras ? 'checked' : '') + '> Add other images found for a SKU (not just W / Y / R / Model / Spot)</label>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">' +
+      [['Products changed', tot.prods], ['Renamed / re-pointed', Math.max(0, tot.patch)], ['Added', tot.add], ['Removed', tot.del], ['Version refreshed', tot.refreshed]].map(function(x){
+        return '<div style="flex:1;min-width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:18px;font-weight:700">' + x[1] + '</div><div style="font-size:11px;color:var(--text-muted)">' + x[0] + '</div></div>'; }).join('') + '</div>' +
+      (shown ? '<div style="max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;background:var(--surface2)">' + shown + '</div>' : '<p style="color:var(--success)">Everything already matches ImageKit.</p>') +
+      '<p style="font-size:11px;color:var(--text-muted);margin:10px 0 0">Images that are not on ImageKit (e.g. Cloudinary links with no matching file) and videos are never touched. The website reads the same product_media table, so it follows as soon as this is applied.</p>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-secondary" id="ik-rescan">Refresh from ImageKit</button><button class="btn btn-secondary" id="ik-cancel">Close</button>' +
+      '<button class="btn btn-primary" id="ik-apply"' + ((tot.patch + tot.del + tot.add + tot.refreshed) ? '' : ' disabled') + '>Apply to database</button></div>');
+    var rebuild = function(){ plan = computePlan(plan.files, { removeStale: ov.querySelector('#ik-o-stale').checked, addExtras: ov.querySelector('#ik-o-extra').checked }); reviewView(); };
+    ov.querySelector('#ik-o-stale').onchange = rebuild; ov.querySelector('#ik-o-extra').onchange = rebuild;
+    ov.querySelector('#ik-cancel').onclick = closeDlg;
+    ov.querySelector('#ik-rescan').onclick = function(){ run(true); };
+    ov.querySelector('#ik-apply').onclick = applyAll;
+  }
+
+  // ── 5. write to the database ───────────────────────────────────────────
+  async function patchRow(p, row, set){
+    var res = null;
+    try{ res = await sb('product_media?id=eq.' + row.id, 'PATCH', set); }catch(e){ res = null; }
+    if(Array.isArray(res) && res.length) return true;
+    try{                                              // blocked update: replace the row instead
+      await sb('product_media?id=eq.' + row.id, 'DELETE');
+      await sb('product_media', 'POST', { product_id:p.id, url:set.url || row.url, media_type:row.media_type || 'image', is_primary:set.is_primary !== undefined ? set.is_primary : !!row.is_primary, alt_text:set.alt_text !== undefined ? set.alt_text : (row.alt_text || null), sort_order:row.sort_order || 0 });
+      return true;
+    }catch(e){ console.error('ImageKit sync: could not update', p.sku, e.message); return false; }
+  }
+  async function applyAll(){
+    var items = plan.items.filter(function(it){ return it.r.changed; });
+    if(!items.length){ closeDlg(); return; }
+    ov._busy = true;
+    var done = 0, fail = 0, i = 0;
+    var bar = function(){ var pct = Math.round(done / items.length * 100); dlg('<p style="margin:0 0 10px">Applying to the database\u2026 <b>' + pct + '%</b> (' + done + ' of ' + items.length + ' products)</p><div style="height:10px;background:var(--surface2);border-radius:5px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:var(--accent)"></div></div><p style="font-size:11px;color:var(--text-muted);margin-top:10px">Keep this tab open until it finishes.</p>'); ov._busy = true; };
+    bar();
+    var worker = async function(){
+      while(i < items.length){
+        var it = items[i++], p = it.p, r = it.r;
+        try{
+          for(var k = 0; k < r.patch.length; k++){ if(!(await patchRow(p, r.patch[k].row, r.patch[k].set))) fail++; }
+          if(r.del.length) await sb('product_media?id=in.(' + r.del.map(function(x){ return x.id; }).join(',') + ')', 'DELETE');
+          if(r.add.length){
+            var order = (p.product_media || []).reduce(function(m, x){ return Math.max(m, x.sort_order || 0); }, -1) + 1;
+            await sbBulk('product_media', 'POST', r.add.map(function(a){ return { product_id:p.id, url:a.url, media_type:'image', alt_text:a.alt_text || null, is_primary:!!a.is_primary, sort_order:order++ }; }));
+          }
+        }catch(e){ fail++; console.error('ImageKit sync failed for', p.sku, e.message); }
+        done++; if(done % 3 === 0 || done === items.length) bar();
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    try{ if(typeof productMediaStatus !== 'undefined') productMediaStatus.clear(); }catch(e){}
+    try{ await loadProducts(); }catch(e){}
+    ov._busy = false;
+    dlg('<p style="margin:0 0 8px;font-size:15px"><b style="color:' + (fail ? 'var(--danger)' : 'var(--success)') + '">' + (fail ? 'Finished with ' + fail + ' problem(s)' : 'Done') + '</b></p>' +
+      '<p style="margin:0">' + items.length + ' product(s) were synced with ImageKit' + (fail ? '; some updates could not be saved (see the browser console, F12).' : '. The Products list and the website now show the images that are in ImageKit.') + '</p>' +
+      '<div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn btn-primary" id="ik-ok">OK</button></div>');
+    ov.querySelector('#ik-ok').onclick = closeDlg;
+    try{ toast(fail ? 'ImageKit sync finished with problems.' : 'Images synced with ImageKit.', fail ? 'error' : 'success'); }catch(e){}
+  }
+
+  // ── 6. entry points ────────────────────────────────────────────────────
+  async function run(force){
+    dlg('<p style="margin:0">Reading the file list from ImageKit\u2026</p>');
+    try{
+      var files = await fetchFiles(force);
+      plan = computePlan(files, { removeStale:true, addExtras:true });
+      reviewView();
+    }catch(e){ if(e.needsSetup) setupView(e.message); else { dlg('<p style="color:var(--danger)">' + html(e.message) + '</p><div style="text-align:right"><button class="btn btn-secondary" id="ik-cancel">Close</button></div>'); ov.querySelector('#ik-cancel').onclick = closeDlg; } }
+  }
+  window.ikSyncAll = function(){ run(false); };
+
+  // Edit Product: fix this product's image rows (in the editor only; Save Product keeps them)
+  window.ikSyncEditor = async function(){
+    var sku = String(gv('f-sku') || '').trim();
+    if(!sku){ toast('Enter the SKU first.', 'error'); return; }
+    var btn = document.getElementById('ik-sync-btn'); if(btn){ btn.disabled = true; btn.textContent = 'Reading ImageKit\u2026'; }
+    try{
+      var files = await fetchFiles(false);
+      var stub = { id:'editor', sku:sku };
+      var idx = indexFiles(files, [stub]);
+      var rows = productMediaRows;
+      var r = planProduct(stub, rows, idx, { removeStale:true, addExtras:true });
+      var gone = new Set(r.del);
+      r.patch.forEach(function(x){ Object.keys(x.set).forEach(function(k){ x.row[k] = x.set[k]; }); });
+      var next = rows.filter(function(x){ return !gone.has(x); });
+      r.add.forEach(function(a){ next.push({ url:a.url, media_type:'image', alt_text:a.alt_text || '', is_primary:!!a.is_primary }); });
+      next.forEach(function(x){ x._auto = false; x._probe = false; x._anyHost = false; });
+      try{ _smartToken++; }catch(e){}
+      productMediaRows.length = 0; next.forEach(function(x){ productMediaRows.push(x); });
+      renderProductMedia();
+      var n = r.patch.length + r.add.length + r.del.length;
+      toast(n ? 'Synced with ImageKit: ' + r.patch.length + ' updated, ' + r.add.length + ' added, ' + r.del.length + ' removed. Click Save Product to keep.' : 'Images already match ImageKit.');
+    }catch(e){
+      toast('ImageKit: ' + e.message, 'error'); if(e.needsSetup) run(false);
+    }finally{ if(btn){ btn.disabled = false; btn.textContent = '\u27F3 Sync from ImageKit'; } }
+  };
+})();
+</script>
+
 <!-- ── PREMIUM SIZE PICKER (Products: product form, Sizes modal, inline cell editor) ── -->
 <script>
 (function(){
@@ -8905,6 +9259,8 @@ async function jcfixApply(){
     injectCss();
 
     var open = false, panel = null, list = null, search = null, guard = null;
+    var customId = {'f-size':'f-size-custom','svm-size-select':'svm-size-custom','ce-size-sel':'ce-size-custom'}[sel.id];
+    var customEl = customId ? document.getElementById(customId) : null;
     var root = el('div', 'vsz' + (sel.classList.contains('ce-in') ? ' vsz-sm' : ''));
     var trigger = el('button', 'vsz-trigger'); trigger.type = 'button';
     trigger.setAttribute('aria-haspopup','listbox');
@@ -8929,7 +9285,13 @@ async function jcfixApply(){
       root.style.display = sel.style.display === 'none' ? 'none' : '';
       val.innerHTML = '';
       var c = current();
-      if(!c){ val.className = 'vsz-val vsz-ph'; val.textContent = placeholder(); }
+      var cu = !c && customEl && customEl.value.trim() ? customEl.value.trim() : '';
+      if(!c && cu){
+        val.className = 'vsz-val';
+        var cb = el('b'); cb.textContent = cu; val.appendChild(cb);
+        val.appendChild(el('span','vsz-sub','Custom size'));
+      }
+      else if(!c){ val.className = 'vsz-val vsz-ph'; val.textContent = placeholder(); }
       else {
         val.className = 'vsz-val';
         var p = parts(c.textContent), b = el('b'); b.textContent = p.first;
@@ -9059,6 +9421,7 @@ async function jcfixApply(){
       if(open && list) buildRows(search ? search.value.trim().toLowerCase() : '');
     }).observe(sel, {childList:true, subtree:true, attributes:true, attributeFilter:['disabled','style']});
     sel.addEventListener('change', syncTrigger);
+    if(customEl) customEl.addEventListener('input', syncTrigger);
 
     var api = { refresh: function(){ syncTrigger(); } };
     sel._vsz = api;
