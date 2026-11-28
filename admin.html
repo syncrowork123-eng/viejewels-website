@@ -9006,7 +9006,9 @@ async function jcfixApply(){
         return;
       }
       var onIK = String(r.url).toLowerCase().indexOf((endpoint() + FOLDER + '/').toLowerCase()) === 0;   // only files that should be in the synced folder
+      var onProductInIK = (e.extras.length > 0) || IMG_SUFFIXES.some(function(x){ return (e.slots[x] || []).length; });
       if(onIK && opts.removeStale){ res.del.push(r); res.lines.push('\u2212 not in ImageKit any more: ' + fileNameOfUrl(r.url)); }
+      else if(opts.strict && s && onProductInIK){ res.del.push(r); res.lines.push('\u2212 ' + s + ' is not in ImageKit (placeholder on another host): ' + fileNameOfUrl(r.url)); }
       else res.kept++;
     });
     IMG_SUFFIXES.forEach(function(s){
@@ -9090,6 +9092,7 @@ async function jcfixApply(){
     dlg('<p style="margin:0 0 12px">ImageKit folder <b>' + html(FOLDER) + '</b> has <b>' + plan.files.length + '</b> image files; <b>' + (plan.files.length - orph.length) + '</b> belong to a product SKU.' +
       (orph.length ? ' <span style="color:var(--text-muted)">' + orph.length + ' do not start with any SKU (ignored).</span>' : '') + '</p>' +
       '<label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" id="ik-o-stale" ' + (o.removeStale ? 'checked' : '') + '> Remove image rows whose file is no longer in ImageKit (renamed / deleted)</label>' +
+      '<label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" id="ik-o-strict" ' + (o.strict ? 'checked' : '') + '> Also remove W / Y / R / Model / Spot rows that are missing in ImageKit, even if they point to Cloudinary (only for products that have images in ImageKit)</label>' +
       '<label style="display:flex;gap:8px;align-items:center;margin:6px 0 14px"><input type="checkbox" id="ik-o-extra" ' + (o.addExtras ? 'checked' : '') + '> Add other images found for a SKU (not just W / Y / R / Model / Spot)</label>' +
       '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">' +
       [['Products changed', tot.prods], ['Renamed / re-pointed', Math.max(0, tot.patch)], ['Added', tot.add], ['Removed', tot.del], ['Version refreshed', tot.refreshed]].map(function(x){
@@ -9098,8 +9101,8 @@ async function jcfixApply(){
       '<p style="font-size:11px;color:var(--text-muted);margin:10px 0 0">Images that are not on ImageKit (e.g. Cloudinary links with no matching file) and videos are never touched. The website reads the same product_media table, so it follows as soon as this is applied.</p>' +
       '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-secondary" id="ik-rescan">Refresh from ImageKit</button><button class="btn btn-secondary" id="ik-cancel">Close</button>' +
       '<button class="btn btn-primary" id="ik-apply"' + ((tot.patch + tot.del + tot.add + tot.refreshed) ? '' : ' disabled') + '>Apply to database</button></div>');
-    var rebuild = function(){ plan = computePlan(plan.files, { removeStale: ov.querySelector('#ik-o-stale').checked, addExtras: ov.querySelector('#ik-o-extra').checked }); reviewView(); };
-    ov.querySelector('#ik-o-stale').onchange = rebuild; ov.querySelector('#ik-o-extra').onchange = rebuild;
+    var rebuild = function(){ plan = computePlan(plan.files, { removeStale: ov.querySelector('#ik-o-stale').checked, addExtras: ov.querySelector('#ik-o-extra').checked, strict: ov.querySelector('#ik-o-strict').checked }); reviewView(); };
+    ov.querySelector('#ik-o-stale').onchange = rebuild; ov.querySelector('#ik-o-extra').onchange = rebuild; ov.querySelector('#ik-o-strict').onchange = rebuild;
     ov.querySelector('#ik-cancel').onclick = closeDlg;
     ov.querySelector('#ik-rescan').onclick = function(){ run(true); };
     ov.querySelector('#ik-apply').onclick = applyAll;
@@ -9153,7 +9156,7 @@ async function jcfixApply(){
     dlg('<p style="margin:0">Reading the file list from ImageKit\u2026</p>');
     try{
       var files = await fetchFiles(force);
-      plan = computePlan(files, { removeStale:true, addExtras:true });
+      plan = computePlan(files, { removeStale:true, addExtras:true, strict:true });
       reviewView();
     }catch(e){ if(e.needsSetup) setupView(e.message); else { dlg('<p style="color:var(--danger)">' + html(e.message) + '</p><div style="text-align:right"><button class="btn btn-secondary" id="ik-cancel">Close</button></div>'); ov.querySelector('#ik-cancel').onclick = closeDlg; } }
   }
@@ -9169,7 +9172,7 @@ async function jcfixApply(){
       var stub = { id:'editor', sku:sku };
       var idx = indexFiles(files, [stub]);
       var rows = productMediaRows;
-      var r = planProduct(stub, rows, idx, { removeStale:true, addExtras:true });
+      var r = planProduct(stub, rows, idx, { removeStale:true, addExtras:true, strict:true });
       var gone = new Set(r.del);
       r.patch.forEach(function(x){ Object.keys(x.set).forEach(function(k){ x.row[k] = x.set[k]; }); });
       var next = rows.filter(function(x){ return !gone.has(x); });
